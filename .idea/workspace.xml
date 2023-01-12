@@ -10,9 +10,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile v1.4.2/Movefile v1.4.2.exe" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v1.4.2.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile v1.4.2/Movefile v1.4.2.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v1.4.2.pyw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile v1.4.2/Movefile_icon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile_icon.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,7 +91,7 @@
       <workItem from="1673481144506" duration="1410000" />
       <workItem from="1673482876554" duration="3027000" />
       <workItem from="1673501378165" duration="118000" />
-      <workItem from="1673501540628" duration="4515000" />
+      <workItem from="1673501540628" duration="5011000" />
     </task>
     <servers />
   </component>
