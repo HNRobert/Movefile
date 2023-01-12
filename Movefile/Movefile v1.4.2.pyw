@@ -619,7 +619,7 @@ def moveDir(old__path, new__path, passfile, pass__format, t, mode, is__movefolde
             continue
         is_folder = os.path.isdir(file)
         now = int(time.time())  # 当前时间
-        if (not is_folder and ((file not in passfile) or pf)) or (is_folder and file not in passfile and is__movefolder):  # 判断是否不在项目或文件格式白名单内
+        if (not is_folder and ((file not in passfile) or pf)) or (is_folder and file not in passfile and is__movefolder):  # 判断移动条件
             if mode == 1:
                 last = int(os.stat(filePath).st_mtime)  # 最后一次修改的时间 (Option 1)
             elif mode == 2:
