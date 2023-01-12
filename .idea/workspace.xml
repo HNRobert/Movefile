@@ -9,9 +9,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/25674.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/25674.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile v1.4.0/Movefile v1.4.0.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile v1.4.0/Movefile v1.4.0.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +81,7 @@
       <workItem from="1673473462131" duration="317000" />
       <workItem from="1673473787804" duration="1848000" />
       <workItem from="1673481144506" duration="1410000" />
-      <workItem from="1673482876554" duration="1517000" />
+      <workItem from="1673482876554" duration="2319000" />
     </task>
     <servers />
   </component>
