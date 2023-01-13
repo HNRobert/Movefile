@@ -69,4 +69,9 @@ pyw文件是代码源文件，还有一个是图标的Base64编码；
 如果不想用此方法，则过期时间设为"0"即可
 
 # 移动文件流程图：
-如下：
+![流程图](https://user-images.githubusercontent.com/120773486/212371363-01cd7daf-1114-4c2c-bd11-bbe22e9d2783.png)
+
+# 特别鸣谢：
+本程序中的多选下拉列表框的组件代码改编自CSDN博主【只为你开心】的【Python tkinter自定义多选下拉列表框(带滚动条、全选)】，微调数据并添加了改变选择框高度的功能
+
+（ https://blog.csdn.net/weixin_45774074/article/details/123293411 ）
