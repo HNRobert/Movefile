@@ -20,9 +20,11 @@ pyw文件是代码源文件，还有一个是图标的Base64编码；
 # pyw文件打包说明：
 本项目开源，可以下载pyw文件与图表文件自行更改源代码
 
-打包方法：
+pyinstaller打包法：
 
-先要安装python环境，python安装完后
+先要安装python环境，python安装完后打开cmd安装pyinstaller (pip install pyinstaller)
+
+安装完成后，现将【movefile vX.X.X.pyw】改名为【Movefile.pyw】，接着在文件夹内放入ico文件与其他配置文件，然后在【movefile vX.X.X.pyw】所在文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.pyw --onefile】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
 
 # 使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
