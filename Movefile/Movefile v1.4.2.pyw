@@ -263,8 +263,8 @@ def data_error():
         mode_ = cf.getint('Movefile_settings', 'mode')
         move_folder = cf.get('Movefile_settings', 'move_folder')
         autorun_ = cf.get('Movefile_settings', 'autorun')
-        moveDir(old__path=old_path_, new__path=new_path_, passfile=passfile, pass__format=passformat, t=time_,
-                mode=mode_, is__movefolder=False, test=True)
+        move_dir(old__path=old_path_, new__path=new_path_, passfile=passfile, pass__format=passformat, t=time_,
+                 mode=mode_, is__movefolder=False, test=True)
         if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
             return False
         else:
@@ -314,7 +314,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
         except:
             pass
 
-    def selectPath(place, ori_content):
+    def selectpath(place, ori_content):
         path_ = tkinter.filedialog.askdirectory()
         path_ = path_.replace("/", "\\")
         if path_ != '' and path_ != ori_content:
@@ -346,7 +346,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
     label_old_path.grid(row=0, column=0, pady=5, sticky='E')
     entry_old_path = ttk.Entry(root, textvariable=oldpath)
     entry_old_path.grid(row=0, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-    ttk.Button(root, text="浏览", command=lambda: selectPath(place='old', ori_content=entry_old_path.get())).grid(row=0,
+    ttk.Button(root, text="浏览", command=lambda: selectpath(place='old', ori_content=entry_old_path.get())).grid(row=0,
                                                                                                                   column=1,
                                                                                                                   ipadx=3,
                                                                                                                   sticky='E',
@@ -356,7 +356,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
     label_new_path.grid(row=1, column=0, pady=5, sticky='E')
     entry_new_path = ttk.Entry(root, textvariable=newpath)
     entry_new_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-    ttk.Button(root, text="浏览", command=lambda: selectPath(place='new', ori_content=entry_new_path.get())).grid(row=1,
+    ttk.Button(root, text="浏览", command=lambda: selectpath(place='new', ori_content=entry_new_path.get())).grid(row=1,
                                                                                                                   column=1,
                                                                                                                   ipadx=3,
                                                                                                                   sticky='E',
@@ -459,7 +459,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
             cf.set("Movefile_settings", "move_folder", str(is_foldermove.get()))
             cf.write(open(data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
             tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
-            B2.config(state=tk.NORMAL)
+            bt2.config(state=tk.NORMAL)
 
     def openini(askpath=True):
         if askpath:
@@ -489,7 +489,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
         is_autorun.set(cffile.get("Movefile_settings", 'autorun'))
         is_foldermove.set(cffile.get('Movefile_settings', 'move_folder'))
 
-    def Helpfunc():
+    def helpfunc():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
@@ -508,7 +508,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
 作者QQ：2567466856
 """)
 
-    def Help_keep():
+    def help_keep():
         tkinter.messagebox.showinfo(title='Movefile', message="""保留项目/文件格式选择功能详解：
 
 保留项目选择：
@@ -518,7 +518,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
 某种格式类型的文件都不会被转移
 比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""")
 
-    def Help_timeset():
+    def help_timeset():
         tkinter.messagebox.showinfo(title='Movefile', message="""过期时间功能详解：
 
 本软件可以获取文件的最后修改、访问时间
@@ -527,7 +527,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
 则运行日期前两天内修改过的文件不会被删除
 如果不想用此方法，则过期时间设为"0"即可""")
 
-    def Help_before_use():
+    def help_before_use():
         tkinter.messagebox.showinfo(title='Movefile', message="""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
   后续将推出32位操作系统版本
@@ -559,11 +559,11 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
             show_notice()
 
     # 创建按键
-    B1 = ttk.Button(root, text='保存', command=savefile)
-    B1.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='W')
-    B2 = ttk.Button(root, text='继续', command=continue_going)
-    B2.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='E')
-    B2.config(state=tk.DISABLED)
+    bt1 = ttk.Button(root, text='保存', command=savefile)
+    bt1.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='W')
+    bt2 = ttk.Button(root, text='继续', command=continue_going)
+    bt2.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='E')
+    bt2.config(state=tk.DISABLED)
 
     # 菜单栏
     main_menu = tk.Menu(root)
@@ -571,10 +571,10 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
     filemenu.add_command(label="读取配置文件", command=openini, accelerator="Ctrl+O")
     filemenu.add_command(label="保存", command=savefile, accelerator="Ctrl+S")
     helpmenu = tk.Menu(main_menu, tearoff=False)
-    helpmenu.add_command(label="关于本软件", command=Helpfunc)
-    helpmenu.add_command(label="使用前注意事项", command=Help_before_use)
-    helpmenu.add_command(label="保留文件/文件格式选择", command=Help_keep)
-    helpmenu.add_command(label="过期时间设定", command=Help_timeset)
+    helpmenu.add_command(label="关于本软件", command=helpfunc)
+    helpmenu.add_command(label="使用前注意事项", command=help_before_use)
+    helpmenu.add_command(label="保留文件/文件格式选择", command=help_keep)
+    helpmenu.add_command(label="过期时间设定", command=help_timeset)
     main_menu.add_cascade(label="文件", menu=filemenu)
     main_menu.add_cascade(label="帮助", menu=helpmenu)
     root.config(menu=main_menu)
@@ -585,8 +585,8 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
     root.bind("<Control-S>", savefile)
 
     if first_ask:
-        Helpfunc()
-        Help_before_use()
+        helpfunc()
+        help_before_use()
         entry_old_path.insert(0, get_desktop())
         entry_time.insert(0, '0')
         entry_mode.set(1)
@@ -595,7 +595,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
     if muti_ask or error:
         refresh_whitelist_entry()
         openini(askpath=False)
-        B2.config(state=tk.NORMAL)
+        bt2.config(state=tk.NORMAL)
 
         if error:
             tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
@@ -604,13 +604,13 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
     root.mainloop()
 
 
-def moveDir(old__path, new__path, passfile, pass__format, t, mode, is__movefolder, test=False):
+def move_dir(old__path, new__path, passfile, pass__format, t, mode, is__movefolder, test=False):
     global Movename, Errorname
     Movename = ''
     Errorname = ''
     files = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
     for file in files:
-        filePath = old__path + "/" + file
+        file_path = old__path + "/" + file
         pf = False
         for m in pass__format:
             file_end = '.' + file.split('.')[-1]
@@ -623,14 +623,14 @@ def moveDir(old__path, new__path, passfile, pass__format, t, mode, is__movefolde
         if (not is_folder and ((file not in passfile) or pf)) or (
                 is_folder and file not in passfile and is__movefolder):  # 判断移动条件
             if mode == 1:
-                last = int(os.stat(filePath).st_mtime)  # 最后一次修改的时间 (Option 1)
+                last = int(os.stat(file_path).st_mtime)  # 最后一次修改的时间 (Option 1)
             elif mode == 2:
-                last = int(os.stat(filePath).st_atime)  # 最后一次访问的时间 (Option 2)
+                last = int(os.stat(file_path).st_atime)  # 最后一次访问的时间 (Option 2)
             else:
                 raise
-            if (now - last >= t) and test:  # 移动过期文件
+            if (now - last >= t) and not test:  # 移动过期文件
                 try:
-                    shutil.move(filePath, new__path)
+                    shutil.move(file_path, new__path)
                     Movename += (file + ',  ')
                 except:
                     Errorname += (file + ',  ')
@@ -655,10 +655,10 @@ def set_startup(autorun):
     # 将快捷方式添加到自启动目录
     # 获取用户名
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    Roamingpath = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    startupPath = os.path.join(Roamingpath + r"Microsoft\Windows\Start Menu\Programs\Startup")
+    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+    startup_path = os.path.join(roaming_path + r"Microsoft\Windows\Start Menu\Programs\Startup")
     bin_path = r"Movefile " + vision + ".exe"
-    link_path = startupPath + "\\Movefile"
+    link_path = startup_path + "\\Movefile"
     desc = "自动转移文件程序"
     icon_ = data_path + r'Movefile.ico'
     if autorun:
@@ -683,7 +683,7 @@ def operate(filename):
         set_startup(True)
     else:
         set_startup(False)
-    moveDir(old_path, new_path, passfile, passformat, time_, mode, is_movefolder)
+    move_dir(old_path, new_path, passfile, passformat, time_, mode, is_movefolder)
 
 
 def show_notice():
