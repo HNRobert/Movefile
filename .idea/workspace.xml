@@ -9,8 +9,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/Movefile/File_Syncer v1.0.0.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile/File_Syncer v1.0.0.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/File_Syncer v1.0.0.pyw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Movefile/Movefile v1.4.2.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v1.4.2.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -59,7 +59,7 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration name="Movefile v1.4.2.pyw" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="Movefile v1.4.3.pyw" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Movefile" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -72,7 +72,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Movefile/Movefile v1.4.2.pyw" />
+      <option name="SCRIPT_NAME" value="C:\Users\25674\Documents\GitHub\Movefile\Movefile\Movefile v1.4.3.pyw" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -102,6 +102,7 @@
       <workItem from="1673575761526" duration="871000" />
       <workItem from="1673577014296" duration="1705000" />
       <workItem from="1673579263218" duration="1991000" />
+      <workItem from="1673617580570" duration="1870000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -134,5 +135,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_0_pyw.coverage" NAME="Movefile v1.4.0.pyw 覆盖结果" MODIFIED="1673484111173" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile v1.4.0" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.2.pyw 覆盖结果" MODIFIED="1673579721893" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.2.pyw 覆盖结果" MODIFIED="1673619143200" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
   </component>
 </project>
