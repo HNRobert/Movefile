@@ -4,8 +4,12 @@
       <w>activebackground</w>
       <w>activeforeground</w>
       <w>borderwidth</w>
+      <w>datapath</w>
       <w>dcfb</w>
       <w>frameheight</w>
+      <w>menuoptions</w>
+      <w>movefile</w>
+      <w>processwheel</w>
       <w>selectbackground</w>
       <w>selectforeground</w>
     </words>
