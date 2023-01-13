@@ -9,7 +9,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/Movefile/ComBoPicker.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile/File_Syncer v1.0.0 -Beta.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Syncfile.pyw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile/Movefile v1.4.3.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v1.4.3.pyw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Update log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Update log.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +37,9 @@
     <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectId" id="2KCL8c0rZjRNdtcfKhnCCKBkyHu" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -100,7 +107,7 @@
       <workItem from="1673575761526" duration="871000" />
       <workItem from="1673577014296" duration="1705000" />
       <workItem from="1673579263218" duration="1991000" />
-      <workItem from="1673617580570" duration="6033000" />
+      <workItem from="1673617580570" duration="6647000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
