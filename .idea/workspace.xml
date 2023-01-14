@@ -9,8 +9,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile/Syncfile_Beta.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Syncfile_Beta.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,20 +41,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/25674/Desktop/Movefile&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/25674/Desktop/Movefile",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\25674\Desktop\Movefile" />
@@ -105,6 +105,8 @@
       <workItem from="1673577014296" duration="1705000" />
       <workItem from="1673579263218" duration="1991000" />
       <workItem from="1673617580570" duration="39550000" />
+      <workItem from="1673703573980" duration="93000" />
+      <workItem from="1673703752877" duration="323000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -139,8 +141,10 @@
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703530914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$base64.coverage" NAME="图片转base64 覆盖结果" MODIFIED="1673626934008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_0_pyw.coverage" NAME="Movefile v1.4.0.pyw 覆盖结果" MODIFIED="1673484111173" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile v1.4.0" />
-    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673629464343" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703576059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/workspace_xml$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703855471" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.2.pyw 覆盖结果" MODIFIED="1673579721893" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673626917553" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703826728" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
   </component>
 </project>
