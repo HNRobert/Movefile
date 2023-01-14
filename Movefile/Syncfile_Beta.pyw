@@ -26,22 +26,23 @@ def get_sf_data():
 
 
 def scan_files_in(folder_path):  # 扫描路径下所有文件夹
-    def scan_folders_in(f_path):
+    def scan_folders_in(f_path):  # 扫描目录下所有的文件夹，并返回路径列表
         surf_items = os.listdir(f_path)
         folder_store = [f_path]
         for item in surf_items:
             item_path = f_path + '\\' + item
             if os.path.isdir(item_path):
-                folder_store.extend(scan_folders_in(item_path))
-        folder_store = sorted(set(folder_store))
+                folder_store.extend(scan_folders_in(item_path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
+        folder_store = sorted(set(folder_store))  # 排序 + 排除重复项
         return folder_store
 
     file_store = []
-    for folder in scan_folders_in(folder_path):
+    for folder in scan_folders_in(folder_path):  # 遍历所有文件夹
         files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
-        file_store.extend(files)
+        # 如上只生成本文件夹内 文件的路径
+        file_store.extend(files)  # 存储上面文件路径
     for i in range(len(file_store)):
-        file_store[i] = file_store[i][len(folder_path)::]  # 只取相对位置
+        file_store[i] = file_store[i][len(folder_path)::]  # 返回相对位置
     return file_store
 
 
@@ -96,7 +97,7 @@ def record_match(path_1, path_2):  # 记录配对组
 
 
 def sync_file(file_1, file_2, pair_data=None):
-    global new_file, prior_file
+    new_file, prior_file = '', ''
     pas = False
     if pair_data is None:
         target = file_2.split('\\')[:-1]
@@ -111,11 +112,11 @@ def sync_file(file_1, file_2, pair_data=None):
         shutil.copyfile(file_1, file_2)
         pas = True
     elif pair_data[1] == '>':
-        prior_file = file_1
-        new_file = file_2
-    elif pair_data[1] == '<':
         prior_file = file_2
         new_file = file_1
+    elif pair_data[1] == '<':
+        prior_file = file_1
+        new_file = file_2
     else:
         pas = True
     if not pas:
@@ -134,11 +135,11 @@ def operate_files(path1, path2):
             file2_name = file2.split('\\')[-1]
             dat = judge_file(file1_path, file2_path)
             possibility = 0
-            if file2 == file1:
+            if file2 == file1:  # 比对相对路径
                 possibility += 50
-            if file2_name == file1_name:
+            if file2_name == file1_name:  # 比对文件名
                 possibility += 30
-            if dat[0] == 's':
+            if dat[0] == 's':  # 比对创建时间
                 possibility += 20
             if possibility >= 50:
                 sync_file(file1_path, file2_path, dat)
