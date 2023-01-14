@@ -20,8 +20,8 @@ import tkinter.filedialog
 import tkinter.ttk as ttk
 import tkinter.messagebox
 import Movefile_icon as icon
-from ComBoPicker import Combopicker
 from datetime import datetime
+from ComBoPicker import Combopicker
 from win10toast import ToastNotifier
 
 
@@ -252,7 +252,7 @@ def askinfo(error=False, muti_ask=False, first_ask=False):
             tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
         else:
             if not os.path.exists(data_path + r'Movefile_data.ini'):
-                file = open(data_path + r'Movefile_data.ini', 'w')
+                file = open(data_path + r'Movefile_data.ini', 'w', encoding='ANSI')
                 file.close()
             cf.read(data_path + r'Movefile_data.ini')
             if not cf.has_section("Movefile_settings"):
