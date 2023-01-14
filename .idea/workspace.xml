@@ -10,7 +10,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile/Syncfile.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Syncfile_Beta.pyw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile/Syncfile_Beta.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Syncfile_Beta.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -104,7 +104,7 @@
       <workItem from="1673575761526" duration="871000" />
       <workItem from="1673577014296" duration="1705000" />
       <workItem from="1673579263218" duration="1991000" />
-      <workItem from="1673617580570" duration="10485000" />
+      <workItem from="1673617580570" duration="14284000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>

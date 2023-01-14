@@ -34,8 +34,15 @@ def judge_update_time(item_path_1, item_path_2):
         return '='
 
 
-def match_items(item1, item2):
-    pass
+def match_items(item__path, folder__path):
+    item_name = item__path.split('\\')[-1]
+    matched = False
+    for m_item_name in os.listdir(folder__path):
+        if m_item_name == item_name:
+            md_item__path = folder__path + '\\' + m_item_name
+            return md_item__path
+    else:
+        return ''
 
 
 def syncfile(file_path_1, file_path_2):
