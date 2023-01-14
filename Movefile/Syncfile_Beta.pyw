@@ -40,8 +40,8 @@ def scan_files_in(folder_path):  # 扫描路径下所有文件夹
     for folder in scan_folders_in(folder_path):
         files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
         file_store.extend(files)
-    # for i in range(len(file_store)):
-        # file_store[i] = file_store[i][len(folder_path)::]  # 只取相对位置
+    for i in range(len(file_store)):
+        file_store[i] = file_store[i][len(folder_path)::]  # 只取相对位置
     return file_store
 
 
@@ -61,6 +61,7 @@ def judge_file(item_path_1, item_path_2):  # 更新时间比较函数
         data[1] = '<'
     else:
         data[1] = '='
+    return data
 
 
 def match_item(item1__path, in_folder2_path):  # 配对文件函数
@@ -95,7 +96,15 @@ def record_match(path_1, path_2):  # 记录配对组
 def sync_files(path1, path2):
     all_files_1 = scan_files_in(path1)
     all_files_2 = scan_files_in(path2)
-
+    for file1 in all_files_1:
+        file1_path = path1+file1
+        for file2 in all_files_2:
+            file2_path = path2+file2
+            if file1 == file2:
+                cond = judge_file(file1_path, file2_path)
+                if cond[0] == 's':
+                    if cond[1] == '>':
+                    shutil.co
 
 
 def syncfile_process():
