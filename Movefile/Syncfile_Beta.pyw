@@ -40,8 +40,8 @@ def scan_files_in(folder_path):  # 扫描路径下所有文件夹
     for folder in scan_folders_in(folder_path):
         files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
         file_store.extend(files)
-    for i in range(len(file_store)):
-        file_store[i] = file_store[i][len(folder_path)::]
+    # for i in range(len(file_store)):
+        # file_store[i] = file_store[i][len(folder_path)::]  # 只取相对位置
     return file_store
 
 
@@ -92,14 +92,17 @@ def record_match(path_1, path_2):  # 记录配对组
         cf.write(open(sf_data_path + r'Syncfile_data.ini', "w+", encoding='ANSI'))
 
 
-def sync_files():
-    pass
+def sync_files(path1, path2):
+    all_files_1 = scan_files_in(path1)
+    all_files_2 = scan_files_in(path2)
+
 
 
 def syncfile_process():
     get_sf_data()
-    all_files = scan_files_in(r"C:\Users\25674\Desktop\attempt")
-    print(all_files)
+    path_1 = r"C:\Users\25674\Desktop\attempt"
+    path_2 = r"C:\Users\25674\Desktop\test"
+    sync_files(path_1, path_2)
 
 
 if __name__ == '__main__':
