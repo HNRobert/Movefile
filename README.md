@@ -10,7 +10,7 @@ Beta 版程序也不会打包。
 使用前请务必阅读下面的使用注意事项
 
 
-## Cleanfile 程序
+## Cleanfile
 
 这是一个用来整理文件夹（尤其是桌面）的程序，也是Movefile推出的第一个程序块
 
@@ -83,7 +83,7 @@ pyinstaller打包法：
 ![流程图](https://user-images.githubusercontent.com/120773486/212371363-01cd7daf-1114-4c2c-bd11-bbe22e9d2783.png)
 
 
-## Syncfile 程序
+## Syncfile
 这是一个用来同步文件两个路径下文件的程序，将在不久后推出
 
 

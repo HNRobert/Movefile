@@ -29,17 +29,19 @@ from ComBoPicker import Combopicker
 
 def sf_get_data():
     global sf_data_path
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    mf_data_path = roaming_path + '\\Movefile'
-    sf_data_path = mf_data_path + '\\Syncfile\\'
-    if 'Movefile' not in os.listdir(roaming_path) or 'Movefile' in os.listdir(
-            roaming_path) and 'Syncfile' not in os.listdir(mf_data_path):
-        first_ask = True
-        os.mkdir(sf_data_path)
-    else:
-        first_ask = False
-    return first_ask
+    try:
+        global mf_data_path
+    except:
+        pass
+    finally:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        mf_data_path = roaming_path + '\\Movefile'
+        sf_data_path = mf_data_path + '\\Syncfile\\'
+        if 'Movefile' not in os.listdir(roaming_path):
+            os.mkdir(cf_data_path)
+        elif 'Syncfile' not in os.listdir(mf_data_path):
+            os.mkdir(cf_data_path)
 
 
 def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
@@ -118,13 +120,10 @@ def sync_file(file_1, file_2, pair_data=None):
     pas = False
     if pair_data is None:
         target = file_2.split('\\')[:-1]
-        # print(target)
         try_des = ''
         for fold in target:
             try_des += fold + '\\'
-            # print(try_des)
             if not os.path.exists(try_des):
-                # print(try_des)
                 os.mkdir(try_des)
         shutil.copyfile(file_1, file_2)
         pas = True
@@ -171,28 +170,32 @@ def syncfile_process():
     sf_operate(path_2, path_1)
 
 
-def mf_get_data():
-    global data_path
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    data_path = roaming_path + '\\Movefile\\'
-    if 'Movefile' not in os.listdir(roaming_path):
-        first_ask = True
-        os.mkdir(data_path)
-    else:
-        first_ask = False
-    return first_ask
+def cf_get_data():
+    global cf_data_path
+    try:
+        global mf_data_path
+    except:
+        pass
+    finally:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        mf_data_path = roaming_path + '\\Movefile'
+        cf_data_path = mf_data_path + '\\Cleanfile\\'
+        if 'Movefile' not in os.listdir(roaming_path):
+            os.mkdir(cf_data_path)
+        elif 'Cleanfile' not in os.listdir(mf_data_path):
+            os.mkdir(cf_data_path)
 
 
-def mf_asktime_plus():
+def cf_asktime_plus():
     gencf = configparser.ConfigParser()
-    mf_get_data()
+    cf_get_data()
     time_now = datetime.today()
     date = str(time_now.date())
-    if not os.path.exists(data_path + r'Movefile_data.ini'):  # 创建配置文件
-        file = open(data_path + r'Movefile_data.ini', 'w', encoding="ANSI")
+    if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):  # 创建配置文件
+        file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding="ANSI")
         file.close()
-    gencf.read(data_path + r'Movefile_data.ini')
+    gencf.read(cf_data_path + r'Cleanfile_data.ini')
     if not gencf.has_section("General"):
         gencf.add_section("General")
         gencf.set("General", "date", date)
@@ -202,22 +205,22 @@ def mf_asktime_plus():
         gencf.set("General", "date", date)
     asktime_pre = gencf.getint("General", "asktime_today") + 1
     gencf.set("General", "asktime_today", str(asktime_pre))
-    gencf.write(open(data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+    gencf.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
 
 
-def mf_data_error():
+def cf_data_error():
     try:
         cf = configparser.ConfigParser()
-        cf.read(data_path + r'Movefile_data.ini')  # 获取配置文件
-        old_path_ = cf.get('Movefile_settings', 'old_path')  # 旧文件夹
-        new_path_ = cf.get('Movefile_settings', 'new_path')  # 新文件夹
-        pass_file = cf.get('Movefile_settings', 'pass_filename').split(',')  # 设置跳过白名单
-        pass_format = cf.get('Movefile_settings', 'pass_format').split(',')  # 设置跳过格式
-        time_ = cf.getint('Movefile_settings', 'set_hour') * 3600  # 设置过期时间(hour)
-        mode_ = cf.getint('Movefile_settings', 'mode')
-        move_folder = cf.get('Movefile_settings', 'move_folder')
-        autorun_ = cf.get('Movefile_settings', 'autorun')
-        mf_move_dir(old__path=old_path_, new__path=new_path_, pass__file=pass_file, pass__format=pass_format, t=time_,
+        cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
+        old_path_ = cf.get('Cleanfile_settings', 'old_path')  # 旧文件夹
+        new_path_ = cf.get('Cleanfile_settings', 'new_path')  # 新文件夹
+        pass_file = cf.get('Cleanfile_settings', 'pass_filename').split(',')  # 设置跳过白名单
+        pass_format = cf.get('Cleanfile_settings', 'pass_format').split(',')  # 设置跳过格式
+        time_ = cf.getint('Cleanfile_settings', 'set_hour') * 3600  # 设置过期时间(hour)
+        mode_ = cf.getint('Cleanfile_settings', 'mode')
+        move_folder = cf.get('Cleanfile_settings', 'move_folder')
+        autorun_ = cf.get('Cleanfile_settings', 'autorun')
+        cf_move_dir(old__path=old_path_, new__path=new_path_, pass__file=pass_file, pass__format=pass_format, t=time_,
                     check__mode=mode_, is__move__folder=False, test=True)
         if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
             return False
@@ -234,15 +237,15 @@ def get_desktop():
 
 
 def load_icon():
-    image = open(data_path + r'Movefile.ico', 'wb')
+    image = open(mf_data_path + r'Movefile.ico', 'wb')
     image.write(base64.b64decode(icon.Movefile_ico))
     image.close()
 
 
-def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
-    cf = configparser.ConfigParser()
+def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
+    cf_data = configparser.ConfigParser()
 
-    def refresh_whitelist_entry(folder_names=None):
+    def cf_refresh_whitelist_entry(folder_names=None):
         if folder_names is None:
             folder_names = []
         try:
@@ -268,29 +271,29 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
         except:
             pass
 
-    def mf_select_path(place, ori_content):
+    def cf_select_path(place, ori_content):
         path_ = tkinter.filedialog.askdirectory()
         path_ = path_.replace("/", "\\")
         if path_ != '' and path_ != ori_content:
             if place == 'old':
                 oldpath.set(path_)
-                refresh_whitelist_entry()
+                cf_refresh_whitelist_entry()
             elif place == 'new':
                 newpath.set(path_)
 
-    def mf_is_folder_move(state):
+    def cf_is_folder_move(state):
         if state:
             folders = os.listdir(entry_old_path.get())
             move_folder_names = []
             for folder in folders:
                 if os.path.isdir(entry_old_path.get() + '\\' + folder):
                     move_folder_names.append(folder)
-            refresh_whitelist_entry(folder_names=move_folder_names)
+            cf_refresh_whitelist_entry(folder_names=move_folder_names)
         else:
-            refresh_whitelist_entry()
+            cf_refresh_whitelist_entry()
 
     root = tk.Tk()
-    root.iconbitmap(data_path + r'Movefile.ico')
+    root.iconbitmap(mf_data_path + r'Movefile.ico')
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
     root.title('Movefile Setting')
@@ -300,7 +303,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
     label_old_path.grid(row=0, column=0, pady=5, sticky='E')
     entry_old_path = ttk.Entry(root, textvariable=oldpath)
     entry_old_path.grid(row=0, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-    ttk.Button(root, text="浏览", command=lambda: mf_select_path(place='old', ori_content=entry_old_path.get())).grid(
+    ttk.Button(root, text="浏览", command=lambda: cf_select_path(place='old', ori_content=entry_old_path.get())).grid(
         row=0,
         column=1,
         ipadx=3,
@@ -311,7 +314,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
     label_new_path.grid(row=1, column=0, pady=5, sticky='E')
     entry_new_path = ttk.Entry(root, textvariable=newpath)
     entry_new_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-    ttk.Button(root, text="浏览", command=lambda: mf_select_path(place='new', ori_content=entry_new_path.get())).grid(
+    ttk.Button(root, text="浏览", command=lambda: cf_select_path(place='new', ori_content=entry_new_path.get())).grid(
         row=1,
         column=1,
         ipadx=3,
@@ -327,7 +330,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
     option_mode_2.grid(row=2, column=1, padx=175, ipadx=0, sticky='E')
     is_folder_move = tk.BooleanVar()
     entry_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=is_folder_move,
-                                        command=lambda: mf_is_folder_move(is_folder_move.get()))
+                                        command=lambda: cf_is_folder_move(is_folder_move.get()))
     entry_folder_move.grid(row=2, column=1, padx=10, sticky='E')
 
     entry_frame_keep_files = tk.Frame(root)
@@ -357,7 +360,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
     option_is_auto = ttk.Checkbutton(root, text='开机自动运行', variable=is_autorun)
     option_is_auto.grid(row=6, column=1, padx=10, sticky='NW')
 
-    def mf_is_num():
+    def cf_is_num():
         try:
             float(entry_time.get())
         except:
@@ -365,7 +368,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
         else:
             return True
 
-    def mf_has_blank():
+    def cf_has_blank():
         blank = 0
         if len(entry_old_path.get()) == 0:
             blank += 1
@@ -380,7 +383,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
         else:
             return True
 
-    def path_error():
+    def cf_path_error():
         try:
             os.listdir(entry_old_path.get())
             os.listdir(entry_new_path.get())
@@ -389,47 +392,47 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
         else:
             return False
 
-    def mf_savefile():
-        if not mf_is_num():
+    def cf_savefile():
+        if not cf_is_num():
             tkinter.messagebox.showwarning('Movefile', '警告：请在时间设定栏内输入数字')
-        elif mf_has_blank():
+        elif cf_has_blank():
             tkinter.messagebox.showwarning(title='Movefile',
                                            message='警告：请填写所有除白名单与开机自启勾选栏外的必填项目！')
-        elif path_error():
+        elif cf_path_error():
             tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
         else:
-            if not os.path.exists(data_path + r'Movefile_data.ini'):
-                file = open(data_path + r'Movefile_data.ini', 'w', encoding='ANSI')
+            if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
+                file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
                 file.close()
-            cf.read(data_path + r'Movefile_data.ini')
-            if not cf.has_section("Movefile_settings"):
-                cf.add_section("Movefile_settings")
-            cf.set("Movefile_settings", "old_path", entry_old_path.get())
-            cf.set("Movefile_settings", "new_path", entry_new_path.get())
-            cf.set("Movefile_settings", "pass_filename", entry_keep_files.get())
-            cf.set("Movefile_settings", "pass_format", entry_keep_formats.get())
-            cf.set("Movefile_settings", "set_hour", entry_time.get())
-            cf.set("Movefile_settings", "mode", str(entry_mode.get()))
-            cf.set("Movefile_settings", "autorun", str(is_autorun.get()))
-            cf.set("Movefile_settings", "move_folder", str(is_folder_move.get()))
-            cf.write(open(data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+            cf_data.read(cf_data_path + r'Cleanfile_data.ini')
+            if not cf_data.has_section("Cleanfile_settings"):
+                cf_data.add_section("Cleanfile_settings")
+            cf_data.set("Cleanfile_settings", "old_path", entry_old_path.get())
+            cf_data.set("Cleanfile_settings", "new_path", entry_new_path.get())
+            cf_data.set("Cleanfile_settings", "pass_filename", entry_keep_files.get())
+            cf_data.set("Cleanfile_settings", "pass_format", entry_keep_formats.get())
+            cf_data.set("Cleanfile_settings", "set_hour", entry_time.get())
+            cf_data.set("Cleanfile_settings", "mode", str(entry_mode.get()))
+            cf_data.set("Cleanfile_settings", "autorun", str(is_autorun.get()))
+            cf_data.set("Cleanfile_settings", "move_folder", str(is_folder_move.get()))
+            cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
             tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
             bt2.config(state=tk.NORMAL)
 
-    def mf_open_ini(ask_path=True):
+    def cf_open_ini(ask_path=True):
         if ask_path:
             ini_path = tkinter.filedialog.askopenfilename()
         else:
-            ini_path = data_path + r'Movefile_data.ini'
+            ini_path = cf_data_path + r'Cleanfile_data.ini'
         cf_file = configparser.ConfigParser()
         cf_file.read(ini_path)  # 获取配置文件
         if entry_old_path.get() != '':
             entry_old_path.delete(0, 'end')
         if entry_new_path.get() != '':
             entry_new_path.delete(0, 'end')
-        entry_old_path.insert(0, cf_file.get('Movefile_settings', 'old_path'))  # 旧文件夹
-        entry_new_path.insert(0, cf_file.get('Movefile_settings', 'new_path'))  # 新文件夹
-        refresh_whitelist_entry()
+        entry_old_path.insert(0, cf_file.get('Cleanfile_settings', 'old_path'))  # 旧文件夹
+        entry_new_path.insert(0, cf_file.get('Cleanfile_settings', 'new_path'))  # 新文件夹
+        cf_refresh_whitelist_entry()
         if entry_keep_files.get() != '':
             entry_keep_files.delete(0, 'end')
         if entry_keep_formats.get() != '':
@@ -437,14 +440,14 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
         if entry_time.get() != '':
             entry_time.delete(0, 'end')
 
-        entry_keep_files.insert(0, cf_file.get('Movefile_settings', 'pass_filename'))  # 设置跳过白名单
-        entry_keep_formats.insert(0, cf_file.get('Movefile_settings', 'pass_format'))  # 设置跳过格式
-        entry_time.insert(0, cf_file.get('Movefile_settings', 'set_hour'))  # 设置过期时间(hour)
-        entry_mode.set(cf_file.getint("Movefile_settings", 'mode'))  # 设置判断模式
-        is_autorun.set(cf_file.get("Movefile_settings", 'autorun'))
-        is_folder_move.set(cf_file.get('Movefile_settings', 'move_folder'))
+        entry_keep_files.insert(0, cf_file.get('Cleanfile_settings', 'pass_filename'))  # 设置跳过白名单
+        entry_keep_formats.insert(0, cf_file.get('Cleanfile_settings', 'pass_format'))  # 设置跳过格式
+        entry_time.insert(0, cf_file.get('Cleanfile_settings', 'set_hour'))  # 设置过期时间(hour)
+        entry_mode.set(cf_file.getint("Cleanfile_settings", 'mode'))  # 设置判断模式
+        is_autorun.set(cf_file.get("Cleanfile_settings", 'autorun'))
+        is_folder_move.set(cf_file.get('Cleanfile_settings', 'move_folder'))
 
-    def mf_helpfunc():
+    def cf_helpfunc():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
@@ -463,7 +466,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
 作者QQ：2567466856
 """)
 
-    def mf_help_keep():
+    def cf_help_keep():
         tkinter.messagebox.showinfo(title='Movefile', message="""保留项目/文件格式选择功能详解：
 
 保留项目选择：
@@ -473,7 +476,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
 某种格式类型的文件都不会被转移
 比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""")
 
-    def mf_help_timeset():
+    def cf_help_timeset():
         tkinter.messagebox.showinfo(title='Movefile', message="""过期时间功能详解：
 
 本软件可以获取文件的最后修改、访问时间
@@ -482,7 +485,7 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
 则运行日期前两天内修改过的文件不会被删除
 如果不想用此方法，则过期时间设为"0"即可""")
 
-    def mf_help_before_use():
+    def cf_help_before_use():
         tkinter.messagebox.showinfo(title='Movefile', message="""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
   后续将推出32位操作系统版本
@@ -506,60 +509,60 @@ def ask_info(mf_error=False, mf_muti_ask=False, mf_first_ask=False):
   且无法按上面的解释修复
   请联系作者（QQ:2567466856）,我会尽快尝试帮你修复""")
 
-    def mf_continue_going(only_quit=False):
+    def cf_continue_going(only_quit=False):
         root.quit()
         root.destroy()
         if not only_quit:
-            mf_operate(data_path + r'Movefile_data.ini')
+            cf_operate(cf_data_path + r'Movefile_data.ini')
             show_notice()
 
     # 创建按键
-    bt1 = ttk.Button(root, text='保存', command=mf_savefile)
+    bt1 = ttk.Button(root, text='保存', command=cf_savefile)
     bt1.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='W')
-    bt2 = ttk.Button(root, text='继续', command=mf_continue_going)
+    bt2 = ttk.Button(root, text='继续', command=cf_continue_going)
     bt2.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='E')
     bt2.config(state=tk.DISABLED)
 
     # 菜单栏
     main_menu = tk.Menu(root)
     file_menu = tk.Menu(main_menu, tearoff=False)
-    file_menu.add_command(label="读取配置文件", command=mf_open_ini, accelerator="Ctrl+O")
-    file_menu.add_command(label="保存", command=mf_savefile, accelerator="Ctrl+S")
+    file_menu.add_command(label="读取配置文件", command=cf_open_ini, accelerator="Ctrl+O")
+    file_menu.add_command(label="保存", command=cf_savefile, accelerator="Ctrl+S")
     help_menu = tk.Menu(main_menu, tearoff=False)
-    help_menu.add_command(label="关于本软件", command=mf_helpfunc)
-    help_menu.add_command(label="使用前注意事项", command=mf_help_before_use)
-    help_menu.add_command(label="保留文件/文件格式选择", command=mf_help_keep)
-    help_menu.add_command(label="过期时间设定", command=mf_help_timeset)
+    help_menu.add_command(label="关于本软件", command=cf_helpfunc)
+    help_menu.add_command(label="使用前注意事项", command=cf_help_before_use)
+    help_menu.add_command(label="保留文件/文件格式选择", command=cf_help_keep)
+    help_menu.add_command(label="过期时间设定", command=cf_help_timeset)
     main_menu.add_cascade(label="文件", menu=file_menu)
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
 
-    root.bind("<Control-o>", mf_open_ini)
-    root.bind("<Control-O>", mf_open_ini)
-    root.bind("<Control-s>", mf_savefile)
-    root.bind("<Control-S>", mf_savefile)
+    root.bind("<Control-o>", cf_open_ini)
+    root.bind("<Control-O>", cf_open_ini)
+    root.bind("<Control-s>", cf_savefile)
+    root.bind("<Control-S>", cf_savefile)
 
-    if mf_first_ask:
-        mf_helpfunc()
-        mf_help_before_use()
+    if cf_first_ask:
+        cf_helpfunc()
+        cf_help_before_use()
         entry_old_path.insert(0, get_desktop())
         entry_time.insert(0, '0')
         entry_mode.set(1)
-        refresh_whitelist_entry()
+        cf_refresh_whitelist_entry()
 
-    if mf_muti_ask or mf_error:
-        refresh_whitelist_entry()
-        mf_open_ini(ask_path=False)
+    if cf_muti_ask or cf_error:
+        cf_refresh_whitelist_entry()
+        cf_open_ini(ask_path=False)
         bt2.config(state=tk.NORMAL)
 
-        if mf_error:
+        if cf_error:
             tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
 请尽量不要手动更改ini配置文件''')
 
     root.mainloop()
 
 
-def mf_move_dir(old__path, new__path, pass__file, pass__format, t, check__mode, is__move__folder, test=False):
+def cf_move_dir(old__path, new__path, pass__file, pass__format, t, check__mode, is__move__folder, test=False):
     global Movename, Errorname
     Movename = ''
     Errorname = ''
@@ -591,7 +594,7 @@ def mf_move_dir(old__path, new__path, pass__file, pass__format, t, check__mode, 
                     Errorname += (file + ',  ')
 
 
-def mf_create_shortcut(bin_path: str, name: str, _icon: str, desc: str):
+def cf_create_shortcut(bin_path: str, name: str, _icon: str, desc: str):
     try:
         shortcut = name + ".lnk"
         winshell.CreateShortcut(
@@ -606,7 +609,7 @@ def mf_create_shortcut(bin_path: str, name: str, _icon: str, desc: str):
     return False
 
 
-def mf_set_startup(autorun):
+def cf_set_startup(autorun):
     # 将快捷方式添加到自启动目录
     # 获取用户名
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
@@ -615,30 +618,30 @@ def mf_set_startup(autorun):
     bin_path = r"Movefile " + vision + ".exe"
     link_path = startup_path + "\\Movefile"
     desc = "自动转移文件程序"
-    icon_ = data_path + r'Movefile.ico'
+    icon_ = mf_data_path + r'Movefile.ico'
     if autorun:
-        mf_create_shortcut(bin_path, link_path, icon_, desc)
+        cf_create_shortcut(bin_path, link_path, icon_, desc)
     else:
         if os.path.exists(link_path + '.lnk'):
             os.remove(link_path + '.lnk')
 
 
-def mf_operate(filename):
+def cf_operate(filename):
     global old_path, new_path
     cf = configparser.ConfigParser()
     cf.read(filename)  # 获取配置文件
-    old_path = cf.get('Movefile_settings', 'old_path')  # 旧文件夹
-    new_path = cf.get('Movefile_settings', 'new_path')  # 新文件夹
-    pass_file = cf.get('Movefile_settings', 'pass_filename').split(',')  # 设置跳过白名单
-    pass_format = cf.get('Movefile_settings', 'pass_format').split(',')  # 设置跳过格式
-    time_ = cf.getint('Movefile_settings', 'set_hour') * 3600  # 设置过期时间(hour)
-    mode = cf.getint('Movefile_settings', 'mode')  # 设置判断模式
-    is_move_folder = cf.get('Movefile_settings', 'move_folder')  # 设置是否移动文件夹
-    if cf.get('Movefile_settings', 'autorun') == 'True':
-        mf_set_startup(True)
+    old_path = cf.get('Cleanfile_settings', 'old_path')  # 旧文件夹
+    new_path = cf.get('Cleanfile_settings', 'new_path')  # 新文件夹
+    pass_file = cf.get('Cleanfile_settings', 'pass_filename').split(',')  # 设置跳过白名单
+    pass_format = cf.get('Cleanfile_settings', 'pass_format').split(',')  # 设置跳过格式
+    time_ = cf.getint('Cleanfile_settings', 'set_hour') * 3600  # 设置过期时间(hour)
+    mode = cf.getint('Cleanfile_settings', 'mode')  # 设置判断模式
+    is_move_folder = cf.get('Cleanfile_settings', 'move_folder')  # 设置是否移动文件夹
+    if cf.get('Cleanfile_settings', 'autorun') == 'True':
+        cf_set_startup(True)
     else:
-        mf_set_startup(False)
-    mf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format, t=time_,
+        cf_set_startup(False)
+    cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format, t=time_,
                 check__mode=mode, is__move__folder=is_move_folder)
 
 
@@ -649,20 +652,20 @@ def show_notice():
     if len(Movename) > 0:
         toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
                            Movename,
-                           icon_path=data_path + r'Movefile.ico',
+                           icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
     else:
         toaster.show_toast(old_folder + ' is pretty clean now',
                            'Nothing is moved away',
-                           icon_path=data_path + r'Movefile.ico',
+                           icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
     if len(Errorname) > 0:
         toaster.show_toast("Couldn't move files",
                            Errorname + """
 无法被移动，请在关闭文件或移除重名文件后重试""",
-                           icon_path=data_path + r'Movefile.ico',
+                           icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
 
@@ -673,23 +676,23 @@ def ending_code():
 
 def mainprocess():
     cf = configparser.ConfigParser()
-    mf_asktime_plus()
+    cf_asktime_plus()
     load_icon()
-    cf.read(data_path + r'Movefile_data.ini')
+    cf.read(cf_data_path + r'Cleanfile_data.ini')
     from_root = False
-    if not cf.has_section("Movefile_settings"):
-        ask_info(mf_first_ask=True)
+    if not cf.has_section("Cleanfile_settings"):
+        ask_info(cf_first_ask=True)
         from_root = True
-    elif mf_data_error():
-        ask_info(mf_error=True)
+    elif cf_data_error():
+        ask_info(cf_error=True)
         from_root = True
     elif cf.getint("General", "asktime_today") > 1:
-        ask_info(mf_muti_ask=True)
+        ask_info(cf_muti_ask=True)
         from_root = True
 
     if not from_root:
         try:
-            mf_operate(data_path + r'Movefile_data.ini')
+            cf_operate(cf_data_path + r'Cleanfile_data.ini')
             show_notice()
         except:
             pass
