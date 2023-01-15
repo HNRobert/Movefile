@@ -27,23 +27,24 @@ import Movefile_icon as icon
 from ComBoPicker import Combopicker
 
 
-def set_data_path(data_name=None):
-    global mf_data_path, cf_data_path, sf_data_path
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    mf_data_path = roaming_path + '\\Movefile\\'
-    if data_name is None:
-        data_store = mf_data_path
-    else:
-        data_store = mf_data_path + data_name + '\\'
-    cf_data_path = data_store + 'Cleanfile\\'
-    sf_data_path = data_store + 'Syncfile\\'
-    if 'Movefile' not in os.listdir(roaming_path):
-        os.mkdir(mf_data_path)
-    if 'Cleanfile' not in os.listdir(mf_data_path):
-        os.mkdir(cf_data_path)
-    if 'Syncfile' not in os.listdir(mf_data_path):
-        os.mkdir(sf_data_path)
+def set_data_path(data_name='', mode=''):
+    try:
+        global mf_data_path, cf_data_path, sf_data_path
+    except:
+        pass
+    finally:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        mf_data_path = roaming_path + '\\Movefile\\'
+        cf_data_path = mf_data_path + 'Cleanfile\\'
+        sf_data_path = mf_data_path + 'Syncfile\\'
+        if 'Movefile' not in os.listdir(roaming_path):
+            os.mkdir(mf_data_path)
+        if 'Cleanfile' not in os.listdir(mf_data_path):
+            os.mkdir(cf_data_path)
+        if 'Syncfile' not in os.listdir(mf_data_path):
+            os.mkdir(sf_data_path)
 
 
 def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
@@ -252,6 +253,7 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
 
     def cf_select_path(place, ori_content):
         path_ = tkinter.filedialog.askdirectory()
+
         path_ = path_.replace("/", "\\")
         if path_ != '' and path_ != ori_content:
             if place == 'old':
@@ -259,6 +261,10 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
                 cf_refresh_whitelist_entry()
             elif place == 'new':
                 newpath.set(path_)
+            elif place == '1':
+                path_1.set(path_)
+            elif place == '2':
+                path_2.set(path_)
 
     def cf_is_folder_move(state):
         if state:
@@ -271,38 +277,82 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
         else:
             cf_refresh_whitelist_entry()
 
-    def cf_is_active(state):
-        def change_cf_state(kind):
-            entry_old_path.config(state=kind)
-            browse_old_path_button.config(state=kind)
-            entry_new_path.config(state=kind)
-            browse_new_path_button.config(state=kind)
-            option_mode_1.config(state=kind)
-            option_mode_2.config(state=kind)
-            option_folder_move.config(state=kind)
-            entry_keep_files.config(state=kind)
-            entry_keep_formats.config(state=kind)
-            entry_time.config(state=kind)
-            option_is_auto.config(state=kind)
+    def change_active_mode(mode):
+        def cf_state():
+            label_path_1.grid_forget()
+            label_path_2.grid_forget()
+            entry_path_1.grid_forget()
+            entry_path_2.grid_forget()
+            browse_path_1_button.grid_forget()
+            browse_path_2_button.grid_forget()
 
-        if state:
-            change_cf_state(tk.NORMAL)
+            entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
+            entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+            option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
+            option_mode_2.grid(row=3, column=1, padx=175, ipadx=0, sticky='E')
+            option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
+            entry_keep_files.grid(row=2, column=1, ipadx=240, pady=5, sticky='W')
+            entry_keep_formats.grid(row=3, column=1, ipadx=240, pady=0, sticky='W')
+            entry_time.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
+            label_old_path.grid(row=1, column=0, pady=5, sticky='E')
+            label_new_path.grid(row=2, column=0, pady=5, sticky='E')
+            label_move_options.grid(row=3, column=0, pady=5, sticky='E')
+            label_keep_files.grid(row=4, column=0, pady=5, sticky='E')
+            label_keep_formats.grid(row=5, column=0, sticky='E')
+            label_time.grid(row=6, column=0, sticky='E')
+            label_start_options.grid(row=7, column=0, sticky='E')
+
+        def sf_state():
+            entry_old_path.grid_forget()
+            browse_old_path_button.grid_forget()
+            entry_new_path.grid_forget()
+            browse_new_path_button.grid_forget()
+            option_mode_1.grid_forget()
+            option_mode_2.grid_forget()
+            option_folder_move.grid_forget()
+            entry_keep_files.grid_forget()
+            entry_keep_formats.grid_forget()
+            entry_time.grid_forget()
+            option_is_auto.grid_forget()
+            label_old_path.grid_forget()
+            label_new_path.grid_forget()
+            label_move_options.grid_forget()
+            label_keep_files.grid_forget()
+            label_keep_formats.grid_forget()
+            label_time.grid_forget()
+            label_start_options.grid_forget()
+
+            label_path_1.grid(row=1, column=0, pady=5, sticky='E')
+            label_path_2.grid(row=2, column=0, pady=5, sticky='E')
+            entry_path_1.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            entry_path_2.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            browse_path_1_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
+            browse_path_2_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+
+        if mode == 'cf':
+            cf_state()
         else:
-            change_cf_state(tk.DISABLED)
+            sf_state()
 
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
+    path_1 = tk.StringVar()
+    path_2 = tk.StringVar()
     root.title('Movefile Setting')
     root.geometry("800x600")
 
-    label_is_cleanfile = ttk.Label(root, text='Cleanfile：')
-    label_is_cleanfile.grid(row=0, column=0, pady=5, sticky='E')
-    is_cleanfile = tk.BooleanVar()
-    is_cleanfile.set(True)
-    option_is_cleanfile = ttk.Checkbutton(root, variable=is_cleanfile, command=lambda: cf_is_active(is_cleanfile.get()))
-    option_is_cleanfile.grid(row=0, column=1, padx=8, pady=5, sticky='W')
+    label_choose_state = ttk.Label(root, text='功能选择：')
+    label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
+    cf_or_sf = tk.StringVar()
+    option_is_cleanfile = ttk.Radiobutton(root, text='清理文件', variable=cf_or_sf, value='cf', command=lambda: change_active_mode(cf_or_sf.get()))
+    option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
+    option_is_syncfile = ttk.Radiobutton(root, text='同步文件', variable=cf_or_sf, value='sf', command=lambda: change_active_mode(cf_or_sf.get()))
+    option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
 
     label_old_path = ttk.Label(root, text="原文件夹路径：")
     label_old_path.grid(row=1, column=0, pady=5, sticky='E')
@@ -357,18 +407,21 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
     option_is_auto = ttk.Checkbutton(root, text='开机自动运行 Cleanfile', variable=is_autorun)
     option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
 
-    def sf_is_active(state):
-        def change_sf_state(kind):
-            pass
+    label_path_1 = ttk.Label(root, text="文件夹路径1：")
+    label_path_1.grid(row=1, column=0, pady=5, sticky='E')
+    entry_path_1 = ttk.Entry(root, textvariable=path_1)
+    entry_path_1.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+    browse_path_1_button = ttk.Button(root, text="浏览",
+                                        command=lambda: cf_select_path(place='1', ori_content=entry_path_1.get()))
+    browse_path_1_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
 
-    mid_space = ttk.Label(root)
-    mid_space.grid(row=8, column=0)
-
-    label_is_syncfile = ttk.Label(root, text='启用 同步文件：')
-    label_is_syncfile.grid(row=9, column=0, pady=5, sticky='E')
-    is_syncfile = tk.BooleanVar()
-    option_is_syncfile = ttk.Checkbutton(root, variable=is_syncfile, command=lambda: sf_is_active(is_syncfile.get()))
-    option_is_syncfile.grid(row=9, column=1, padx=8, pady=5, sticky='W')
+    label_path_2 = ttk.Label(root, text='文件夹路径2：')
+    label_path_2.grid(row=2, column=0, pady=5, sticky='E')
+    entry_path_2 = ttk.Entry(root, textvariable=path_2)
+    entry_path_2.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+    browse_path_2_button = ttk.Button(root, text="浏览",
+                                        command=lambda: cf_select_path(place='2', ori_content=entry_path_2.get()))
+    browse_path_2_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
 
     def cf_is_num():
         try:
@@ -552,6 +605,9 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
     root.bind("<Control-s>", cf_savefile)
     root.bind("<Control-S>", cf_savefile)
 
+    if cf_or_sf.get() == '':
+        cf_or_sf.set('cf')
+
     if cf_first_ask:
         cf_helpfunc()
         cf_help_before_use()
@@ -716,4 +772,5 @@ def mainprocess():
 
 
 if __name__ == '__main__':
+
     mainprocess()
