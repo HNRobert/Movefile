@@ -31,16 +31,14 @@ def set_data_path():
     global mf_data_path, cf_data_path, sf_data_path
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    mf_data_path = roaming_path + '\\Movefile'
-    cf_data_path = mf_data_path + '\\Cleanfile\\'
-    sf_data_path = mf_data_path + '\\Syncfile\\'
+    mf_data_path = roaming_path + '\\Movefile\\'
+    cf_data_path = mf_data_path + 'Cleanfile\\'
+    sf_data_path = mf_data_path + 'Syncfile\\'
     if 'Movefile' not in os.listdir(roaming_path):
+        os.mkdir(mf_data_path)
+    if 'Cleanfile' not in os.listdir(mf_data_path):
         os.mkdir(cf_data_path)
-    elif 'Cleanfile' not in os.listdir(mf_data_path):
-        os.mkdir(cf_data_path)
-    if 'Movefile' not in os.listdir(roaming_path):
-        os.mkdir(cf_data_path)
-    elif 'Syncfile' not in os.listdir(mf_data_path):
+    if 'Syncfile' not in os.listdir(mf_data_path):
         os.mkdir(sf_data_path)
 
 
@@ -157,13 +155,16 @@ def sf_operate(path1, path2):
                 sync_file(file1_path, file2_path, dat)
         else:
             sync_file(file1_path, path2 + file1)
+    for file2 in all_files_2:
+        file2_path = path2 + file2
+        if file2 not in all_files_1:
+            sync_file(file2_path, path1 + file2)
 
 
-def syncfile_process():
+def test_syncfile():
     path_1 = r"C:\Users\25674\Desktop\attempt"
     path_2 = r"C:\Users\25674\Desktop\test"
     sf_operate(path_1, path_2)
-    sf_operate(path_2, path_1)
 
 
 def asktime_plus():
@@ -491,7 +492,7 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
         root.quit()
         root.destroy()
         if not only_quit:
-            cf_operate(cf_data_path + r'Movefile_data.ini')
+            cf_operate(cf_data_path + r'Cleanfile_data.ini')
             show_notice()
 
     # 创建按键
@@ -654,10 +655,12 @@ def ending_code():
 
 def mainprocess():
     cf = configparser.ConfigParser()
+    mf = configparser.ConfigParser()
     set_data_path()
     asktime_plus()
     load_icon()
     cf.read(cf_data_path + r'Cleanfile_data.ini')
+    mf.read(mf_data_path + r"Movefile_data.ini")
     from_root = False
     if not cf.has_section("Cleanfile_settings"):
         ask_info(cf_first_ask=True)
@@ -665,7 +668,7 @@ def mainprocess():
     elif cf_data_error():
         ask_info(cf_error=True)
         from_root = True
-    elif cf.getint("General", "asktime_today") > 1:
+    elif mf.getint("General", "asktime_today") > 1:
         ask_info(cf_muti_ask=True)
         from_root = True
 
@@ -682,4 +685,4 @@ def mainprocess():
 
 
 if __name__ == '__main__':
-    mainprocess()
+    test_syncfile()
