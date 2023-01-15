@@ -84,7 +84,6 @@ def sf_judge_file(item_path_1, item_path_2):  # 更新时间比较函数
     return data
 
 
-'''
 def match_item(item1__path, in_folder2_path):  # 配对文件函数
     item1_name = item1__path.split('\\')[-1]
     for item2_name in os.listdir(in_folder2_path):
@@ -99,20 +98,18 @@ def record_match(path_1, path_2):  # 记录配对组
     folders_on_surface_path = [path_1 + '\\' + dI for dI in os.listdir(path_1) if
                                os.path.isdir(os.path.join(path_1, dI))]
 
-    if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
-        file = open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI')
+    if not os.path.exists(sf_data_path + r'Match_data.ini'):
+        file = open(sf_data_path + r'Match_data.ini', 'w+', encoding='ANSI')
         file.close()
-    cf.read(sf_data_path + r'Syncfile_data.ini', encoding='ANSI')
+    cf.read(sf_data_path + r'Match_data.ini', encoding='ANSI')
     section_name = "Match_pairs"
     if not cf.has_section(section_name):
         cf.add_section(section_name)
 
     for folder_in_path1 in folders_on_surface_path:
         folder_matched = match_item(folder_in_path1, path_2)
-        print(folder_matched)
         cf.set(section_name, folder_matched[0], folder_matched[1])
         cf.write(open(sf_data_path + r'Syncfile_data.ini', "w+", encoding='ANSI'))
-'''
 
 
 def sync_file(file_1, file_2, pair_data=None):

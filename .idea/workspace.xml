@@ -9,7 +9,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -107,7 +107,7 @@
       <workItem from="1673617580570" duration="39550000" />
       <workItem from="1673703573980" duration="93000" />
       <workItem from="1673703752877" duration="494000" />
-      <workItem from="1673704678619" duration="7776000" />
+      <workItem from="1673704678619" duration="8761000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
