@@ -27,13 +27,17 @@ import Movefile_icon as icon
 from ComBoPicker import Combopicker
 
 
-def set_data_path():
+def set_data_path(data_name=None):
     global mf_data_path, cf_data_path, sf_data_path
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
     mf_data_path = roaming_path + '\\Movefile\\'
-    cf_data_path = mf_data_path + 'Cleanfile\\'
-    sf_data_path = mf_data_path + 'Syncfile\\'
+    if data_name is None:
+        data_store = mf_data_path
+    else:
+        data_store = mf_data_path + data_name + '\\'
+    cf_data_path = data_store + 'Cleanfile\\'
+    sf_data_path = data_store + 'Syncfile\\'
     if 'Movefile' not in os.listdir(roaming_path):
         os.mkdir(mf_data_path)
     if 'Cleanfile' not in os.listdir(mf_data_path):
@@ -267,76 +271,104 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
         else:
             cf_refresh_whitelist_entry()
 
-    def change_page(page):
-        pass
+    def cf_is_active(state):
+        def change_cf_state(kind):
+            entry_old_path.config(state=kind)
+            browse_old_path_button.config(state=kind)
+            entry_new_path.config(state=kind)
+            browse_new_path_button.config(state=kind)
+            option_mode_1.config(state=kind)
+            option_mode_2.config(state=kind)
+            option_folder_move.config(state=kind)
+            entry_keep_files.config(state=kind)
+            entry_keep_formats.config(state=kind)
+            entry_time.config(state=kind)
+            option_is_auto.config(state=kind)
+
+        if state:
+            change_cf_state(tk.NORMAL)
+        else:
+            change_cf_state(tk.DISABLED)
 
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
     root.title('Movefile Setting')
-    root.geometry("800x280")
+    root.geometry("800x600")
+
+    label_is_cleanfile = ttk.Label(root, text='Cleanfile：')
+    label_is_cleanfile.grid(row=0, column=0, pady=5, sticky='E')
+    is_cleanfile = tk.BooleanVar()
+    is_cleanfile.set(True)
+    option_is_cleanfile = ttk.Checkbutton(root, variable=is_cleanfile, command=lambda: cf_is_active(is_cleanfile.get()))
+    option_is_cleanfile.grid(row=0, column=1, padx=8, pady=5, sticky='W')
 
     label_old_path = ttk.Label(root, text="原文件夹路径：")
-    label_old_path.grid(row=0, column=0, pady=5, sticky='E')
+    label_old_path.grid(row=1, column=0, pady=5, sticky='E')
     entry_old_path = ttk.Entry(root, textvariable=oldpath)
-    entry_old_path.grid(row=0, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-    ttk.Button(root, text="浏览", command=lambda: cf_select_path(place='old', ori_content=entry_old_path.get())).grid(
-        row=0,
-        column=1,
-        ipadx=3,
-        sticky='E',
-        padx=10)
+    entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+    browse_old_path_button = ttk.Button(root, text="浏览", command=lambda: cf_select_path(place='old', ori_content=entry_old_path.get()))
+    browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
 
     label_new_path = ttk.Label(root, text='新文件夹路径：')
-    label_new_path.grid(row=1, column=0, pady=5, sticky='E')
+    label_new_path.grid(row=2, column=0, pady=5, sticky='E')
     entry_new_path = ttk.Entry(root, textvariable=newpath)
-    entry_new_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-    ttk.Button(root, text="浏览", command=lambda: cf_select_path(place='new', ori_content=entry_new_path.get())).grid(
-        row=1,
-        column=1,
-        ipadx=3,
-        sticky='E',
-        padx=10)
+    entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+    browse_new_path_button = ttk.Button(root, text="浏览", command=lambda: cf_select_path(place='new', ori_content=entry_new_path.get()))
+    browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
 
     label_move_options = ttk.Label(root, text='文件移动选项：')
-    label_move_options.grid(row=2, column=0, pady=5, sticky='E')
+    label_move_options.grid(row=3, column=0, pady=5, sticky='E')
     entry_mode = tk.IntVar()
     option_mode_1 = ttk.Radiobutton(root, text="以项目最后修改时间为过期判断依据", variable=entry_mode, value=1)
-    option_mode_1.grid(row=2, column=1, padx=10, ipadx=0, sticky='W')
+    option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
     option_mode_2 = ttk.Radiobutton(root, text="以项目最后访问时间为过期判断依据", variable=entry_mode, value=2)
-    option_mode_2.grid(row=2, column=1, padx=175, ipadx=0, sticky='E')
+    option_mode_2.grid(row=3, column=1, padx=175, ipadx=0, sticky='E')
     is_folder_move = tk.BooleanVar()
-    entry_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=is_folder_move,
-                                        command=lambda: cf_is_folder_move(is_folder_move.get()))
-    entry_folder_move.grid(row=2, column=1, padx=10, sticky='E')
+    option_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=is_folder_move,
+                                         command=lambda: cf_is_folder_move(is_folder_move.get()))
+    option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
 
     entry_frame_keep_files = tk.Frame(root)
-    entry_frame_keep_files.grid(row=3, column=1, ipadx=5, sticky='E')
+    entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
     label_keep_files = ttk.Label(root, text='保留项目选择：')
-    label_keep_files.grid(row=3, column=0, pady=5, sticky='E')
+    label_keep_files.grid(row=4, column=0, pady=5, sticky='E')
     entry_keep_files_x = ttk.Entry(root)
-    entry_keep_files_x.grid(row=3, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+    entry_keep_files_x.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     entry_keep_files_x.config(state=tk.DISABLED)
 
     entry_frame_keep_formats = tk.Frame(root)
-    entry_frame_keep_formats.grid(row=4, column=1, pady=5, ipadx=5, sticky='E')
+    entry_frame_keep_formats.grid(row=5, column=1, pady=5, ipadx=5, sticky='E')
     label_keep_formats = ttk.Label(root, text='保留文件格式选择：')
-    label_keep_formats.grid(row=4, column=0, sticky='E')
+    label_keep_formats.grid(row=5, column=0, sticky='E')
     entry_keep_formats_x = ttk.Entry(root)
-    entry_keep_formats_x.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+    entry_keep_formats_x.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     entry_keep_formats_x.config(state=tk.DISABLED)
 
     label_time = ttk.Label(root, text='    过期时间设定(小时)：')
-    label_time.grid(row=5, column=0, sticky='E')
+    label_time.grid(row=6, column=0, sticky='E')
     entry_time = ttk.Entry(root)
-    entry_time.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+    entry_time.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
 
     label_start_options = ttk.Label(root, text='系统选项：')
-    label_start_options.grid(row=6, column=0, sticky='E')
+    label_start_options.grid(row=7, column=0, sticky='E')
     is_autorun = tk.BooleanVar()
-    option_is_auto = ttk.Checkbutton(root, text='开机自动运行', variable=is_autorun)
-    option_is_auto.grid(row=6, column=1, padx=10, sticky='NW')
+    option_is_auto = ttk.Checkbutton(root, text='开机自动运行 Cleanfile', variable=is_autorun)
+    option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
+
+    def sf_is_active(state):
+        def change_sf_state(kind):
+            pass
+
+    mid_space = ttk.Label(root)
+    mid_space.grid(row=8, column=0)
+
+    label_is_syncfile = ttk.Label(root, text='启用 同步文件：')
+    label_is_syncfile.grid(row=9, column=0, pady=5, sticky='E')
+    is_syncfile = tk.BooleanVar()
+    option_is_syncfile = ttk.Checkbutton(root, variable=is_syncfile, command=lambda: sf_is_active(is_syncfile.get()))
+    option_is_syncfile.grid(row=9, column=1, padx=8, pady=5, sticky='W')
 
     def cf_is_num():
         try:
@@ -496,9 +528,9 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
 
     # 创建按键
     bt1 = ttk.Button(root, text='保存', command=cf_savefile)
-    bt1.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='W')
+    bt1.grid(row=14, column=1, ipadx=100, pady=4, padx=10, sticky='W')
     bt2 = ttk.Button(root, text='继续', command=cf_continue_going)
-    bt2.grid(row=7, column=1, ipadx=100, pady=4, padx=10, sticky='E')
+    bt2.grid(row=14, column=1, ipadx=100, pady=4, padx=10, sticky='E')
     bt2.config(state=tk.DISABLED)
 
     # 菜单栏
@@ -684,4 +716,4 @@ def mainprocess():
 
 
 if __name__ == '__main__':
-    test_syncfile()
+    mainprocess()
