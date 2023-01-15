@@ -27,21 +27,21 @@ import Movefile_icon as icon
 from ComBoPicker import Combopicker
 
 
-def sf_get_data():
-    global sf_data_path
-    try:
-        global mf_data_path
-    except:
-        pass
-    finally:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-        mf_data_path = roaming_path + '\\Movefile'
-        sf_data_path = mf_data_path + '\\Syncfile\\'
-        if 'Movefile' not in os.listdir(roaming_path):
-            os.mkdir(cf_data_path)
-        elif 'Syncfile' not in os.listdir(mf_data_path):
-            os.mkdir(cf_data_path)
+def set_data_path():
+    global mf_data_path, cf_data_path, sf_data_path
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+    mf_data_path = roaming_path + '\\Movefile'
+    cf_data_path = mf_data_path + '\\Cleanfile\\'
+    sf_data_path = mf_data_path + '\\Syncfile\\'
+    if 'Movefile' not in os.listdir(roaming_path):
+        os.mkdir(cf_data_path)
+    elif 'Cleanfile' not in os.listdir(mf_data_path):
+        os.mkdir(cf_data_path)
+    if 'Movefile' not in os.listdir(roaming_path):
+        os.mkdir(cf_data_path)
+    elif 'Syncfile' not in os.listdir(mf_data_path):
+        os.mkdir(sf_data_path)
 
 
 def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
@@ -134,7 +134,6 @@ def sync_file(file_1, file_2, pair_data=None):
         pas = True
     if not pas:
         shutil.copyfile(new_file, prior_file)
-        pass
 
 
 def sf_operate(path1, path2):
@@ -167,32 +166,14 @@ def syncfile_process():
     sf_operate(path_2, path_1)
 
 
-def cf_get_data():
-    global cf_data_path
-    try:
-        global mf_data_path
-    except:
-        pass
-    finally:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-        mf_data_path = roaming_path + '\\Movefile'
-        cf_data_path = mf_data_path + '\\Cleanfile\\'
-        if 'Movefile' not in os.listdir(roaming_path):
-            os.mkdir(cf_data_path)
-        elif 'Cleanfile' not in os.listdir(mf_data_path):
-            os.mkdir(cf_data_path)
-
-
-def cf_asktime_plus():
+def asktime_plus():
     gencf = configparser.ConfigParser()
-    cf_get_data()
     time_now = datetime.today()
     date = str(time_now.date())
-    if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):  # 创建配置文件
-        file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding="ANSI")
+    if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
+        file = open(mf_data_path + r'Movefile_data.ini', 'w', encoding="ANSI")
         file.close()
-    gencf.read(cf_data_path + r'Cleanfile_data.ini')
+    gencf.read(mf_data_path + r'Movefile_data.ini')
     if not gencf.has_section("General"):
         gencf.add_section("General")
         gencf.set("General", "date", date)
@@ -202,7 +183,7 @@ def cf_asktime_plus():
         gencf.set("General", "date", date)
     asktime_pre = gencf.getint("General", "asktime_today") + 1
     gencf.set("General", "asktime_today", str(asktime_pre))
-    gencf.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
+    gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
 def cf_data_error():
@@ -673,7 +654,8 @@ def ending_code():
 
 def mainprocess():
     cf = configparser.ConfigParser()
-    cf_asktime_plus()
+    set_data_path()
+    asktime_plus()
     load_icon()
     cf.read(cf_data_path + r'Cleanfile_data.ini')
     from_root = False
