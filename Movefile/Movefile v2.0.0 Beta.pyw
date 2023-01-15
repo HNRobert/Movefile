@@ -83,15 +83,6 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
 
 
 '''
-def match_item(item1__path, in_folder2_path):  # 配对文件函数
-    item1_name = item1__path.split('\\')[-1]
-    for item2_name in os.listdir(in_folder2_path):
-        if item2_name == item1_name:
-            return [item1_name, item2_name]
-    else:
-        return [item1_name, '']
-
-
 def record_match(path_1, path_2):  # 记录配对组
     cf = configparser.ConfigParser()
     folders_on_surface_path = [path_1 + '\\' + dI for dI in os.listdir(path_1) if
@@ -112,30 +103,35 @@ def record_match(path_1, path_2):  # 记录配对组
 '''
 
 
-def sync_file(file_1, file_2, no_judge=False):
+def creat_folder_for(target_path):
+    target = target_path.split('\\')[:-1]
+    try_des = ''
+    for fold in target:
+        try_des += fold + '\\'
+        if not os.path.exists(try_des):
+            os.mkdir(try_des)
+
+
+def sync_file(file1_path, file2_path, no_judge=False, single_way=False):
+    last_edit_time_1 = int(os.stat(file1_path).st_mtime)
+    if os.path.exists(file2_path):
+        last_edit_time_2 = int(os.stat(file2_path).st_mtime)
+    else:
+        last_edit_time_2 = 0
     new_file, prior_file = '', ''
     pas = False
-    last_edit_time_1 = int(os.stat(file_1).st_mtime)
-    last_edit_time_2 = int(os.stat(file_2).st_mtime)
-
-    def creat_folder(target_path):
-        target = target_path.split('\\')[:-1]
-        try_des = ''
-        for fold in target:
-            try_des += fold + '\\'
-            if not os.path.exists(try_des):
-                os.mkdir(try_des)
-
     if no_judge:
-        creat_folder(file_2)
-        shutil.copyfile(file_1, file_2)
+        creat_folder_for(file2_path)
+        shutil.copyfile(file1_path, file2_path)
         pas = True
     elif last_edit_time_1 > last_edit_time_2:
-        prior_file = file_2
-        new_file = file_1
+        new_file = file1_path
+        prior_file = file2_path
     elif last_edit_time_1 < last_edit_time_2:
-        prior_file = file_1
-        new_file = file_2
+        new_file = file2_path
+        prior_file = file1_path
+        if single_way:
+            pas = True
     else:
         pas = True
     if not pas:
@@ -149,8 +145,10 @@ def sf_operate(path1, path2):
         file1_path = path1 + file1
         for file2 in all_files_2:
             file2_path = path2 + file2
-            if sf_match_possibility(path1, path2, file1, file2) >= 50:
+            match_possibility = sf_match_possibility(path1, path2, file1, file2)
+            if match_possibility >= 50:
                 sync_file(file1_path, file2_path)
+                break
         else:
             sync_file(file1_path, path2 + file1, no_judge=True)
     for file2 in all_files_2:
@@ -268,6 +266,9 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
             cf_refresh_whitelist_entry(folder_names=move_folder_names)
         else:
             cf_refresh_whitelist_entry()
+
+    def change_page(page):
+        pass
 
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
