@@ -63,25 +63,26 @@ def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
     return file_store
 
 
-def sf_judge_file(item_path_1, item_path_2):  # 更新时间比较函数
-    creat_time_1 = int(os.stat(item_path_1).st_ctime)
-    creat_time_2 = int(os.stat(item_path_2).st_ctime)
-    last_edit_time_1 = int(os.stat(item_path_1).st_mtime)
-    last_edit_time_2 = int(os.stat(item_path_2).st_mtime)
-    data = ['', '']
+def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
+    file1_name = file_1.split('\\')[-1]
+    file2_name = file_2.split('\\')[-1]
+    file1_path = path_1 + file_1
+    file2_path = path_2 + file_2
+    creat_time_1 = int(os.stat(file1_path).st_ctime)
+    creat_time_2 = int(os.stat(file2_path).st_ctime)
+
+    possibility = 0
+    if file_2 == file_1:  # 比对相对路径
+        possibility += 50
+    if file2_name == file1_name:  # 比对文件名
+        possibility += 30
     if creat_time_1 == creat_time_2:
-        data[0] = 's'
-    else:
-        data[0] = 'd'
-    if last_edit_time_1 > last_edit_time_2:
-        data[1] = '>'
-    elif last_edit_time_1 < last_edit_time_2:
-        data[1] = '<'
-    else:
-        data[1] = '='
-    return data
+        possibility += 20
+
+    return possibility
 
 
+'''
 def match_item(item1__path, in_folder2_path):  # 配对文件函数
     item1_name = item1__path.split('\\')[-1]
     for item2_name in os.listdir(in_folder2_path):
@@ -108,24 +109,31 @@ def record_match(path_1, path_2):  # 记录配对组
         folder_matched = match_item(folder_in_path1, path_2)
         cf.set(section_name, folder_matched[0], folder_matched[1])
         cf.write(open(sf_data_path + r'Syncfile_data.ini', "w+", encoding='ANSI'))
+'''
 
 
-def sync_file(file_1, file_2, pair_data=None):
+def sync_file(file_1, file_2, no_judge=False):
     new_file, prior_file = '', ''
     pas = False
-    if pair_data is None:
-        target = file_2.split('\\')[:-1]
+    last_edit_time_1 = int(os.stat(file_1).st_mtime)
+    last_edit_time_2 = int(os.stat(file_2).st_mtime)
+
+    def creat_folder(target_path):
+        target = target_path.split('\\')[:-1]
         try_des = ''
         for fold in target:
             try_des += fold + '\\'
             if not os.path.exists(try_des):
                 os.mkdir(try_des)
+
+    if no_judge:
+        creat_folder(file_2)
         shutil.copyfile(file_1, file_2)
         pas = True
-    elif pair_data[1] == '>':
+    elif last_edit_time_1 > last_edit_time_2:
         prior_file = file_2
         new_file = file_1
-    elif pair_data[1] == '<':
+    elif last_edit_time_1 < last_edit_time_2:
         prior_file = file_1
         new_file = file_2
     else:
@@ -139,26 +147,16 @@ def sf_operate(path1, path2):
     all_files_2 = sf_scan_files(path2)
     for file1 in all_files_1:
         file1_path = path1 + file1
-        file1_name = file1.split('\\')[-1]
         for file2 in all_files_2:
             file2_path = path2 + file2
-            file2_name = file2.split('\\')[-1]
-            dat = sf_judge_file(file1_path, file2_path)
-            possibility = 0
-            if file2 == file1:  # 比对相对路径
-                possibility += 50
-            if file2_name == file1_name:  # 比对文件名
-                possibility += 30
-            if dat[0] == 's':  # 比对创建时间
-                possibility += 20
-            if possibility >= 50:
-                sync_file(file1_path, file2_path, dat)
+            if sf_match_possibility(path1, path2, file1, file2) >= 50:
+                sync_file(file1_path, file2_path)
         else:
-            sync_file(file1_path, path2 + file1)
+            sync_file(file1_path, path2 + file1, no_judge=True)
     for file2 in all_files_2:
         file2_path = path2 + file2
         if file2 not in all_files_1:
-            sync_file(file2_path, path1 + file2)
+            sync_file(file2_path, path1 + file2, no_judge=True)
 
 
 def test_syncfile():
