@@ -24,12 +24,18 @@ Beta 版程序也不会打包。
 
 由于功能比较多，代码比较冗长（主程序500+行，自建模块200+行），如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
 
-### pyw文件打包说明：
-本项目开源，可以下载pyw文件与图表文件自行更改源代码
+### 兼容性说明：
+代码中的exe文件仅支持windows64位操作系统
 
-pyinstaller打包法：
+如果操作系统是32位Windows，可以下载pyw文件，解码base64编码过的图标文件，然后自行打包为32位操作系统的exe文件
+
+##### 本软件仅支持Windows操作系统下使用！
+
+#### pyinstaller打包法：
 
 先要安装python环境，python安装完后打开cmd安装pyinstaller (pip install pyinstaller)
+
+如果想打包为32为的exe，那就要在32位的Python下打包
 
 安装完成后，现将【Movefile vX.X.X.pyw】改名为【Movefile.pyw】，接着在文件夹内放入ico文件与其他配置文件，然后在【Movefile vX.X.X.pyw】所在文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.pyw --onefile】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
 
