@@ -11,6 +11,7 @@ update_time = '2023/1/14-night'
 import base64
 import configparser
 import os
+import psutil
 import shutil
 import time
 import tkinter as tk
@@ -25,6 +26,20 @@ from win10toast import ToastNotifier
 
 import Movefile_icon as icon
 from ComBoPicker import Combopicker
+
+
+def get_boot_time():
+    boot_time = psutil.boot_time()  # 返回一个时间戳
+    boot_time_obj = datetime.fromtimestamp(boot_time)
+    now_time = datetime.now()
+    delta_time = now_time - boot_time_obj
+    t = str(delta_time).split('.')[0].split(' day, ')
+    if t[1]:
+        boot_time_s = int(t[0]) * 3600 * 24 + int(t[1].split(':')[0]) * 3600 + int(t[1].split(':')[1]) * 60 + int(
+            t[1].split(':')[2])
+    else:
+        boot_time_s = int(t[0].split(':')[0]) * 3600 + int(t[0].split(':')[1]) * 60 + int(t[0].split(':')[2])
+    return boot_time_s
 
 
 def set_data_path():
@@ -67,26 +82,56 @@ def asktime_plus():
     gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
-def cf_data_error():
-    try:
-        cf = configparser.ConfigParser()
-        cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
-        old_path_ = cf.get('Cleanfile_settings', 'old_path')  # 旧文件夹
-        new_path_ = cf.get('Cleanfile_settings', 'new_path')  # 新文件夹
-        pass_file = cf.get('Cleanfile_settings', 'pass_filename').split(',')  # 设置跳过白名单
-        pass_format = cf.get('Cleanfile_settings', 'pass_format').split(',')  # 设置跳过格式
-        time_ = cf.getint('Cleanfile_settings', 'set_hour') * 3600  # 设置过期时间(hour)
-        mode_ = cf.getint('Cleanfile_settings', 'mode')
-        move_folder = cf.get('Cleanfile_settings', 'move_folder')
-        autorun_ = cf.get('Cleanfile_settings', 'autorun')
-        cf_move_dir(old__path=old_path_, new__path=new_path_, pass__file=pass_file, pass__format=pass_format, t=time_,
-                    check__mode=mode_, is__move__folder=False, test=True)
-        if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
-            return False
+def list_savings():
+    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
+    sf_store_path = sf_data_path + r'Syncfile_data.ini'
+    cf_file = configparser.ConfigParser()
+    cf_file.read(cf_store_path)
+    cf_save_names = cf_file.sections()
+    sf_file = configparser.ConfigParser()
+    sf_file.read(sf_store_path)
+    sf_save_names = sf_file.sections()
+    all_save_names = cf_save_names + sf_save_names
+    for cf_save_name in cf_save_names:
+        if cf_file.get(cf_save_name, '_last_edit_') == 'True':
+            saving_data = ['cf', cf_save_name, all_save_names]
+            break
+    else:
+        for sf_save_name in sf_save_names:
+            if sf_file.get(sf_save_name, '_last_edit_') == 'True':
+                saving_data = ['sf', sf_save_name, all_save_names]
+                break
         else:
+            saving_data = []
+    return saving_data
+
+
+def data_error():
+    last_edit_data = list_savings()
+    if last_edit_data[0] == 'cf':
+        last_edit_name = last_edit_data[1]
+        try:
+            cf = configparser.ConfigParser()
+            cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
+            old_path_ = cf.get(last_edit_name, 'old_path')  # 旧文件夹
+            new_path_ = cf.get(last_edit_name, 'new_path')  # 新文件夹
+            pass_file = cf.get(last_edit_name, 'pass_filename').split(',')  # 设置跳过白名单
+            pass_format = cf.get(last_edit_name, 'pass_format').split(',')  # 设置跳过格式
+            time_ = cf.getint(last_edit_name, 'set_hour') * 3600  # 设置过期时间(hour)
+            mode_ = cf.getint(last_edit_name, 'mode')
+            move_folder = cf.get(last_edit_name, 'move_folder')
+            autorun_ = cf.get(last_edit_name, 'autorun')
+            cf_move_dir(old__path=old_path_, new__path=new_path_, pass__file=pass_file, pass__format=pass_format,
+                        t=time_,
+                        check__mode=mode_, is__move__folder=False, test=True)
+            if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
+                return False
+            else:
+                return True
+        except:
             return True
-    except:
-        return True
+    elif last_edit_data[0] == 'sf':
+        return False
 
 
 def get_desktop():
@@ -101,28 +146,161 @@ def load_icon():
     image.close()
 
 
-def find_last_edit():
-    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-    sf_store_path = sf_data_path + r'Syncfile_data.ini'
-    cf_file = configparser.ConfigParser()
-    cf_file.read(cf_store_path)
-    cf_save_names = cf_file.sections()
-    sf_file = configparser.ConfigParser()
-    sf_file.read(sf_store_path)
-    sf_save_names = sf_file.sections()
-    all_save_names = cf_save_names + sf_save_names
-    for cf_save_name in cf_save_names:
-        if cf_file.get(cf_save_name, '_last_edit_') == 'True':
-            last_edit = ['cf', cf_save_name, all_save_names]
-            break
+def cf_move_dir(old__path, new__path, pass__file, pass__format, t, check__mode, is__move__folder, test=False):
+    global Movename, Errorname
+    Movename = ''
+    Errorname = ''
+    files = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
+    for file in files:
+        file_path = old__path + "/" + file
+        pf = False
+        for m in pass__format:
+            file_end = '.' + file.split('.')[-1]
+            if m == file_end:
+                pf = True
+        if file == ('Movefile ' + vision + '.exe' or new__path.split('\\')[-1]):
+            continue
+        is_folder = os.path.isdir(file)
+        now = int(time.time())  # 当前时间
+        if (not is_folder and ((file not in pass__file) and not pf)) or (
+                is_folder and file not in pass__file and is__move__folder):  # 判断移动条件
+            if check__mode == 1:
+                last = int(os.stat(file_path).st_mtime)  # 最后一次修改的时间 (Option 1)
+            elif check__mode == 2:
+                last = int(os.stat(file_path).st_atime)  # 最后一次访问的时间 (Option 2)
+            else:
+                raise
+            if (now - last >= t) and not test:  # 移动过期文件
+                try:
+                    shutil.move(file_path, new__path)
+                    Movename += (file + ',  ')
+                except:
+                    Errorname += (file + ',  ')
+
+
+def set_startup():
+    # 将快捷方式添加到自启动目录
+    # 获取用户名
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+    startup_path = os.path.join(roaming_path + r"Microsoft\Windows\Start Menu\Programs\Startup")
+    bin_path = r"Movefile " + vision + ".exe"
+    link_path = startup_path + "\\Movefile"
+    desc = "自动转移文件程序"
+    icon_ = mf_data_path + r'Movefile.ico'
+    if os.path.exists(link_path + '.lnk'):
+        os.remove(link_path + '.lnk')
+    shortcut = link_path + ".lnk"
+    winshell.CreateShortcut(
+        Path=shortcut,
+        Target=bin_path,
+        Icon=(icon_, 0),
+        Description=desc)
+
+
+
+def cf_show_notice():
+    toaster = ToastNotifier()
+    new_folder = new_path.split('\\')[-1]
+    old_folder = old_path.split('\\')[-1]
+    if len(Movename) > 0:
+        toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
+                           Movename,
+                           icon_path=mf_data_path + r'Movefile.ico',
+                           duration=10,
+                           threaded=False)
     else:
-        for sf_save_name in sf_save_names:
-            if sf_file.get(sf_save_name, '_last_edit_') == 'True':
-                last_edit = ['sf', sf_save_name, all_save_names]
-                break
-        else:
-            last_edit = []
-    return last_edit
+        toaster.show_toast(old_folder + ' is pretty clean now',
+                           'Nothing is moved away',
+                           icon_path=mf_data_path + r'Movefile.ico',
+                           duration=10,
+                           threaded=False)
+    if len(Errorname) > 0:
+        toaster.show_toast("Couldn't move files",
+                           Errorname + """
+无法被移动，请在关闭文件或移除重名文件后重试""",
+                           icon_path=mf_data_path + r'Movefile.ico',
+                           duration=10,
+                           threaded=False)
+
+
+def sf_ask_operation():
+    pass
+
+
+def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
+    def scan_folders_in(f_path):  # 扫描目录下所有的文件夹，并返回路径列表
+        surf_items = os.listdir(f_path)
+        folder_store = [f_path]
+        for item in surf_items:
+            item_path = f_path + '\\' + item
+            if os.path.isdir(item_path):
+                folder_store.extend(scan_folders_in(item_path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
+        folder_store = sorted(set(folder_store))  # 排序 + 排除重复项
+        return folder_store
+
+    file_store = []
+    for folder in scan_folders_in(folder_path):  # 遍历所有文件夹
+        files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
+        # 如上只生成本文件夹内 文件的路径
+        file_store.extend(files)  # 存储上面文件路径
+    for i in range(len(file_store)):
+        file_store[i] = file_store[i][len(folder_path)::]  # 返回相对位置
+    return file_store
+
+
+def sf_creat_folder(target_path):
+    target = target_path.split('\\')[:-1]
+    try_des = ''
+    for fold in target:
+        try_des += fold + '\\'
+        if not os.path.exists(try_des):
+            os.mkdir(try_des)
+
+
+def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
+    last_edit_time_1 = int(os.stat(file1_path).st_mtime)
+    if os.path.exists(file2_path):
+        last_edit_time_2 = int(os.stat(file2_path).st_mtime)
+    else:
+        last_edit_time_2 = 0
+    new_file, prior_file = '', ''
+    pas = False
+    if no_judge:
+        sf_creat_folder(file2_path)
+        shutil.copyfile(file1_path, file2_path)
+        pas = True
+    elif last_edit_time_1 > last_edit_time_2:
+        new_file = file1_path
+        prior_file = file2_path
+    elif last_edit_time_1 < last_edit_time_2:
+        new_file = file2_path
+        prior_file = file1_path
+        if single_way:
+            pas = True
+    else:
+        pas = True
+    if not pas:
+        shutil.copyfile(new_file, prior_file)
+
+
+def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
+    file1_name = file_1.split('\\')[-1]
+    file2_name = file_2.split('\\')[-1]
+    file1_path = path_1 + file_1
+    file2_path = path_2 + file_2
+    creat_time_1 = int(os.stat(file1_path).st_ctime)
+    creat_time_2 = int(os.stat(file2_path).st_ctime)
+
+    possibility = 0
+    if file_2 == file_1:  # 比对相对路径
+        possibility += 50
+    if file2_name == file1_name:  # 比对文件名
+        possibility += 30
+    if creat_time_1 == creat_time_2:
+        possibility += 20
+
+    return possibility
 
 
 def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
@@ -133,8 +311,7 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
         if folder_names is None:
             folder_names = []
         try:
-            global cf_entry_keep_files
-            global cf_entry_keep_formats
+            global cf_entry_keep_files, cf_entry_keep_formats
             all_ends = []
             file_names = []
             item_names = os.listdir(cf_entry_old_path.get())
@@ -452,7 +629,7 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
         cf_file.read(cf_store_path)  # 获取配置文件
         sf_file = configparser.ConfigParser()
         sf_file.read(sf_store_path)
-        last_edit = find_last_edit()
+        last_edit = list_savings()
         if last_edit[0] == 'cf' and not ask_path:
             save_name = last_edit[1]
             if cf_entry_old_path.get() != '':
@@ -539,30 +716,72 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
   且无法按上面的解释修复
   请联系作者（QQ:2567466856）,我会尽快尝试帮你修复""")
 
-    def cf_continue_going(only_quit=False):
-        root.quit()
-        root.destroy()
-        if not only_quit:
-            cf_operate(cf_data_path + r'Cleanfile_data.ini')
+    def cf_has_error():
+        if not cf_is_num():
+            tkinter.messagebox.showwarning('Movefile', '警告：请在时间设定栏内输入数字')
+            return True
+        elif cf_has_blank():
+            tkinter.messagebox.showwarning(title='Movefile',
+                                           message='警告：请填写所有除白名单与开机自启勾选栏外的必填项目！')
+            return True
+        elif cf_path_error():
+            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
+            return True
+        else:
+            return False
+
+    def sf_has_error():
+        return False
+
+    def cf_operate_from_root():
+        global old_path, new_path
+        # cf = configparser.ConfigParser()
+        # cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
+        old_path = cf_entry_old_path.get()  # 旧文件夹
+        new_path = cf_entry_new_path.get()  # 新文件夹
+        pass_file = cf_entry_keep_files.get().split(',')  # 设置跳过白名单
+        pass_format = cf_entry_keep_formats.get().split(',')  # 设置跳过格式
+        time_ = int(cf_entry_time.get()) * 3600  # 设置过期时间(hour)
+        mode = int(cf_entry_mode.get())  # 设置判断模式
+        is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
+
+        cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format, t=time_,
+                    check__mode=mode, is__move__folder=is_move_folder)
+
+    def sf_operate_from_root():
+        path1 = sf_entry_path_1.get()
+        path2 = sf_entry_path_2.get()
+        all_files_1 = sf_scan_files(path1)
+        all_files_2 = sf_scan_files(path2)
+        for file1 in all_files_1:
+            file1_path = path1 + file1
+            for file2 in all_files_2:
+                file2_path = path2 + file2
+                match_possibility = sf_match_possibility(path1, path2, file1, file2)
+                if match_possibility > 50:
+                    sf_sync_file(file1_path, file2_path)
+                    break
+                elif match_possibility == 50:
+                    sf_ask_operation()
+
+            else:
+                sf_sync_file(file1_path, path2 + file1, no_judge=True)
+        for file2 in all_files_2:
+            file2_path = path2 + file2
+            if file2 not in all_files_1:
+                sf_sync_file(file2_path, path1 + file2, no_judge=True)
+
+    def continue_going():
+        if cf_or_sf.get() == 'cf' and not cf_has_error():
+            bt2.config(state=tk.DISABLED)
+            cf_operate_from_root()
+            root.quit()
+            root.destroy()
             cf_show_notice()
+        elif cf_or_sf.get() == 'sf' and not sf_has_error():
+            sf_operate_from_root()
 
     def ask_save_name(last_edit_data):
-        def cf_has_error():
-            if not cf_is_num():
-                tkinter.messagebox.showwarning('Movefile', '警告：请在时间设定栏内输入数字')
-                return True
-            elif cf_has_blank():
-                tkinter.messagebox.showwarning(title='Movefile',
-                                               message='警告：请填写所有除白名单与开机自启勾选栏外的必填项目！')
-                return True
-            elif cf_path_error():
-                tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
-                return True
-            else:
-                return False
-
-        def sf_has_error():
-            return False
 
         def sure_save():
             savefile(mode=cf_or_sf.get(), save_name=name_entry.get())
@@ -597,9 +816,9 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
             ask_name_window.mainloop()
 
     # 创建按键
-    bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name(last_edit_data=find_last_edit()))
+    bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name(last_edit_data=list_savings()))
     bt1.grid(row=14, column=1, ipadx=100, pady=4, padx=10, sticky='W')
-    bt2 = ttk.Button(root, text='继续', command=cf_continue_going)
+    bt2 = ttk.Button(root, text='运行当前配置', command=lambda: continue_going())
     bt2.grid(row=14, column=1, ipadx=100, pady=4, padx=10, sticky='E')
     bt2.config(state=tk.DISABLED)
 
@@ -607,7 +826,7 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
     main_menu = tk.Menu(root)
     file_menu = tk.Menu(main_menu, tearoff=False)
     file_menu.add_command(label="读取配置文件", command=lambda: cf_open_ini(ask_path=True), accelerator="Ctrl+O")
-    file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name(last_edit_data=find_last_edit())),
+    file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name(last_edit_data=list_savings())),
                           accelerator="Ctrl+S")
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label="关于本软件", command=cf_helpfunc)
@@ -620,8 +839,8 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
 
     root.bind("<Control-o>", lambda: cf_open_ini(ask_path=True))
     root.bind("<Control-O>", lambda: cf_open_ini(ask_path=True))
-    root.bind("<Control-s>", lambda: ask_save_name(last_edit_data=find_last_edit()))
-    root.bind("<Control-S>", lambda: ask_save_name(last_edit_data=find_last_edit()))
+    root.bind("<Control-s>", lambda: ask_save_name(last_edit_data=list_savings()))
+    root.bind("<Control-S>", lambda: ask_save_name(last_edit_data=list_savings()))
 
     if cf_first_ask:
         cf_entry_old_path.insert(0, get_desktop())
@@ -647,250 +866,44 @@ def ask_info(cf_error=False, cf_muti_ask=False, cf_first_ask=False):
     root.mainloop()
 
 
-def cf_move_dir(old__path, new__path, pass__file, pass__format, t, check__mode, is__move__folder, test=False):
-    global Movename, Errorname
-    Movename = ''
-    Errorname = ''
-    files = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
-    for file in files:
-        file_path = old__path + "/" + file
-        pf = False
-        for m in pass__format:
-            file_end = '.' + file.split('.')[-1]
-            if m == file_end:
-                pf = True
-        if file == ('Movefile ' + vision + '.exe' or new__path.split('\\')[-1]):
-            continue
-        is_folder = os.path.isdir(file)
-        now = int(time.time())  # 当前时间
-        if (not is_folder and ((file not in pass__file) and not pf)) or (
-                is_folder and file not in pass__file and is__move__folder):  # 判断移动条件
-            if check__mode == 1:
-                last = int(os.stat(file_path).st_mtime)  # 最后一次修改的时间 (Option 1)
-            elif check__mode == 2:
-                last = int(os.stat(file_path).st_atime)  # 最后一次访问的时间 (Option 2)
-            else:
-                raise
-            if (now - last >= t) and not test:  # 移动过期文件
-                try:
-                    shutil.move(file_path, new__path)
-                    Movename += (file + ',  ')
-                except:
-                    Errorname += (file + ',  ')
-
-
-def cf_create_shortcut(bin_path: str, name: str, _icon: str, desc: str):
-    try:
-        shortcut = name + ".lnk"
-        winshell.CreateShortcut(
-            Path=shortcut,
-            Target=bin_path,
-            Icon=(_icon, 0),
-            Description=desc)
-    except:
-        pass
-
-
-def cf_set_startup(autorun):
-    # 将快捷方式添加到自启动目录
-    # 获取用户名
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    startup_path = os.path.join(roaming_path + r"Microsoft\Windows\Start Menu\Programs\Startup")
-    bin_path = r"Movefile " + vision + ".exe"
-    link_path = startup_path + "\\Movefile"
-    desc = "自动转移文件程序"
-    icon_ = mf_data_path + r'Movefile.ico'
-    if autorun:
-        cf_create_shortcut(bin_path, link_path, icon_, desc)
-    else:
-        if os.path.exists(link_path + '.lnk'):
-            os.remove(link_path + '.lnk')
-
-
-def cf_operate(save_name):
-    global old_path, new_path
-    cf = configparser.ConfigParser()
-    cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
-    old_path = cf.get(save_name, 'old_path')  # 旧文件夹
-    new_path = cf.get(save_name, 'new_path')  # 新文件夹
-    pass_file = cf.get(save_name, 'pass_filename').split(',')  # 设置跳过白名单
-    pass_format = cf.get(save_name, 'pass_format').split(',')  # 设置跳过格式
-    time_ = cf.getint(save_name, 'set_hour') * 3600  # 设置过期时间(hour)
-    mode = cf.getint(save_name, 'mode')  # 设置判断模式
-    is_move_folder = cf.get(save_name, 'move_folder')  # 设置是否移动文件夹
-    if cf.get(save_name, 'autorun') == 'True':
-        cf_set_startup(True)
-    else:
-        cf_set_startup(False)
-    cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format, t=time_,
-                check__mode=mode, is__move__folder=is_move_folder)
-
-    pass
-def cf_show_notice():
-    toaster = ToastNotifier()
-    new_folder = new_path.split('\\')[-1]
-    old_folder = old_path.split('\\')[-1]
-    if len(Movename) > 0:
-        toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
-                           Movename,
-                           icon_path=mf_data_path + r'Movefile.ico',
-                           duration=10,
-                           threaded=False)
-    else:
-        toaster.show_toast(old_folder + ' is pretty clean now',
-                           'Nothing is moved away',
-                           icon_path=mf_data_path + r'Movefile.ico',
-                           duration=10,
-                           threaded=False)
-    if len(Errorname) > 0:
-        toaster.show_toast("Couldn't move files",
-                           Errorname + """
-无法被移动，请在关闭文件或移除重名文件后重试""",
-                           icon_path=mf_data_path + r'Movefile.ico',
-                           duration=10,
-                           threaded=False)
-
-
-def sf_ask_operation():
-    pass
-
-
-def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
-    def scan_folders_in(f_path):  # 扫描目录下所有的文件夹，并返回路径列表
-        surf_items = os.listdir(f_path)
-        folder_store = [f_path]
-        for item in surf_items:
-            item_path = f_path + '\\' + item
-            if os.path.isdir(item_path):
-                folder_store.extend(scan_folders_in(item_path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
-        folder_store = sorted(set(folder_store))  # 排序 + 排除重复项
-        return folder_store
-
-    file_store = []
-    for folder in scan_folders_in(folder_path):  # 遍历所有文件夹
-        files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
-        # 如上只生成本文件夹内 文件的路径
-        file_store.extend(files)  # 存储上面文件路径
-    for i in range(len(file_store)):
-        file_store[i] = file_store[i][len(folder_path)::]  # 返回相对位置
-    return file_store
-
-
-def sf_creat_folder(target_path):
-    target = target_path.split('\\')[:-1]
-    try_des = ''
-    for fold in target:
-        try_des += fold + '\\'
-        if not os.path.exists(try_des):
-            os.mkdir(try_des)
-
-
-def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
-    last_edit_time_1 = int(os.stat(file1_path).st_mtime)
-    if os.path.exists(file2_path):
-        last_edit_time_2 = int(os.stat(file2_path).st_mtime)
-    else:
-        last_edit_time_2 = 0
-    new_file, prior_file = '', ''
-    pas = False
-    if no_judge:
-        sf_creat_folder(file2_path)
-        shutil.copyfile(file1_path, file2_path)
-        pas = True
-    elif last_edit_time_1 > last_edit_time_2:
-        new_file = file1_path
-        prior_file = file2_path
-    elif last_edit_time_1 < last_edit_time_2:
-        new_file = file2_path
-        prior_file = file1_path
-        if single_way:
-            pas = True
-    else:
-        pas = True
-    if not pas:
-        shutil.copyfile(new_file, prior_file)
-
-
-def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
-    file1_name = file_1.split('\\')[-1]
-    file2_name = file_2.split('\\')[-1]
-    file1_path = path_1 + file_1
-    file2_path = path_2 + file_2
-    creat_time_1 = int(os.stat(file1_path).st_ctime)
-    creat_time_2 = int(os.stat(file2_path).st_ctime)
-
-    possibility = 0
-    if file_2 == file_1:  # 比对相对路径
-        possibility += 50
-    if file2_name == file1_name:  # 比对文件名
-        possibility += 30
-    if creat_time_1 == creat_time_2:
-        possibility += 20
-
-    return possibility
-
-
-def sf_operate(path1, path2):
-    all_files_1 = sf_scan_files(path1)
-    all_files_2 = sf_scan_files(path2)
-    for file1 in all_files_1:
-        file1_path = path1 + file1
-        for file2 in all_files_2:
-            file2_path = path2 + file2
-            match_possibility = sf_match_possibility(path1, path2, file1, file2)
-            if match_possibility > 50:
-                sf_sync_file(file1_path, file2_path)
-                break
-            elif match_possibility == 50:
-                sf_ask_operation()
-
-        else:
-            sf_sync_file(file1_path, path2 + file1, no_judge=True)
-    for file2 in all_files_2:
-        file2_path = path2 + file2
-        if file2 not in all_files_1:
-            sf_sync_file(file2_path, path1 + file2, no_judge=True)
-
-
-def test_syncfile():
-    path_1 = r"C:\Users\25674\Desktop\attempt"
-    path_2 = r"C:\Users\25674\Desktop\test"
-    sf_operate(path_1, path_2)
-
-
 def ending_code():
     pass
 
 
 def mainprocess():
+    set_data_path()
+    set_startup()
+    load_icon()
+    asktime_plus()
+
+    first_visit = False
+    if not list_savings():  # 判断是否为首次访问
+        first_visit = True
+
     cf = configparser.ConfigParser()
     sf = configparser.ConfigParser()
     mf = configparser.ConfigParser()
-    set_data_path()
-    first_visit = False
-    if not find_last_edit():
-        first_visit = True
-    asktime_plus()
-    load_icon()
     cf.read(cf_data_path + r'Cleanfile_data.ini')
     sf.read(sf_data_path + r'Syncfile_data.ini')
     mf.read(mf_data_path + r"Movefile_data.ini")
 
+    boot_time = get_boot_time()
+
     if first_visit:
         ask_info(cf_first_ask=True)
-    elif cf_data_error():
+    elif data_error():
         ask_info(cf_error=True)
     elif mf.getint("General", "asktime_today") > 1:
         ask_info(cf_muti_ask=True)
     else:
         try:
-            cf_operate(cf_data_path + r'Cleanfile_data.ini')
+            # operate
             cf_show_notice()
         except:
             pass
         finally:
             ending_code()
+
 
 if __name__ == '__main__':
     mainprocess()
