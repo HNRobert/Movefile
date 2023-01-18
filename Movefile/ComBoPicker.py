@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from typing import Any
 
 
 class Picker(ttk.Frame):
@@ -69,7 +68,6 @@ class Picker(ttk.Frame):
 
 
 class Combopicker(ttk.Entry, Picker):
-    values: list[Any] | Any
 
     def __init__(self, master, values=None, entryvar=None, entrywidth=None, entrystyle=None, onselect=None,
                  activebackground='#b1dcfb', activeforeground='black', selectbackground='#003eff',

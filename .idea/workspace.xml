@@ -10,6 +10,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile/ComBoPicker.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/ComBoPicker.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -41,20 +42,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/Users/25674/Desktop/Movefile",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "preferences.editor",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/25674/Downloads/ide-eval-resetter/lib/ide-eval-resetter-2.3.5.jar&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\25674\Desktop\Movefile" />
@@ -110,7 +111,12 @@
       <workItem from="1673704678619" duration="8761000" />
       <workItem from="1673758892431" duration="15210000" />
       <workItem from="1673776690222" duration="11933000" />
-      <workItem from="1673791294126" duration="42134000" />
+      <workItem from="1673791294126" duration="52426000" />
+      <workItem from="1674007360432" duration="5472000" />
+      <workItem from="1674016622968" duration="3251000" />
+      <workItem from="1674020296099" duration="494000" />
+      <workItem from="1674020811613" duration="211000" />
+      <workItem from="1674021039661" duration="59000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -140,7 +146,21 @@
       <option name="project" value="LOCAL" />
       <updated>1673838200868</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Changes">
+      <created>1673959168078</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1673959168078</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Changes">
+      <created>1673959177675</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1673959177675</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -166,39 +186,35 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw</url>
-          <line>535</line>
+          <line>534</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw</url>
-          <line>361</line>
+          <line>359</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw</url>
-          <line>899</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/Movefile/Movefile v2.0.0 Beta.pyw</url>
-          <line>607</line>
+          <line>604</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$memory_pic.coverage" NAME="memory_pic 覆盖结果" MODIFIED="1673627084544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
-    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703530914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1674011375264" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$base64.coverage" NAME="图片转base64 覆盖结果" MODIFIED="1673626934008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
     <SUITE FILE_PATH="coverage/Movefile$Github.coverage" NAME="Github版 覆盖结果" MODIFIED="1673788555611" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../../Program Files (x86)/_Robert's Softwares/_Working/_Programming/Z-Robert's Programmes/PyWIFI" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_0_pyw.coverage" NAME="Movefile v1.4.0.pyw 覆盖结果" MODIFIED="1673484111173" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile v1.4.0" />
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1673752920805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
-    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703576059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/workspace_xml$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703855471" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
-    <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1673953681230" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1674007014210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.2.pyw 覆盖结果" MODIFIED="1673579721893" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
-    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673626917553" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703826728" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$memory_pic.coverage" NAME="memory_pic 覆盖结果" MODIFIED="1673627084544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
+    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703530914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703576059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673626917553" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
   </component>
 </project>
