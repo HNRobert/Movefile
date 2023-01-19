@@ -6,7 +6,7 @@ Created on Wed Dec 21 17:07:30 2022
 """
 
 vision = 'v2.0.0'
-update_time = '2023/1/17-night'
+update_time = '2023/1/18-night'
 
 import base64
 import configparser
@@ -98,37 +98,60 @@ def list_saving_data():
                 last_saving_data = ['sf', sf_save_name]
                 break
         else:
-            last_saving_data = []
+            if cf_save_names:
+                last_saving_data = ['cf', cf_save_names[0]]
+            elif sf_save_names:
+                last_saving_data = ['sf', sf_save_names[0]]
+            else:
+                last_saving_data = ['', '']
     return last_saving_data
 
 
-def data_error():
-    last_edit_data = list_saving_data()
-    last_edit_name = last_edit_data[1]
-    if last_edit_data[0] == 'cf':
+def data_error(mode_, name_):
+    if mode_ == 'cf':
         try:
             cf = configparser.ConfigParser()
             cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
-            old_path_ = cf.get(last_edit_name, 'old_path')  # 旧文件夹
-            new_path_ = cf.get(last_edit_name, 'new_path')  # 新文件夹
-            pass_file = cf.get(last_edit_name, 'pass_filename').split(',')  # 设置跳过白名单
-            pass_format = cf.get(last_edit_name, 'pass_format').split(',')  # 设置跳过格式
-            time_ = cf.getint(last_edit_name, 'set_hour') * 3600  # 设置过期时间(hour)
-            mode_ = cf.getint(last_edit_name, 'mode')
-            move_folder = cf.get(last_edit_name, 'move_folder')
-            autorun_ = cf.get(last_edit_name, 'autorun')
-            cf_move_dir(old__path=old_path_, new__path=new_path_, pass__file=pass_file, pass__format=pass_format,
-                        overdue_time=time_,
-                        check__mode=mode_, is__move__folder=False, test=True)
+            old_path_ = cf.get(name_, 'old_path')  # 旧文件夹
+            new_path_ = cf.get(name_, 'new_path')  # 新文件夹
+            move_folder = cf.get(name_, 'move_folder')
+            autorun_ = cf.get(name_, 'autorun')
+            cf.getint(name_, 'set_hour')  # 过期时间
+            cf.getint(name_, 'mode')
+            if os.path.exists(old_path_) and os.path.exists(new_path_):
+                right_path = True
+            else:
+                right_path = False
             if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
+                right_option = True
+            else:
+                right_option = False
+
+            if right_path and right_option:
                 return False
             else:
                 return True
         except:
             return True
-    elif last_edit_data[0] == 'sf':
+    elif mode_ == 'sf':
         try:
-            print('bruh')
+            cf = configparser.ConfigParser()
+            cf.read(sf_data_path + r'Syncfile_data.ini')
+            path_1_ = cf.get(name_, 'path_1')
+            path_2_ = cf.get(name_, 'path_2')
+            mode_s = cf.get(name_, 'mode')
+            if os.path.exists(path_1_) and os.path.exists(path_2_):
+                right_path = True
+            else:
+                right_path = False
+            if mode_s == 'double' or mode_s == 'single':
+                right_option = True
+            else:
+                right_option = False
+            if right_path and right_option:
+                return False
+            else:
+                return True
         except:
             return True
 
@@ -301,39 +324,56 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def ask_info(error=False, muti_ask=False, first_ask=False):
+def ask_info(muti_ask=False, first_ask=False):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
+    ori_old_path = ''
 
-    def cf_refresh_whitelist_entry(folder_names=None):
-        if folder_names is None:
-            folder_names = []
-        try:
-            global cf_entry_keep_files, cf_entry_keep_formats
-            all_ends = []
-            file_names = []
-            item_names = os.listdir(cf_entry_old_path.get())
-            for file in item_names:
-                file_end = '.' + file.split('.')[-1]
-                if os.path.isfile(cf_entry_old_path.get() + '\\' + file):
-                    all_ends.append(file_end)
-                    file_names.append(file)
-            exist_ends = sorted(set(all_ends))
-            cf_entry_keep_files = Combopicker(master=cf_entry_frame_keep_files,
-                                              values=['全选'] + folder_names + file_names,
-                                              frameheight=120)
-            cf_entry_keep_files.grid(row=2, column=1, ipadx=240, pady=5, sticky='W')
-            cf_entry_keep_formats = Combopicker(master=cf_entry_frame_keep_formats, values=['全选'] + exist_ends,
-                                                frameheight=90)
-            cf_entry_keep_formats.grid(row=3, column=1, ipadx=240, pady=0, sticky='W')
-            cf_entry_keep_files_x.grid_forget()
-            cf_entry_keep_formats_x.grid_forget()
-        except:
-            pass
+    def cf_refresh_whitelist_entry():
+        nonlocal ori_old_path
+        all_ends = []
+        file_names = []
+        folder_names = []
+        item_names = os.listdir(cf_entry_old_path.get())
+        if ori_old_path != cf_entry_old_path.get():
+            cf_entry_keep_files.delete(0, 'end')
+            cf_entry_keep_formats.delete(0, 'end')
+            ori_old_path = cf_entry_old_path.get()
+        for item in item_names:
+            if os.path.isfile(cf_entry_old_path.get() + '\\' + item):
+                file_end = '.' + item.split('.')[-1]
+                all_ends.append(file_end)
+                file_names.append(item)
+            elif os.path.isdir(cf_entry_old_path.get() + '\\' + item) and cf_is_folder_move.get():
+                folder_names.append(item)
+        exist_ends = sorted(set(all_ends))
+
+        keep_file_values = ['全选'] + folder_names + file_names
+        cf_entry_keep_files.values = keep_file_values
+        past_values = cf_entry_keep_files.get().split(',')
+        new_values = ''
+        for past_value in past_values:
+            if past_value in keep_file_values:
+                new_values += past_value + ','
+        if new_values:
+            new_values = new_values[:-1]
+        cf_entry_keep_files.delete(0, 'end')
+        cf_entry_keep_files.insert(0, new_values)
+
+        keep_format_values = ['全选'] + exist_ends
+        cf_entry_keep_formats.values = keep_format_values
+        past_values = cf_entry_keep_formats.get().split(',')
+        new_values = ''
+        for past_value in past_values:
+            if past_value in keep_format_values:
+                new_values += past_value + ','
+        if new_values:
+            new_values = new_values[:-1]
+        cf_entry_keep_formats.delete(0, 'end')
+        cf_entry_keep_formats.insert(0, new_values)
 
     def select_path(place, ori_content):
         path_ = tkinter.filedialog.askdirectory()
-
         path_ = path_.replace("/", "\\")
         if path_ != '' and path_ != ori_content:
             if place == 'old':
@@ -345,17 +385,6 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
                 path_1.set(path_)
             elif place == '2':
                 path_2.set(path_)
-
-    def cf_folder_move(state):
-        if state:
-            folders = os.listdir(cf_entry_old_path.get())
-            move_folder_names = []
-            for folder in folders:
-                if os.path.isdir(cf_entry_old_path.get() + '\\' + folder):
-                    move_folder_names.append(folder)
-            cf_refresh_whitelist_entry(folder_names=move_folder_names)
-        else:
-            cf_refresh_whitelist_entry()
 
     def change_active_mode(mode):
         def cf_state():
@@ -451,7 +480,7 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
     cf_entry_old_path = ttk.Entry(root, textvariable=oldpath)
     cf_entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     cf_browse_old_path_button = ttk.Button(root, text="浏览", command=lambda: select_path(place='old',
-                                                                                             ori_content=cf_entry_old_path.get()))
+                                                                                          ori_content=cf_entry_old_path.get()))
     cf_browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
 
     cf_label_new_path = ttk.Label(root, text='新文件夹路径：')
@@ -459,7 +488,7 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
     cf_entry_new_path = ttk.Entry(root, textvariable=newpath)
     cf_entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     cf_browse_new_path_button = ttk.Button(root, text="浏览", command=lambda: select_path(place='new',
-                                                                                             ori_content=cf_entry_new_path.get()))
+                                                                                          ori_content=cf_entry_new_path.get()))
     cf_browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
 
     cf_label_move_options = ttk.Label(root, text='文件移动选项：')
@@ -470,25 +499,24 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
     cf_option_mode_2 = ttk.Radiobutton(root, text="以项目最后访问时间为过期判断依据", variable=cf_entry_mode, value=2)
     cf_option_mode_2.grid(row=3, column=1, padx=175, ipadx=0, sticky='E')
     cf_is_folder_move = tk.BooleanVar()
-    cf_option_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=cf_is_folder_move,
-                                            command=lambda: cf_folder_move(cf_is_folder_move.get()))
+    cf_option_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=cf_is_folder_move)
     cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
 
     cf_entry_frame_keep_files = tk.Frame(root)
     cf_entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
     cf_label_keep_files = ttk.Label(root, text='保留项目(选填)：')
     cf_label_keep_files.grid(row=4, column=0, pady=5, sticky='E')
-    cf_entry_keep_files_x = ttk.Entry(root)
-    cf_entry_keep_files_x.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-    cf_entry_keep_files_x.config(state=tk.DISABLED)
+    cf_entry_keep_files = Combopicker(master=cf_entry_frame_keep_files, values='', frameheight=120)
+    cf_entry_keep_files.grid(row=4, column=1, ipadx=240, pady=0, sticky='W')
+    cf_entry_keep_files.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_entry_frame_keep_formats = tk.Frame(root)
     cf_entry_frame_keep_formats.grid(row=5, column=1, pady=5, ipadx=5, sticky='E')
     cf_label_keep_formats = ttk.Label(root, text='     保留文件格式(选填)：')
     cf_label_keep_formats.grid(row=5, column=0, sticky='E')
-    cf_entry_keep_formats_x = ttk.Entry(root)
-    cf_entry_keep_formats_x.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-    cf_entry_keep_formats_x.config(state=tk.DISABLED)
+    cf_entry_keep_formats = Combopicker(master=cf_entry_frame_keep_formats, values='', frameheight=90)
+    cf_entry_keep_formats.grid(row=5, column=1, ipadx=240, pady=0, sticky='W')
+    cf_entry_keep_formats.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_label_time = ttk.Label(root, text='过期时间设定(小时)：')
     cf_label_time.grid(row=6, column=0, sticky='E')
@@ -528,138 +556,11 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
                                             value='single')
     sf_option_mode_single.grid(row=3, column=1, padx=145, ipadx=0, sticky='E')
 
-    sf_label_lock_folder = ttk.Label(root, text='锁定文件夹(选填)：')
+    sf_label_lock_folder = ttk.Label(root, text='锁定文件夹(开发中)：')
     sf_label_lock_folder.grid(row=4, column=0, pady=5, sticky='E')
     sf_entry_lock_files_x = ttk.Entry(root)
     sf_entry_lock_files_x.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     sf_entry_lock_files_x.config(state=tk.DISABLED)
-
-    def cf_is_num():
-        try:
-            float(cf_entry_time.get())
-        except:
-            return False
-        else:
-            return True
-
-    def cf_has_blank():
-        blank = 0
-        if len(cf_entry_old_path.get()) == 0:
-            blank += 1
-        elif len(cf_entry_new_path.get()) == 0:
-            blank += 1
-        elif len(cf_entry_time.get()) == 0:
-            blank += 1
-        elif cf_entry_mode.get() == 0:
-            blank += 1
-        if blank == 0:
-            return False
-        else:
-            return True
-
-    def cf_path_error():
-        try:
-            os.listdir(cf_entry_old_path.get())
-            os.listdir(cf_entry_new_path.get())
-        except:
-            return True
-        else:
-            return False
-
-    def savefile(mode, save_name='New_Setting'):  # 保存文件
-        cf_data.read(cf_data_path + r'Cleanfile.ini')
-        sf_data.read(sf_data_path + r'Syncfile.ini')
-        if len(cf_save_names) != 0:
-            for cf_save in cf_save_names:
-                try:
-                    cf_data.set(cf_save, '_last_edit_', 'False')
-                    cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
-                except:
-                    pass
-        if len(sf_save_names) != 0:
-            for sf_save in sf_save_names:
-                try:
-                    sf_data.set(sf_save, '_last_edit_', 'False')
-                    sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
-                except:
-                    pass
-
-        if mode == 'cf':  # 如果当前界面为cf
-            if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
-                file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
-                file.close()
-            cf_data.read(cf_data_path + r'Cleanfile_data.ini')
-            if not cf_data.has_section(save_name):
-                cf_data.add_section(save_name)
-            cf_data.set(save_name, '_last_edit_', 'True')
-            cf_data.set(save_name, "old_path", cf_entry_old_path.get())
-            cf_data.set(save_name, "new_path", cf_entry_new_path.get())
-            cf_data.set(save_name, "pass_filename", cf_entry_keep_files.get())
-            cf_data.set(save_name, "pass_format", cf_entry_keep_formats.get())
-            cf_data.set(save_name, "set_hour", cf_entry_time.get())
-            cf_data.set(save_name, "mode", str(cf_entry_mode.get()))
-            cf_data.set(save_name, "autorun", str(cf_is_autorun.get()))
-            cf_data.set(save_name, "move_folder", str(cf_is_folder_move.get()))
-            cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
-
-        if mode == 'sf':  # 如果当前界面为sf
-            if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
-                file = open(sf_data_path + r'Syncfile_data.ini', 'w', encoding='ANSI')
-                file.close()
-            sf_data.read(sf_data_path + r'Syncfile_data.ini')
-            if not sf_data.has_section(save_name):
-                sf_data.add_section(save_name)
-            sf_data.set(save_name, '_last_edit_', 'True')
-            sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
-            sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
-            sf_data.set(save_name, 'mode', sf_entry_mode.get())
-            sf_data.set(save_name, 'lock_path', '114514')
-            sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
-
-        tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
-        bt2.config(state=tk.NORMAL)
-
-    def open_ini(ask_path=False, mode=list_saving_data()[0], save_name=list_saving_data()[1]):
-        cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-        sf_store_path = sf_data_path + r'Syncfile_data.ini'
-        cf_file = configparser.ConfigParser()
-        cf_file.read(cf_store_path)  # 获取配置文件
-        sf_file = configparser.ConfigParser()
-        sf_file.read(sf_store_path)
-        if ask_path:
-            pass
-        if mode == 'cf':
-            if cf_entry_old_path.get() != '':
-                cf_entry_old_path.delete(0, 'end')
-            if cf_entry_new_path.get() != '':
-                cf_entry_new_path.delete(0, 'end')
-            cf_entry_old_path.insert(0, cf_file.get(save_name, 'old_path'))  # 旧文件夹
-            cf_entry_new_path.insert(0, cf_file.get(save_name, 'new_path'))  # 新文件夹
-            cf_refresh_whitelist_entry()
-            if cf_entry_keep_files.get() != '':
-                cf_entry_keep_files.delete(0, 'end')
-            if cf_entry_keep_formats.get() != '':
-                cf_entry_keep_formats.delete(0, 'end')
-            if cf_entry_time.get() != '':
-                cf_entry_time.delete(0, 'end')
-            cf_entry_keep_files.insert(0, cf_file.get(save_name, 'pass_filename'))  # 设置跳过白名单
-            cf_entry_keep_formats.insert(0, cf_file.get(save_name, 'pass_format'))  # 设置跳过格式
-            cf_entry_time.insert(0, cf_file.get(save_name, 'set_hour'))  # 设置过期时间(hour)
-            cf_entry_mode.set(cf_file.getint(save_name, 'mode'))  # 设置判断模式
-            cf_is_autorun.set(cf_file.get(save_name, 'autorun'))
-            cf_is_folder_move.set(cf_file.get(save_name, 'move_folder'))
-            change_active_mode('cf')
-            cf_or_sf.set('cf')
-        if mode == 'sf':
-            if sf_entry_path_1.get() != '':
-                sf_entry_path_1.delete(0, 'end')
-            if sf_entry_path_2.get() != '':
-                sf_entry_path_2.delete(0, 'end')
-            sf_entry_path_1.insert(0, sf_file.get(save_name, 'path_1'))
-            sf_entry_path_2.insert(0, sf_file.get(save_name, 'path_2'))
-            sf_entry_mode.set(sf_file.get(save_name, 'mode'))
-            change_active_mode('sf')
-            cf_or_sf.set('sf')
 
     def cf_helpfunc():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
@@ -723,13 +624,54 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
   且无法按上面的解释修复
   请联系作者（QQ:2567466856）,我会尽快尝试帮你修复""")
 
+    def cf_is_num():
+        try:
+            float(cf_entry_time.get())
+        except:
+            return False
+        else:
+            return True
+
+    def cf_has_blank():
+        blank = 0
+        if len(cf_entry_old_path.get()) == 0:
+            blank += 1
+        elif len(cf_entry_new_path.get()) == 0:
+            blank += 1
+        elif len(cf_entry_time.get()) == 0:
+            blank += 1
+        elif cf_entry_mode.get() == 0:
+            blank += 1
+        if blank == 0:
+            return False
+        else:
+            return True
+
+    def cf_path_error():
+        try:
+            os.listdir(cf_entry_old_path.get())
+            os.listdir(cf_entry_new_path.get())
+        except:
+            return True
+        else:
+            return False
+
+    def sf_path_error():
+        try:
+            os.listdir(sf_entry_path_1.get())
+            os.listdir(sf_entry_path_2.get())
+        except:
+            return True
+        else:
+            return False
+
     def cf_has_error():
         if not cf_is_num():
             tkinter.messagebox.showwarning('Movefile', '警告：请在时间设定栏内输入数字')
             return True
         elif cf_has_blank():
             tkinter.messagebox.showwarning(title='Movefile',
-                                           message='警告：请填写所有除白名单与开机自启勾选栏外的必填项目！')
+                                           message='警告：请填写所有非选填项目！')
             return True
         elif cf_path_error():
             tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
@@ -738,7 +680,190 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
             return False
 
     def sf_has_error():
-        return False
+        if sf_path_error():
+            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
+            return True
+        else:
+            return False
+
+    def savefile(mode, save_name='New_Setting'):  # 保存文件
+        cf_data.read(cf_data_path + r'Cleanfile_data.ini')
+        sf_data.read(sf_data_path + r'Syncfile_data.ini')
+        list_saving_data()
+        if len(cf_save_names) != 0:
+            for cf_save in cf_save_names:
+
+                try:
+                    cf_data.set(cf_save, '_last_edit_', 'False')
+                    cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                except:
+                    pass
+        if len(sf_save_names) != 0:
+            for sf_save in sf_save_names:
+                try:
+                    sf_data.set(sf_save, '_last_edit_', 'False')
+                    sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                except:
+                    pass
+
+        if mode == 'cf':  # 如果当前界面为cf
+            if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
+                file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
+                file.close()
+            cf_data.read(cf_data_path + r'Cleanfile_data.ini')
+            if not cf_data.has_section(save_name):
+                cf_data.add_section(save_name)
+            cf_data.set(save_name, '_last_edit_', 'True')
+            cf_data.set(save_name, "old_path", cf_entry_old_path.get())
+            cf_data.set(save_name, "new_path", cf_entry_new_path.get())
+            cf_data.set(save_name, "pass_filename", cf_entry_keep_files.get())
+            cf_data.set(save_name, "pass_format", cf_entry_keep_formats.get())
+            cf_data.set(save_name, "set_hour", cf_entry_time.get())
+            cf_data.set(save_name, "mode", str(cf_entry_mode.get()))
+            cf_data.set(save_name, "autorun", str(cf_is_autorun.get()))
+            cf_data.set(save_name, "move_folder", str(cf_is_folder_move.get()))
+            cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
+
+        if mode == 'sf':  # 如果当前界面为sf
+            if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
+                file = open(sf_data_path + r'Syncfile_data.ini', 'w', encoding='ANSI')
+                file.close()
+            sf_data.read(sf_data_path + r'Syncfile_data.ini')
+            if not sf_data.has_section(save_name):
+                sf_data.add_section(save_name)
+            sf_data.set(save_name, '_last_edit_', 'True')
+            sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
+            sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
+            sf_data.set(save_name, 'mode', sf_entry_mode.get())
+            sf_data.set(save_name, 'lock_path', '114514')
+            sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+
+        tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
+        bt2.config(state=tk.NORMAL)
+
+    def read_saving(ask_path=False):
+        cf_store_path = cf_data_path + r'Cleanfile_data.ini'
+        sf_store_path = sf_data_path + r'Syncfile_data.ini'
+        cf_file = configparser.ConfigParser()
+        cf_file.read(cf_store_path)  # 获取配置文件
+        sf_file = configparser.ConfigParser()
+        sf_file.read(sf_store_path)
+
+        last_data = ['', '']
+        if list_saving_data():
+            last_data = list_saving_data()
+        mode = last_data[0]
+        save_name = last_data[1]
+
+        def open_cf_saving(setting_name):
+            nonlocal ori_old_path
+            if cf_entry_old_path.get() != '':
+                cf_entry_old_path.delete(0, 'end')
+            if cf_entry_new_path.get() != '':
+                cf_entry_new_path.delete(0, 'end')
+            cf_entry_old_path.insert(0, cf_file.get(setting_name, 'old_path'))  # 旧文件夹
+            ori_old_path = cf_entry_old_path.get()
+            cf_entry_new_path.insert(0, cf_file.get(setting_name, 'new_path'))  # 新文件夹
+            cf_refresh_whitelist_entry()
+            if cf_entry_keep_files.get() != '':
+                cf_entry_keep_files.delete(0, 'end')
+            if cf_entry_keep_formats.get() != '':
+                cf_entry_keep_formats.delete(0, 'end')
+            if cf_entry_time.get() != '':
+                cf_entry_time.delete(0, 'end')
+            cf_entry_keep_files.insert(0, cf_file.get(setting_name, 'pass_filename'))  # 设置跳过白名单
+            cf_entry_keep_formats.insert(0, cf_file.get(setting_name, 'pass_format'))  # 设置跳过格式
+            cf_entry_time.insert(0, cf_file.get(setting_name, 'set_hour'))  # 设置过期时间(hour)
+            cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # 设置判断模式
+            cf_is_autorun.set(cf_file.get(setting_name, 'autorun'))
+            cf_is_folder_move.set(cf_file.get(setting_name, 'move_folder'))
+            change_active_mode('cf')
+            cf_or_sf.set('cf')
+
+        def open_sf_saving(setting_name):
+            if sf_entry_path_1.get() != '':
+                sf_entry_path_1.delete(0, 'end')
+            if sf_entry_path_2.get() != '':
+                sf_entry_path_2.delete(0, 'end')
+            cf_entry_old_path.insert(0, get_desktop())
+            cf_refresh_whitelist_entry()
+            sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
+            sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
+            sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
+            change_active_mode('sf')
+            cf_or_sf.set('sf')
+
+        def refresh_saving():
+            try:
+                list_saving_data()
+                if mode_entry.get() == '清理文件(Cleanfile)':
+                    new_values = cf_save_names
+                    name_entry['value'] = new_values
+                elif mode_entry.get() == '同步文件(Syncfile)':
+                    new_values = sf_save_names
+                    name_entry['value'] = new_values
+                else:
+                    new_values = []
+                if name_entry.get() not in new_values:
+                    name_entry.delete(0, 'end')
+            except:
+                pass
+
+        def del_saving():
+            del_mode = mode_entry.get()
+            del_name = name_entry.get()
+            is_continue = tk.messagebox.askyesno(title='Movefile', message='确认删除配置 ' + del_name + ' ?')
+            ini_file = configparser.ConfigParser()
+            if del_mode == '清理文件(Cleanfile)' and is_continue:
+                ini_file.read(cf_data_path + 'Cleanfile_data.ini')
+                ini_file.remove_section(del_name)
+                ini_file.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+            elif del_mode == '同步文件(Syncfile)' and is_continue:
+                ini_file.read(sf_data_path + 'Syncfile_data.ini')
+                ini_file.remove_section(del_name)
+                ini_file.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+
+        def sure_open():
+            if mode_entry.get() == '清理文件(Cleanfile)':
+                open_cf_saving(name_entry.get())
+            elif mode_entry.get() == '同步文件(Syncfile)':
+                open_sf_saving(name_entry.get())
+            ask_saving_root.quit()
+            ask_saving_root.destroy()
+
+        if ask_path:
+            ask_saving_root = tk.Tk()
+            ask_saving_root.iconbitmap(mf_data_path + r'Movefile.ico')
+            ask_saving_root.geometry('675x35')
+            ask_saving_root.title('读取存档')
+            last_edit_mode = ''
+            last_edit_name = ''
+            save_names = []
+            if last_saving_data:
+                last_edit_mode = last_saving_data[0]
+                last_edit_name = last_saving_data[1]
+            name_label = ttk.Label(ask_saving_root, text='     选择存档：')
+            name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
+            mode_entry = ttk.Combobox(ask_saving_root, values=['清理文件(Cleanfile)', '同步文件(Syncfile)'],
+                                      state='readonly')
+            mode_entry.grid(row=0, column=1, pady=5, padx=5, )
+            if last_edit_mode == 'sf':
+                mode_entry.insert(0, '同步文件(Syncfile)')
+            elif last_edit_mode == 'cf':
+                mode_entry.insert(0, '清理文件(Cleanfile)')
+            name_entry = ttk.Combobox(ask_saving_root, values=save_names, state='readonly')
+            name_entry.insert(0, last_edit_name)
+            name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
+            del_save_button = ttk.Button(ask_saving_root, text='删除存档', command= lambda: del_saving())
+            del_save_button.grid(row=0, column=3, padx=5, pady=5)
+            sure_name_bottom = ttk.Button(ask_saving_root, text='读取存档', command=lambda: sure_open())
+            sure_name_bottom.grid(row=0, column=4, pady=5)
+            name_entry.bind('<Button-1>', lambda event: refresh_saving())
+            ask_saving_root.mainloop()
+        elif mode == 'cf':
+            open_cf_saving(save_name)
+        elif mode == 'sf':
+            open_sf_saving(save_name)
 
     def cf_operate_from_root():
         old_path = cf_entry_old_path.get()  # 旧文件夹
@@ -832,7 +957,7 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
     # 菜单栏
     main_menu = tk.Menu(root)
     file_menu = tk.Menu(main_menu, tearoff=False)
-    file_menu.add_command(label="读取配置文件", command=lambda: open_ini(ask_path=True), accelerator="Ctrl+O")
+    file_menu.add_command(label="读取配置文件", command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
     file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name(
         last_edit_data=list_saving_data())),
                           accelerator="Ctrl+S")
@@ -845,8 +970,8 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
 
-    root.bind("<Control-o>", lambda: open_ini(ask_path=True))
-    root.bind("<Control-O>", lambda: open_ini(ask_path=True))
+    root.bind("<Control-o>", lambda: read_saving(ask_path=True))
+    root.bind("<Control-O>", lambda: read_saving(ask_path=True))
     root.bind("<Control-s>", lambda: ask_save_name(last_edit_data=list_saving_data()))
     root.bind("<Control-S>", lambda: ask_save_name(last_edit_data=list_saving_data()))
 
@@ -860,16 +985,15 @@ def ask_info(error=False, muti_ask=False, first_ask=False):
         cf_helpfunc()
         cf_help_before_use()
 
-    if muti_ask or error:
+    if muti_ask:
+        read_saving(ask_path=False)
         cf_refresh_whitelist_entry()
-        open_ini(ask_path=False)
         bt2.config(state=tk.NORMAL)
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
             change_active_mode('cf')
-        if error:
-            tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
-请尽量不要手动更改ini配置文件''')
+            # tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
+# 请尽量不要手动更改ini配置文件''')
 
     root.mainloop()
 
