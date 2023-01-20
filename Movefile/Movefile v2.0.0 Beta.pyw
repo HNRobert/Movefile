@@ -39,35 +39,39 @@ def get_boot_time():
 
 
 def detect_removable_disks():
+    new_area_data = []
     disk_list = []
-    area_number_list = []
-    while True:
+    area_data_list = []
+    number_book = {}
+    found_new_disk = False
+    while not found_new_disk:
         for item in psutil.disk_partitions():
             # 判断是不是可移动磁盘
             if "removable" in item.opts:
                 # 获取可移动磁盘的盘符
-                disk_list.append(item.mountpoint)
-        # 把盘符写入内存，为了不持续请求
+                if item.mountpoint not in disk_list:
+                    disk_list.append(item.mountpoint)
         if disk_list:
-            current_area_number_list = []
             for pf in disk_list:
-                """考虑插多个u盘"""
-                seria_number = win32api.GetVolumeInformation(pf)
-                area_name = seria_number[0]
-                area_number = seria_number[1]
-                current_area_number_list.append(area_number)
-                if area_number not in area_number_list:
-                    area_number_list.append(area_number)
-                    print("检测到可移动磁盘(" + pf + ")")
-                    print(area_name, area_number)
-            for pn in area_number_list:
-                if pn not in current_area_number_list:
-                    area_number_list.remove(pn)
-                    print('USB弹出')
-        else:
-            # 拔出u盘初始化内存
-            print("未检测到可移动磁盘")
+                if not os.path.exists(pf):
+                    disk_list.remove(pf)
+                    area_data_list.remove(number_book[pf])
+                else:
+                    seria_number = win32api.GetVolumeInformation(pf)
+                    area_name = seria_number[0]
+                    area_number = seria_number[1]
+                    if area_number not in area_data_list:
+                        area_data_list.append(area_number)
+                        number_book[pf] = area_number
+                        new_area_data.append([pf, area_name, area_number])
+                        found_new_disk = True
         time.sleep(2)
+    return new_area_data
+
+
+def ask_sync_disk():
+    for area_data in detect_removable_disks():
+        pass
 
 
 def set_data_path():
@@ -419,16 +423,23 @@ def ask_info(muti_ask=False, first_ask=False):
             elif place == '2':
                 path_2.set(path_)
 
-    def sf_entry_sync(usb_mode):
-        if usb_mode:
+    def sf_entry_sync(mode):
+        if mode == 'movable':
             sf_label_path_1['text'] = '选择可移动磁盘：'
             sf_label_path_2['text'] = '本地文件夹路径：'
+            sf_browse_path_1_button.grid_forget()
+            sf_browse_path_2_button.grid_forget()
         else:
             sf_label_path_1['text'] = '文件夹路径-A：'
             sf_label_path_2['text'] = '文件夹路径-B：'
+            sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+            sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
 
     def change_active_mode(mode):
         def cf_state():
+            sf_label_place_mode.grid_forget()
+            sf_option_mode_usb.grid_forget()
+            sf_option_mode_local.grid_forget()
             sf_label_path_1.grid_forget()
             sf_label_path_2.grid_forget()
             sf_entry_path_1.grid_forget()
@@ -440,7 +451,8 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_label_mode.grid_forget()
             sf_label_lock_folder.grid_forget()
             sf_entry_lock_files.grid_forget()
-            sf_option_mode_usb.grid_forget()
+            sf_label_match_directly.grid_forget()
+            sf_entry_match_directly.grid_forget()
 
             cf_entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
@@ -481,18 +493,22 @@ def ask_info(muti_ask=False, first_ask=False):
             cf_label_time.grid_forget()
             cf_label_start_options.grid_forget()
 
-            sf_label_path_1.grid(row=1, column=0, pady=5, sticky='E')
-            sf_label_path_2.grid(row=2, column=0, pady=5, sticky='E')
-            sf_entry_path_1.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_entry_path_2.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_browse_path_1_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
-            sf_browse_path_2_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
-            sf_option_mode_double.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
-            sf_option_mode_single.grid(row=3, column=1, padx=165, ipadx=0, sticky='E')
-            sf_option_mode_usb.grid(row=3, column=1, padx=10, sticky='E')
-            sf_label_mode.grid(row=3, column=0, pady=5, sticky='E')
-            sf_label_lock_folder.grid(row=4, column=0, pady=5, sticky='E')
-            sf_entry_lock_files.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
+            sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
+            sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
+            sf_label_path_1.grid(row=2, column=0, pady=5, sticky='E')
+            sf_label_path_2.grid(row=3, column=0, pady=5, sticky='E')
+            sf_entry_path_1.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_entry_path_2.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+            sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
+            sf_option_mode_double.grid(row=4, column=1, padx=10, ipadx=0, sticky='W')
+            sf_option_mode_single.grid(row=4, column=1, padx=165, ipadx=0, sticky='E')
+            sf_label_mode.grid(row=4, column=0, pady=5, sticky='E')
+            sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
+            sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            sf_label_match_directly.grid(row=6, column=0, pady=5, sticky='E')
+            sf_entry_match_directly.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
 
         if mode == 'cf':
             cf_state()
@@ -572,43 +588,67 @@ def ask_info(muti_ask=False, first_ask=False):
     cf_option_is_auto = ttk.Checkbutton(root, text='开机自动运行本存档(若保存)', variable=cf_is_autorun)
     cf_option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
 
+    sf_label_place_mode = ttk.Label(root, text='路径模式选择：')
+    sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
+    sf_place_mode = tk.StringVar()
+    sf_option_mode_usb = ttk.Radiobutton(root, text='可移动磁盘(卷)同步模式',
+                                         variable=sf_place_mode,
+                                         value='movable',
+                                         command=lambda: sf_entry_sync(mode=sf_place_mode.get()))
+    sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
+    sf_option_mode_local = ttk.Radiobutton(root, text='本地文件夹同步模式',
+                                           variable=sf_place_mode,
+                                           value='local',
+                                           command=lambda: sf_entry_sync(mode=sf_place_mode.get()))
+    sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
+    sf_place_mode.set('movable')
+
     sf_label_path_1 = ttk.Label(root, text="文件夹路径-A：")
-    sf_label_path_1.grid(row=1, column=0, pady=5, sticky='E')
+    sf_label_path_1.grid(row=2, column=0, pady=5, sticky='E')
     sf_entry_path_1 = ttk.Entry(root, textvariable=path_1)
-    sf_entry_path_1.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+    sf_entry_path_1.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     sf_browse_path_1_button = ttk.Button(root, text="浏览",
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
-    sf_browse_path_1_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
+    sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
 
     sf_label_path_2 = ttk.Label(root, text='文件夹路径-B：')
-    sf_label_path_2.grid(row=2, column=0, pady=5, sticky='E')
+    sf_label_path_2.grid(row=3, column=0, pady=5, sticky='E')
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
-    sf_entry_path_2.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+    sf_entry_path_2.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     sf_browse_path_2_button = ttk.Button(root, text="浏览",
                                          command=lambda: select_path(place='2', ori_content=sf_entry_path_2.get()))
-    sf_browse_path_2_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+    sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
 
     sf_label_mode = ttk.Label(root, text='             同步模式选择：')
-    sf_label_mode.grid(row=3, column=0, pady=5, sticky='E')
+    sf_label_mode.grid(row=4, column=0, pady=5, sticky='E')
     sf_entry_mode = tk.StringVar()
     sf_option_mode_double = ttk.Radiobutton(root, text="双向同步（皆保留最新版本）", variable=sf_entry_mode,
                                             value='double')
-    sf_option_mode_double.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
+    sf_option_mode_double.grid(row=4, column=1, padx=10, ipadx=0, sticky='W')
     sf_option_mode_single = ttk.Radiobutton(root, text="单向同步（来自路径B的新数据不会同步到路径A）",
                                             variable=sf_entry_mode,
                                             value='single')
-    sf_option_mode_single.grid(row=3, column=1, padx=165, ipadx=0, sticky='E')
-    sf_entry_usb_sync = tk.BooleanVar()
-    sf_option_mode_usb = ttk.Checkbutton(root, text='可移动磁盘(卷)同步模式',
-                                         variable=sf_entry_usb_sync,
-                                         command=lambda: sf_entry_sync(usb_mode=sf_entry_usb_sync.get()))
-    sf_option_mode_usb.grid(row=3, column=1, padx=10, sticky='E')
+    sf_option_mode_single.grid(row=4, column=1, padx=165, ipadx=0, sticky='E')
 
     sf_label_lock_folder = ttk.Label(root, text='锁定文件夹(开发中)：')
-    sf_label_lock_folder.grid(row=4, column=0, pady=5, sticky='E')
+    sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
     sf_entry_lock_files = ttk.Entry(root)
-    sf_entry_lock_files.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+    sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     sf_entry_lock_files.config(state=tk.DISABLED)
+
+    sf_label_match_directly = ttk.Label(root, text='手动配对(开发中)：')
+    sf_label_match_directly.grid(row=6, column=0, pady=5, sticky='E')
+    sf_entry_match_directly = ttk.Entry(root)
+    sf_entry_match_directly.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+    sf_entry_match_directly.config(state=tk.DISABLED)
+
+    sf_label_autorun = ttk.Label(root, text='系统设置：')
+    sf_label_autorun.grid(row=7, column=0, pady=5, sticky='E')
+    sf_entry_is_autorun = tk.BooleanVar()
+    sf_option_autorun = ttk.Checkbutton(root,
+                                        text='可移动磁盘接入后自动同步',
+                                        variable=sf_entry_is_autorun)
+    sf_option_autorun.grid(row=7, column=1, pady=5, padx=10, sticky='W')
 
     def cf_helpfunc():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
