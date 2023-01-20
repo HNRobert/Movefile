@@ -19,6 +19,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.ttk as ttk
 import winreg
+import win32api
 from datetime import datetime
 
 import winshell
@@ -35,6 +36,38 @@ def get_boot_time():
     delta_time = now_time - boot_time_obj
     boot_time_s = delta_time.days * 3600 * 24 + delta_time.seconds
     return boot_time_s
+
+
+def detect_removable_disks():
+    disk_list = []
+    area_number_list = []
+    while True:
+        for item in psutil.disk_partitions():
+            # 判断是不是可移动磁盘
+            if "removable" in item.opts:
+                # 获取可移动磁盘的盘符
+                disk_list.append(item.mountpoint)
+        # 把盘符写入内存，为了不持续请求
+        if disk_list:
+            current_area_number_list = []
+            for pf in disk_list:
+                """考虑插多个u盘"""
+                seria_number = win32api.GetVolumeInformation(pf)
+                area_name = seria_number[0]
+                area_number = seria_number[1]
+                current_area_number_list.append(area_number)
+                if area_number not in area_number_list:
+                    area_number_list.append(area_number)
+                    print("检测到可移动磁盘(" + pf + ")")
+                    print(area_name, area_number)
+            for pn in area_number_list:
+                if pn not in current_area_number_list:
+                    area_number_list.remove(pn)
+                    print('USB弹出')
+        else:
+            # 拔出u盘初始化内存
+            print("未检测到可移动磁盘")
+        time.sleep(2)
 
 
 def set_data_path():
@@ -386,6 +419,14 @@ def ask_info(muti_ask=False, first_ask=False):
             elif place == '2':
                 path_2.set(path_)
 
+    def sf_entry_sync(usb_mode):
+        if usb_mode:
+            sf_label_path_1['text'] = '选择可移动磁盘：'
+            sf_label_path_2['text'] = '本地文件夹路径：'
+        else:
+            sf_label_path_1['text'] = '文件夹路径-A：'
+            sf_label_path_2['text'] = '文件夹路径-B：'
+
     def change_active_mode(mode):
         def cf_state():
             sf_label_path_1.grid_forget()
@@ -398,7 +439,8 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_option_mode_single.grid_forget()
             sf_label_mode.grid_forget()
             sf_label_lock_folder.grid_forget()
-            sf_entry_lock_files_x.grid_forget()
+            sf_entry_lock_files.grid_forget()
+            sf_option_mode_usb.grid_forget()
 
             cf_entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
@@ -446,10 +488,11 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_browse_path_1_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
             sf_browse_path_2_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             sf_option_mode_double.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
-            sf_option_mode_single.grid(row=3, column=1, padx=145, ipadx=0, sticky='E')
+            sf_option_mode_single.grid(row=3, column=1, padx=165, ipadx=0, sticky='E')
+            sf_option_mode_usb.grid(row=3, column=1, padx=10, sticky='E')
             sf_label_mode.grid(row=3, column=0, pady=5, sticky='E')
             sf_label_lock_folder.grid(row=4, column=0, pady=5, sticky='E')
-            sf_entry_lock_files_x.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            sf_entry_lock_files.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
 
         if mode == 'cf':
             cf_state()
@@ -554,13 +597,18 @@ def ask_info(muti_ask=False, first_ask=False):
     sf_option_mode_single = ttk.Radiobutton(root, text="单向同步（来自路径B的新数据不会同步到路径A）",
                                             variable=sf_entry_mode,
                                             value='single')
-    sf_option_mode_single.grid(row=3, column=1, padx=145, ipadx=0, sticky='E')
+    sf_option_mode_single.grid(row=3, column=1, padx=165, ipadx=0, sticky='E')
+    sf_entry_usb_sync = tk.BooleanVar()
+    sf_option_mode_usb = ttk.Checkbutton(root, text='可移动磁盘(卷)同步模式',
+                                         variable=sf_entry_usb_sync,
+                                         command=lambda: sf_entry_sync(usb_mode=sf_entry_usb_sync.get()))
+    sf_option_mode_usb.grid(row=3, column=1, padx=10, sticky='E')
 
     sf_label_lock_folder = ttk.Label(root, text='锁定文件夹(开发中)：')
     sf_label_lock_folder.grid(row=4, column=0, pady=5, sticky='E')
-    sf_entry_lock_files_x = ttk.Entry(root)
-    sf_entry_lock_files_x.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-    sf_entry_lock_files_x.config(state=tk.DISABLED)
+    sf_entry_lock_files = ttk.Entry(root)
+    sf_entry_lock_files.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+    sf_entry_lock_files.config(state=tk.DISABLED)
 
     def cf_helpfunc():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
@@ -735,7 +783,7 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
             sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
             sf_data.set(save_name, 'mode', sf_entry_mode.get())
-            sf_data.set(save_name, 'lock_path', sf_entry_lock_files_x.get())
+            sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
             sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
