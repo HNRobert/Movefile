@@ -735,7 +735,7 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
             sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
             sf_data.set(save_name, 'mode', sf_entry_mode.get())
-            sf_data.set(save_name, 'lock_path', '114514')
+            sf_data.set(save_name, 'lock_path', sf_entry_lock_files_x.get())
             sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
@@ -854,7 +854,7 @@ def ask_info(muti_ask=False, first_ask=False):
             name_entry = ttk.Combobox(ask_saving_root, values=save_names, state='readonly')
             name_entry.insert(0, last_edit_name)
             name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
-            del_save_button = ttk.Button(ask_saving_root, text='删除存档', command= lambda: del_saving())
+            del_save_button = ttk.Button(ask_saving_root, text='删除存档', command=lambda: del_saving())
             del_save_button.grid(row=0, column=3, padx=5, pady=5)
             sure_name_bottom = ttk.Button(ask_saving_root, text='读取存档', command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
@@ -911,6 +911,8 @@ def ask_info(muti_ask=False, first_ask=False):
             cf_show_notice(paths[0], paths[1])
         elif cf_or_sf.get() == 'sf' and not sf_has_error():
             sf_operate_from_root()
+            root.quit()
+            root.destroy()
 
     def ask_save_name(last_edit_data):
 
