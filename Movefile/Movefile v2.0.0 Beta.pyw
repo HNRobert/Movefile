@@ -58,10 +58,9 @@ def scan_removable_disks(number=None):
             drv = fso.GetDrive(pf)
             total_space = drv.TotalSize / 2 ** 30
             show_name = area_name + ' (' + pf[:-1] + ')' + '   ' + str(total_space // 0.01 / 100) + ' GB'
-            num_disk_pair = [area_number, show_name]
+            num_disk_pair = [str(area_number), show_name]
             show_list.append(show_name)
             num_disk_pairs.append(num_disk_pair)
-
         if number is None:
             return show_list
         else:
@@ -159,20 +158,20 @@ def list_saving_data():
     all_save_names = cf_save_names + sf_save_names
     for cf_save_name in cf_save_names:
         if cf_file.get(cf_save_name, '_last_edit_') == 'True':
-            last_saving_data = ['cf', cf_save_name]
+            last_saving_data = ['cf', cf_save_name, sf_save_names[0]]
             break
     else:
         for sf_save_name in sf_save_names:
             if sf_file.get(sf_save_name, '_last_edit_') == 'True':
-                last_saving_data = ['sf', sf_save_name]
+                last_saving_data = ['sf', sf_save_name, cf_save_names[0]]
                 break
         else:
             if cf_save_names:
-                last_saving_data = ['cf', cf_save_names[0]]
+                last_saving_data = ['cf', cf_save_names[0], '']
             elif sf_save_names:
-                last_saving_data = ['sf', sf_save_names[0]]
+                last_saving_data = ['sf', sf_save_names[0], '']
             else:
-                last_saving_data = ['', '']
+                last_saving_data = ['', '', '']
     return last_saving_data
 
 
@@ -448,7 +447,6 @@ def ask_info(muti_ask=False, first_ask=False):
         else:
             sf_entry_select_removable['values'] = ['未检测到可移动磁盘']
             if none_disk:
-                print('114')
                 sf_entry_select_removable.delete(0, 'end')
 
     def select_path(place, ori_content):
@@ -801,9 +799,9 @@ def ask_info(muti_ask=False, first_ask=False):
 
     def sf_has_blank():
         blank = 0
-        if sf_place_mode.get() == 'movable' and len(sf_entry_path_1.get()) == 0:
+        if sf_place_mode.get() == 'movable' and len(sf_entry_select_removable.get()) == 0:
             blank += 1
-        elif sf_place_mode.get() == 'local' and len(sf_entry_select_removable.get()) == 0:
+        elif sf_place_mode.get() == 'local' and len(sf_entry_path_1.get()) == 0:
             blank += 1
         elif len(sf_entry_path_2.get()) == 0:
             blank += 1
@@ -898,12 +896,11 @@ def ask_info(muti_ask=False, first_ask=False):
                 sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
             else:
                 disk_data = sf_entry_select_removable.get()
-                sf_data.set(save_name, 'disk_number', win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1])
+                sf_data.set(save_name, 'disk_number', str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
             sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
             sf_data.set(save_name, 'mode', sf_entry_mode.get())
             sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
-            sf_is_autorun = sf_entry_is_autorun.get()
-            sf_data.set(save_name, 'autorun', sf_is_autorun)
+            sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
             sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
@@ -916,6 +913,7 @@ def ask_info(muti_ask=False, first_ask=False):
         cf_file.read(cf_store_path)  # 获取配置文件
         sf_file = configparser.ConfigParser()
         sf_file.read(sf_store_path)
+        new_values = []
 
         last_data = ['', '']
         if list_saving_data():
@@ -963,13 +961,20 @@ def ask_info(muti_ask=False, first_ask=False):
             else:
                 area_number = sf_file.get(setting_name, 'disk_number')
                 sf_entry_select_removable.delete(0, 'end')
-                sf_entry_select_removable.insert(0, scan_removable_disks(area_number))
+                sf_last_data = scan_removable_disks(area_number)
+                count_i = 0
+                for value in sf_entry_select_removable['values']:
+                    if sf_last_data == value:
+                        sf_entry_select_removable.current(count_i)
+                        break
+                    count_i += 1
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
             change_active_mode('sf')
             cf_or_sf.set('sf')
 
         def refresh_saving():
+            nonlocal new_values
             try:
                 list_saving_data()
                 if mode_entry.get() == '清理文件(Cleanfile)':
@@ -978,6 +983,7 @@ def ask_info(muti_ask=False, first_ask=False):
                 elif mode_entry.get() == '同步文件(Syncfile)':
                     new_values = sf_save_names
                     name_entry['value'] = new_values
+                    print()
                 else:
                     new_values = []
                 if name_entry.get() not in new_values:
@@ -1024,11 +1030,14 @@ def ask_info(muti_ask=False, first_ask=False):
                                       state='readonly')
             mode_entry.grid(row=0, column=1, pady=5, padx=5, )
             if last_edit_mode == 'sf':
-                mode_entry.insert(0, '同步文件(Syncfile)')
+                mode_entry.current(1)
             elif last_edit_mode == 'cf':
-                mode_entry.insert(0, '清理文件(Cleanfile)')
+                mode_entry.current(0)
             name_entry = ttk.Combobox(ask_saving_root, values=save_names, state='readonly')
-            name_entry.insert(0, last_edit_name)
+            refresh_saving()
+            for save_index, name in enumerate(new_values):
+                if name == last_edit_name:
+                    name_entry.current(save_index)
             name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
             del_save_button = ttk.Button(ask_saving_root, text='删除存档', command=lambda: del_saving())
             del_save_button.grid(row=0, column=3, padx=5, pady=5)
@@ -1040,6 +1049,45 @@ def ask_info(muti_ask=False, first_ask=False):
             open_cf_saving(save_name)
         elif mode == 'sf':
             open_sf_saving(save_name)
+
+    def ask_save_name():
+        list_saving_data()
+
+        def sure_save():
+            savefile(mode=cf_or_sf.get(), save_name=name_entry.get())
+            ask_name_window.quit()
+            ask_name_window.destroy()
+
+        mode = cf_or_sf.get()
+        if mode == 'cf':
+            has_error = cf_has_error()
+            pri_save_names = cf_save_names
+        elif mode == 'sf':
+            has_error = sf_has_error()
+            pri_save_names = sf_save_names
+        else:
+            has_error = True
+            pri_save_names = []
+        if not has_error:
+            ask_name_window = tk.Tk()
+            ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
+            ask_name_window.geometry('400x35')
+            ask_name_window.title('设置配置存档名称')
+            last_edit_name = 'New_Setting'
+            if last_saving_data:
+                if last_saving_data[0] == mode:
+                    last_edit_name = last_saving_data[1]
+                else:
+                    last_edit_name = last_saving_data[2]
+            name_label = ttk.Label(ask_name_window, text='  请输入存档的名称：')
+            name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
+
+            name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
+            name_entry.insert(0, last_edit_name)
+            name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
+            sure_name_bottom = ttk.Button(ask_name_window, text='确定保存', command=lambda: sure_save())
+            sure_name_bottom.grid(row=0, column=2, sticky='W')
+            ask_name_window.mainloop()
 
     def cf_operate_from_root():
         old_path = cf_entry_old_path.get()  # 旧文件夹
@@ -1090,43 +1138,8 @@ def ask_info(muti_ask=False, first_ask=False):
             root.quit()
             root.destroy()
 
-    def ask_save_name(last_edit_data):
-
-        def sure_save():
-            savefile(mode=cf_or_sf.get(), save_name=name_entry.get())
-            ask_name_window.quit()
-            ask_name_window.destroy()
-
-        mode = cf_or_sf.get()
-        if mode == 'cf':
-            has_error = cf_has_error()
-            pri_save_names = cf_save_names
-        elif mode == 'sf':
-            has_error = sf_has_error()
-            pri_save_names = sf_save_names
-        else:
-            has_error = True
-            pri_save_names = []
-        if not has_error:
-            ask_name_window = tk.Tk()
-            ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
-            ask_name_window.geometry('400x35')
-            ask_name_window.title('设置配置存档名称')
-            last_edit_name = 'New_Setting'
-            if last_edit_data:
-                last_edit_name = last_edit_data[1]
-            name_label = ttk.Label(ask_name_window, text='  请输入存档的名称：')
-            name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
-
-            name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
-            name_entry.insert(0, last_edit_name)
-            name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
-            sure_name_bottom = ttk.Button(ask_name_window, text='确定保存', command=lambda: sure_save())
-            sure_name_bottom.grid(row=0, column=2, sticky='W')
-            ask_name_window.mainloop()
-
     # 创建按键
-    bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name(last_edit_data=list_saving_data()))
+    bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name())
     bt1.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
     bt2 = ttk.Button(root, text='运行当前配置', command=lambda: continue_going())
     bt2.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
@@ -1136,8 +1149,7 @@ def ask_info(muti_ask=False, first_ask=False):
     main_menu = tk.Menu(root)
     file_menu = tk.Menu(main_menu, tearoff=False)
     file_menu.add_command(label="读取配置文件", command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
-    file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name(
-        last_edit_data=list_saving_data())),
+    file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
                           accelerator="Ctrl+S")
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label="关于本软件", command=cf_helpfunc)
@@ -1150,8 +1162,8 @@ def ask_info(muti_ask=False, first_ask=False):
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
     root.bind("<Control-O>", lambda event: read_saving(ask_path=True))
-    root.bind("<Control-s>", lambda event: ask_save_name(last_edit_data=list_saving_data()))
-    root.bind("<Control-S>", lambda event: ask_save_name(last_edit_data=list_saving_data()))
+    root.bind("<Control-s>", lambda event: ask_save_name())
+    root.bind("<Control-S>", lambda event: ask_save_name())
     root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
 
     if first_ask:
