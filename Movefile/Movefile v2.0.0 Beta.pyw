@@ -20,6 +20,7 @@ import tkinter.messagebox
 import tkinter.ttk as ttk
 import winreg
 import win32api
+import win32com.client as com
 from datetime import datetime
 
 import winshell
@@ -36,6 +37,37 @@ def get_boot_time():
     delta_time = now_time - boot_time_obj
     boot_time_s = delta_time.days * 3600 * 24 + delta_time.seconds
     return boot_time_s
+
+
+def scan_removable_disks(number=None):
+    disk_list = []
+    show_list = []
+    num_disk_pairs = []
+    for item in psutil.disk_partitions():
+        # 判断是不是可移动磁盘
+        if "removable" in item.opts:
+            # 获取可移动磁盘的盘符
+            if item.mountpoint not in disk_list:
+                disk_list.append(item.mountpoint)
+    if disk_list:
+        for pf in disk_list:
+            seria_data = win32api.GetVolumeInformation(pf)
+            area_name = seria_data[0]
+            area_number = seria_data[1]
+            fso = com.Dispatch("Scripting.FileSystemObject")
+            drv = fso.GetDrive(pf)
+            total_space = drv.TotalSize / 2 ** 30
+            show_name = area_name + ' (' + pf[:-1] + ')' + '   ' + str(total_space // 0.01 / 100) + ' GB'
+            num_disk_pair = [area_number, show_name]
+            show_list.append(show_name)
+            num_disk_pairs.append(num_disk_pair)
+
+        if number is None:
+            return show_list
+        else:
+            for pair in num_disk_pairs:
+                if pair[0] == number:
+                    return pair[1]
 
 
 def detect_removable_disks():
@@ -364,18 +396,18 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
 def ask_info(muti_ask=False, first_ask=False):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
-    ori_old_path = ''
+    cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
-        nonlocal ori_old_path
+        nonlocal cf_ori_old_path
         all_ends = []
         file_names = []
         folder_names = []
         item_names = os.listdir(cf_entry_old_path.get())
-        if ori_old_path != cf_entry_old_path.get():
+        if cf_ori_old_path != cf_entry_old_path.get():
             cf_entry_keep_files.delete(0, 'end')
             cf_entry_keep_formats.delete(0, 'end')
-            ori_old_path = cf_entry_old_path.get()
+            cf_ori_old_path = cf_entry_old_path.get()
         for item in item_names:
             if os.path.isfile(cf_entry_old_path.get() + '\\' + item):
                 file_end = '.' + item.split('.')[-1]
@@ -409,6 +441,16 @@ def ask_info(muti_ask=False, first_ask=False):
         cf_entry_keep_formats.delete(0, 'end')
         cf_entry_keep_formats.insert(0, new_values)
 
+    def sf_refresh_disk_list(none_disk=False):
+        disk_list = scan_removable_disks()
+        if disk_list:
+            sf_entry_select_removable['values'] = disk_list
+        else:
+            sf_entry_select_removable['values'] = ['未检测到可移动磁盘']
+            if none_disk:
+                print('114')
+                sf_entry_select_removable.delete(0, 'end')
+
     def select_path(place, ori_content):
         path_ = tkinter.filedialog.askdirectory()
         path_ = path_.replace("/", "\\")
@@ -423,17 +465,17 @@ def ask_info(muti_ask=False, first_ask=False):
             elif place == '2':
                 path_2.set(path_)
 
-    def sf_entry_sync(mode):
+    def sf_change_place_mode(mode):
         if mode == 'movable':
             sf_label_path_1['text'] = '选择可移动磁盘：'
             sf_label_path_2['text'] = '本地文件夹路径：'
             sf_browse_path_1_button.grid_forget()
-            sf_browse_path_2_button.grid_forget()
+            sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
         else:
             sf_label_path_1['text'] = '文件夹路径-A：'
             sf_label_path_2['text'] = '文件夹路径-B：'
             sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
-            sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
+            sf_entry_select_removable.grid_forget()
 
     def change_active_mode(mode):
         def cf_state():
@@ -444,6 +486,7 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_label_path_2.grid_forget()
             sf_entry_path_1.grid_forget()
             sf_entry_path_2.grid_forget()
+            sf_entry_select_removable.grid_forget()
             sf_browse_path_1_button.grid_forget()
             sf_browse_path_2_button.grid_forget()
             sf_option_mode_double.grid_forget()
@@ -453,6 +496,8 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_entry_lock_files.grid_forget()
             sf_label_match_directly.grid_forget()
             sf_entry_match_directly.grid_forget()
+            sf_label_autorun.grid_forget()
+            sf_option_autorun.grid_forget()
 
             cf_entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
@@ -493,6 +538,11 @@ def ask_info(muti_ask=False, first_ask=False):
             cf_label_time.grid_forget()
             cf_label_start_options.grid_forget()
 
+            if sf_place_mode.get() == 'movable':
+                sf_change_place_mode('movable')
+            else:
+                sf_change_place_mode('local')
+
             sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
             sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
             sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
@@ -500,7 +550,6 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_label_path_2.grid(row=3, column=0, pady=5, sticky='E')
             sf_entry_path_1.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             sf_entry_path_2.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
             sf_option_mode_double.grid(row=4, column=1, padx=10, ipadx=0, sticky='W')
             sf_option_mode_single.grid(row=4, column=1, padx=165, ipadx=0, sticky='E')
@@ -509,6 +558,8 @@ def ask_info(muti_ask=False, first_ask=False):
             sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
             sf_label_match_directly.grid(row=6, column=0, pady=5, sticky='E')
             sf_entry_match_directly.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            sf_label_autorun.grid(row=7, column=0, sticky='E')
+            sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
         if mode == 'cf':
             cf_state()
@@ -594,12 +645,12 @@ def ask_info(muti_ask=False, first_ask=False):
     sf_option_mode_usb = ttk.Radiobutton(root, text='可移动磁盘(卷)同步模式',
                                          variable=sf_place_mode,
                                          value='movable',
-                                         command=lambda: sf_entry_sync(mode=sf_place_mode.get()))
+                                         command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
     sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
     sf_option_mode_local = ttk.Radiobutton(root, text='本地文件夹同步模式',
                                            variable=sf_place_mode,
                                            value='local',
-                                           command=lambda: sf_entry_sync(mode=sf_place_mode.get()))
+                                           command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
     sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
     sf_place_mode.set('movable')
 
@@ -610,6 +661,10 @@ def ask_info(muti_ask=False, first_ask=False):
     sf_browse_path_1_button = ttk.Button(root, text="浏览",
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
     sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+
+    sf_entry_select_removable = ttk.Combobox(root, values=scan_removable_disks(), state='readonly')
+    sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
+    sf_entry_select_removable.bind('<Button-1>', lambda event: sf_refresh_disk_list())
 
     sf_label_path_2 = ttk.Label(root, text='文件夹路径-B：')
     sf_label_path_2.grid(row=3, column=0, pady=5, sticky='E')
@@ -642,13 +697,13 @@ def ask_info(muti_ask=False, first_ask=False):
     sf_entry_match_directly.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     sf_entry_match_directly.config(state=tk.DISABLED)
 
-    sf_label_autorun = ttk.Label(root, text='系统设置：')
-    sf_label_autorun.grid(row=7, column=0, pady=5, sticky='E')
+    sf_label_autorun = ttk.Label(root, text='系统选项：')
+    sf_label_autorun.grid(row=7, column=0, sticky='E')
     sf_entry_is_autorun = tk.BooleanVar()
     sf_option_autorun = ttk.Checkbutton(root,
                                         text='可移动磁盘接入后自动同步',
                                         variable=sf_entry_is_autorun)
-    sf_option_autorun.grid(row=7, column=1, pady=5, padx=10, sticky='W')
+    sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
     def cf_helpfunc():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
@@ -744,9 +799,25 @@ def ask_info(muti_ask=False, first_ask=False):
         else:
             return False
 
+    def sf_has_blank():
+        blank = 0
+        if sf_place_mode.get() == 'movable' and len(sf_entry_path_1.get()) == 0:
+            blank += 1
+        elif sf_place_mode.get() == 'local' and len(sf_entry_select_removable.get()) == 0:
+            blank += 1
+        elif len(sf_entry_path_2.get()) == 0:
+            blank += 1
+        if blank == 0:
+            return False
+        else:
+            return True
+
     def sf_path_error():
         try:
-            os.listdir(sf_entry_path_1.get())
+            if sf_place_mode.get() == 'movable':
+                os.listdir(sf_entry_select_removable.get().split(':')[0][-1]+':')
+            else:
+                os.listdir(sf_entry_path_1.get())
             os.listdir(sf_entry_path_2.get())
         except:
             return True
@@ -758,8 +829,7 @@ def ask_info(muti_ask=False, first_ask=False):
             tkinter.messagebox.showwarning('Movefile', '警告：请在时间设定栏内输入数字')
             return True
         elif cf_has_blank():
-            tkinter.messagebox.showwarning(title='Movefile',
-                                           message='警告：请填写所有非选填项目！')
+            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填写所有非选填项目！')
             return True
         elif cf_path_error():
             tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
@@ -768,7 +838,10 @@ def ask_info(muti_ask=False, first_ask=False):
             return False
 
     def sf_has_error():
-        if sf_path_error():
+        if sf_has_blank():
+            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填写所有非选填项目！')
+            return True
+        elif sf_path_error():
             tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
             return True
         else:
@@ -778,9 +851,9 @@ def ask_info(muti_ask=False, first_ask=False):
         cf_data.read(cf_data_path + r'Cleanfile_data.ini')
         sf_data.read(sf_data_path + r'Syncfile_data.ini')
         list_saving_data()
-        if len(cf_save_names) != 0:
-            for cf_save in cf_save_names:
 
+        if len(cf_save_names) != 0:  # 更改上次修改项
+            for cf_save in cf_save_names:
                 try:
                     cf_data.set(cf_save, '_last_edit_', 'False')
                     cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
@@ -820,10 +893,17 @@ def ask_info(muti_ask=False, first_ask=False):
             if not sf_data.has_section(save_name):
                 sf_data.add_section(save_name)
             sf_data.set(save_name, '_last_edit_', 'True')
-            sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
+            sf_data.set(save_name, 'place_mode', sf_place_mode.get())
+            if sf_place_mode.get() == 'local':
+                sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
+            else:
+                disk_data = sf_entry_select_removable.get()
+                sf_data.set(save_name, 'disk_number', win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1])
             sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
             sf_data.set(save_name, 'mode', sf_entry_mode.get())
             sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
+            sf_is_autorun = sf_entry_is_autorun.get()
+            sf_data.set(save_name, 'autorun', sf_is_autorun)
             sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
@@ -844,13 +924,13 @@ def ask_info(muti_ask=False, first_ask=False):
         save_name = last_data[1]
 
         def open_cf_saving(setting_name):
-            nonlocal ori_old_path
+            nonlocal cf_ori_old_path
             if cf_entry_old_path.get() != '':
                 cf_entry_old_path.delete(0, 'end')
             if cf_entry_new_path.get() != '':
                 cf_entry_new_path.delete(0, 'end')
             cf_entry_old_path.insert(0, cf_file.get(setting_name, 'old_path'))  # 旧文件夹
-            ori_old_path = cf_entry_old_path.get()
+            cf_ori_old_path = cf_entry_old_path.get()
             cf_entry_new_path.insert(0, cf_file.get(setting_name, 'new_path'))  # 新文件夹
             cf_refresh_whitelist_entry()
             if cf_entry_keep_files.get() != '':
@@ -873,9 +953,17 @@ def ask_info(muti_ask=False, first_ask=False):
                 sf_entry_path_1.delete(0, 'end')
             if sf_entry_path_2.get() != '':
                 sf_entry_path_2.delete(0, 'end')
+            place_mode = sf_file.get(setting_name, 'place_mode')
+            sf_place_mode.set(place_mode)
+            sf_change_place_mode(place_mode)
             cf_entry_old_path.insert(0, get_desktop())
             cf_refresh_whitelist_entry()
-            sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
+            if place_mode == 'local':
+                sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
+            else:
+                area_number = sf_file.get(setting_name, 'disk_number')
+                sf_entry_select_removable.delete(0, 'end')
+                sf_entry_select_removable.insert(0, scan_removable_disks(area_number))
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
             change_active_mode('sf')
@@ -1039,9 +1127,9 @@ def ask_info(muti_ask=False, first_ask=False):
 
     # 创建按键
     bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name(last_edit_data=list_saving_data()))
-    bt1.grid(row=14, column=1, ipadx=100, pady=4, padx=10, sticky='W')
+    bt1.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
     bt2 = ttk.Button(root, text='运行当前配置', command=lambda: continue_going())
-    bt2.grid(row=14, column=1, ipadx=100, pady=4, padx=10, sticky='E')
+    bt2.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
     bt2.config(state=tk.DISABLED)
 
     # 菜单栏
@@ -1060,10 +1148,11 @@ def ask_info(muti_ask=False, first_ask=False):
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
 
-    root.bind("<Control-o>", lambda: read_saving(ask_path=True))
-    root.bind("<Control-O>", lambda: read_saving(ask_path=True))
-    root.bind("<Control-s>", lambda: ask_save_name(last_edit_data=list_saving_data()))
-    root.bind("<Control-S>", lambda: ask_save_name(last_edit_data=list_saving_data()))
+    root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
+    root.bind("<Control-O>", lambda event: read_saving(ask_path=True))
+    root.bind("<Control-s>", lambda event: ask_save_name(last_edit_data=list_saving_data()))
+    root.bind("<Control-S>", lambda event: ask_save_name(last_edit_data=list_saving_data()))
+    root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
 
     if first_ask:
         cf_entry_old_path.insert(0, get_desktop())
@@ -1083,7 +1172,7 @@ def ask_info(muti_ask=False, first_ask=False):
             cf_or_sf.set('cf')
             change_active_mode('cf')
             # tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
-# 请尽量不要手动更改ini配置文件''')
+    # 请尽量不要手动更改ini配置文件''')
 
     root.mainloop()
 
