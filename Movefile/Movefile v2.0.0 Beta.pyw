@@ -100,11 +100,6 @@ def detect_removable_disks():
     return new_area_data
 
 
-def ask_sync_disk():
-    for area_data in detect_removable_disks():
-        pass
-
-
 def set_data_path():
     try:
         global mf_data_path, cf_data_path, sf_data_path
@@ -390,6 +385,27 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
         possibility += 20
 
     return possibility
+
+
+def sync_dir(path1, path2, single_sync):
+    all_files_1 = sf_scan_files(path1)
+    all_files_2 = sf_scan_files(path2)
+    for file1 in all_files_1:
+        file1_path = path1 + file1
+        for file2 in all_files_2:
+            file2_path = path2 + file2
+            match_possibility = sf_match_possibility(path1, path2, file1, file2)
+            if match_possibility > 50:
+                sf_sync_file(file1_path, file2_path, single_way=single_sync)
+                break
+            elif match_possibility == 50:
+                sf_ask_operation()
+        else:
+            sf_sync_file(file1_path, path2 + file1, no_judge=True, single_way=single_sync)
+    for file2 in all_files_2:
+        file2_path = path2 + file2
+        if file2 not in all_files_1:
+            sf_sync_file(file2_path, path1 + file2, no_judge=True, single_way=single_sync)
 
 
 def ask_info(muti_ask=False, first_ask=False):
@@ -813,7 +829,7 @@ def ask_info(muti_ask=False, first_ask=False):
     def sf_path_error():
         try:
             if sf_place_mode.get() == 'movable':
-                os.listdir(sf_entry_select_removable.get().split(':')[0][-1]+':')
+                os.listdir(sf_entry_select_removable.get().split(':')[0][-1] + ':')
             else:
                 os.listdir(sf_entry_path_1.get())
             os.listdir(sf_entry_path_2.get())
@@ -896,7 +912,8 @@ def ask_info(muti_ask=False, first_ask=False):
                 sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
             else:
                 disk_data = sf_entry_select_removable.get()
-                sf_data.set(save_name, 'disk_number', str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
+                sf_data.set(save_name, 'disk_number',
+                            str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
             sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
             sf_data.set(save_name, 'mode', sf_entry_mode.get())
             sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
@@ -1106,25 +1123,12 @@ def ask_info(muti_ask=False, first_ask=False):
     def sf_operate_from_root():
         path1 = sf_entry_path_1.get()
         path2 = sf_entry_path_2.get()
-        all_files_1 = sf_scan_files(path1)
-        all_files_2 = sf_scan_files(path2)
-        for file1 in all_files_1:
-            file1_path = path1 + file1
-            for file2 in all_files_2:
-                file2_path = path2 + file2
-                match_possibility = sf_match_possibility(path1, path2, file1, file2)
-                if match_possibility > 50:
-                    sf_sync_file(file1_path, file2_path)
-                    break
-                elif match_possibility == 50:
-                    sf_ask_operation()
-
-            else:
-                sf_sync_file(file1_path, path2 + file1, no_judge=True)
-        for file2 in all_files_2:
-            file2_path = path2 + file2
-            if file2 not in all_files_1:
-                sf_sync_file(file2_path, path1 + file2, no_judge=True)
+        mode = sf_entry_mode.get()
+        if mode == 'single':
+            single_sync = True
+        else:
+            single_sync = False
+        sync_dir(path1, path2, single_sync)
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not cf_has_error():
@@ -1218,6 +1222,51 @@ def cf_autorun_operation():
     for save_name in run_saves:
         path_names = autorun_cf(save_name)
         cf_show_notice(path_names[0], path_names[1])
+
+
+def sf_autorun_operation(saving_data):
+    pass
+
+
+def ask_sync_disk():
+    import threading
+    import pystray
+    from PIL import Image
+    from pystray import MenuItem, Menu
+
+    def get_autorun_ids():
+        sf_data = configparser.ConfigParser()
+        sf_data.read(sf_data_path + 'Syncfile_data.ini')
+        savings = sf_data.sections()
+        autorun_ids = []
+        for saving in savings:
+            if sf_data.get(saving, 'place_mode') == 'movable' and sf_data.get(saving, 'autorun') == 'True':
+                autorun_ids.append(sf_data.get(saving, 'disk_number'))
+        return autorun_ids
+
+    def quit_window(current_menu: pystray.Icon):
+        current_menu.stop()
+
+    menu = (
+        MenuItem('设置', lambda: ask_info(muti_ask=True), default=True), Menu.SEPARATOR, MenuItem('退出', quit_window))
+    image = Image.open(mf_data_path + 'Movefile.ico')
+    task_menu = pystray.Icon("icon", image, "图标名称", menu)
+    # 重新定义点击关闭按钮的处理
+    threading.Thread(target=task_menu.run, daemon=True).start()
+
+    while get_autorun_ids():
+        candidates = []
+        for area_data in detect_removable_disks():
+            for autorun_id in get_autorun_ids():
+                if area_data[2] == autorun_id:
+                    candidates.append([area_data[0], area_data[1]])
+        run_list = []
+        for detected in candidates:
+            if tk.messagebox.askokcancel(title='Movefile',
+                                         message=f'检测到可移动磁盘{detected[1]}接入，点击"确定“来按配置同步'):
+                run_list.append(detected)
+        if run_list:
+            sf_autorun_operation()
 
 
 def mainprocess():
