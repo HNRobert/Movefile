@@ -80,6 +80,7 @@ def detect_removable_disks():
     number_book = {}
     found_new_disk = False
     while not found_new_disk:
+        print('114')
         for item in psutil.disk_partitions():
             # 判断是不是可移动磁盘
             if "removable" in item.opts:
@@ -412,7 +413,51 @@ def sync_dir(path1, path2, single_sync):
             sf_sync_file(file2_path, path1 + file2, no_judge=True, single_way=single_sync)
 
 
-def ask_info(muti_ask=False, first_ask=False):
+def cf_autorun_operation():
+    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
+    cf_file = configparser.ConfigParser()
+    cf_file.read(cf_store_path)
+
+    def get_cf_autorun_savings():
+        autorun_savings = []
+        for cf_name in cf_save_names:
+            if cf_file.get(cf_name, '_last_edit_') == 'True':
+                autorun_savings.append(cf_name)
+        return autorun_savings
+
+    def autorun_cf(name):
+        old_path = cf_file.get(name, 'old_path')  # 旧文件夹
+        new_path = cf_file.get(name, 'new_path')  # 新文件夹
+        pass_file = cf_file.get(name, 'pass_filename').split(',')  # 设置跳过白名单
+        pass_format = cf_file.get(name, 'pass_format').split(',')  # 设置跳过格式
+        time_ = cf_file.getint(name, 'set_hour') * 3600  # 设置过期时间(hour)
+        mode = cf_file.getint(name, 'mode')  # 设置判断模式
+        is_move_folder = cf_file.get(name, 'move_folder')  # 设置是否移动文件夹
+        cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
+                    overdue_time=time_,
+                    check__mode=mode, is__move__folder=is_move_folder)
+        return [old_path, new_path]
+
+    run_saves = get_cf_autorun_savings()
+    for save_name in run_saves:
+        path_names = autorun_cf(save_name)
+        cf_show_notice(path_names[0], path_names[1])
+
+
+def sf_autorun_operation(saving_datas):
+    sf_file = configparser.ConfigParser()
+    sf_file.read(sf_data_path + 'Syncfile_data.ini')
+    for saving in saving_datas:
+        path1 = saving_datas[0]
+        path2 = sf_file.get(saving[2], 'path_2')
+        if sf_file.get(saving[2], 'mode') == 'double':
+            single_sync = False
+        else:
+            single_sync = True
+        sync_dir(path1, path2, single_sync)
+
+
+def make_ui(muti_ask=False, first_ask=False):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     cf_ori_old_path = ''
@@ -1147,7 +1192,8 @@ def ask_info(muti_ask=False, first_ask=False):
     def exit_program():
         root.quit()
         root.destroy()
-        # current_menu.stop()
+        background_detect.join()
+        butt_icon.join()
 
     # 创建按键
     bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name())
@@ -1172,12 +1218,12 @@ def ask_info(muti_ask=False, first_ask=False):
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
 
+    # 托盘菜单
     menu = (
         MenuItem('设置', root.deiconify, default=True), Menu.SEPARATOR, MenuItem('退出', exit_program))
     image = Image.open(mf_data_path + 'Movefile.ico')
     task_menu = pystray.Icon("icon", image, "图标名称", menu)
     # 重新定义点击关闭按钮的处理
-    threading.Thread(target=task_menu.run, daemon=True).start()
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
     root.bind("<Control-O>", lambda event: read_saving(ask_path=True))
@@ -1206,66 +1252,32 @@ def ask_info(muti_ask=False, first_ask=False):
             # tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
     # 请尽量不要手动更改ini配置文件''')
 
+    def ask_sync_disk():
+        def get_autorun_ids():
+            sf_dat = configparser.ConfigParser()
+            sf_dat.read(sf_data_path + 'Syncfile_data.ini')
+            savings = sf_dat.sections()
+            autorun_ids = []
+            for saving in savings:
+                if sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.get(saving, 'autorun') == 'True':
+                    autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving])
+            return autorun_ids
+
+        while get_autorun_ids():
+            run_list = []
+            for area_data in detect_removable_disks():
+                for autorun_id in get_autorun_ids():
+                    if area_data[2] == autorun_id[0] and tk.messagebox.askokcancel(title='Movefile',
+                                                                                   message=f'检测到可移动磁盘{area_data[0]}接入，点击"确定“来按配置同步'):
+                        run_list.append([area_data[0], area_data[1], autorun_id[1]])
+            if run_list:
+                sf_autorun_operation(run_list)
+
+    butt_icon = threading.Thread(target=task_menu.run, daemon=True)
+    butt_icon.start()
+    background_detect = threading.Thread(target=lambda: ask_sync_disk())
+    background_detect.start()
     root.mainloop()
-
-
-def cf_autorun_operation():
-    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-    cf_file = configparser.ConfigParser()
-    cf_file.read(cf_store_path)
-
-    def get_cf_autorun_savings():
-        autorun_savings = []
-        for cf_name in cf_save_names:
-            if cf_file.get(cf_name, '_last_edit_') == 'True':
-                autorun_savings.append(cf_name)
-        return autorun_savings
-
-    def autorun_cf(name):
-        old_path = cf_file.get(name, 'old_path')  # 旧文件夹
-        new_path = cf_file.get(name, 'new_path')  # 新文件夹
-        pass_file = cf_file.get(name, 'pass_filename').split(',')  # 设置跳过白名单
-        pass_format = cf_file.get(name, 'pass_format').split(',')  # 设置跳过格式
-        time_ = cf_file.getint(name, 'set_hour') * 3600  # 设置过期时间(hour)
-        mode = cf_file.getint(name, 'mode')  # 设置判断模式
-        is_move_folder = cf_file.get(name, 'move_folder')  # 设置是否移动文件夹
-        cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
-                    overdue_time=time_,
-                    check__mode=mode, is__move__folder=is_move_folder)
-        return [old_path, new_path]
-
-    run_saves = get_cf_autorun_savings()
-    for save_name in run_saves:
-        path_names = autorun_cf(save_name)
-        cf_show_notice(path_names[0], path_names[1])
-
-
-def sf_autorun_operation(saving_datas):
-    for saving in saving_datas:
-
-
-
-def ask_sync_disk():
-
-    def get_autorun_ids():
-        sf_data = configparser.ConfigParser()
-        sf_data.read(sf_data_path + 'Syncfile_data.ini')
-        savings = sf_data.sections()
-        autorun_ids = []
-        for saving in savings:
-            if sf_data.get(saving, 'place_mode') == 'movable' and sf_data.get(saving, 'autorun') == 'True':
-                autorun_ids.append(sf_data.get(saving, 'disk_number'))
-        return autorun_ids
-
-    while get_autorun_ids():
-        run_list = []
-        for area_data in detect_removable_disks():
-            for autorun_id in get_autorun_ids():
-                if area_data[2] == autorun_id and tk.messagebox.askokcancel(title='Movefile',
-                                         message=f'检测到可移动磁盘{area_data[0]}接入，点击"确定“来按配置同步'):
-                    run_list.append([area_data[0], area_data[1]])
-        if run_list:
-            sf_autorun_operation()
 
 
 def mainprocess():
@@ -1288,9 +1300,9 @@ def mainprocess():
     boot_time = get_boot_time()
     ask_time_today = mf.getint("General", "asktime_today")
     if first_visit:
-        ask_info(first_ask=True)
+        make_ui(first_ask=True)
     elif ask_time_today > 1:
-        ask_info(muti_ask=True)
+        make_ui(muti_ask=True)
     elif boot_time <= 60 and ask_time_today == 1:
         cf_autorun_operation()
 
