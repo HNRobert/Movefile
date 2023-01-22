@@ -22,6 +22,10 @@ import winreg
 import win32api
 import win32com.client as com
 from datetime import datetime
+import threading
+import pystray
+from PIL import Image
+from pystray import MenuItem, Menu
 
 import winshell
 from win10toast import ToastNotifier
@@ -1134,13 +1138,16 @@ def ask_info(muti_ask=False, first_ask=False):
         if cf_or_sf.get() == 'cf' and not cf_has_error():
             bt2.config(state=tk.DISABLED)
             paths = cf_operate_from_root()
-            root.quit()
-            root.destroy()
+            root.withdraw()
             cf_show_notice(paths[0], paths[1])
         elif cf_or_sf.get() == 'sf' and not sf_has_error():
             sf_operate_from_root()
-            root.quit()
-            root.destroy()
+            root.withdraw()
+
+    def exit_program():
+        root.quit()
+        root.destroy()
+        # current_menu.stop()
 
     # 创建按键
     bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name())
@@ -1155,6 +1162,7 @@ def ask_info(muti_ask=False, first_ask=False):
     file_menu.add_command(label="读取配置文件", command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
     file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
                           accelerator="Ctrl+S")
+    file_menu.add_command(label='退出软件', command=lambda: exit_program())
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label="关于本软件", command=cf_helpfunc)
     help_menu.add_command(label="使用前注意事项", command=cf_help_before_use)
@@ -1164,11 +1172,19 @@ def ask_info(muti_ask=False, first_ask=False):
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
 
+    menu = (
+        MenuItem('设置', root.deiconify, default=True), Menu.SEPARATOR, MenuItem('退出', exit_program))
+    image = Image.open(mf_data_path + 'Movefile.ico')
+    task_menu = pystray.Icon("icon", image, "图标名称", menu)
+    # 重新定义点击关闭按钮的处理
+    threading.Thread(target=task_menu.run, daemon=True).start()
+
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
     root.bind("<Control-O>", lambda event: read_saving(ask_path=True))
     root.bind("<Control-s>", lambda event: ask_save_name())
     root.bind("<Control-S>", lambda event: ask_save_name())
     root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
+    root.protocol('WM_DELETE_WINDOW', root.withdraw)
 
     if first_ask:
         cf_entry_old_path.insert(0, get_desktop())
@@ -1224,15 +1240,12 @@ def cf_autorun_operation():
         cf_show_notice(path_names[0], path_names[1])
 
 
-def sf_autorun_operation(saving_data):
-    pass
+def sf_autorun_operation(saving_datas):
+    for saving in saving_datas:
+
 
 
 def ask_sync_disk():
-    import threading
-    import pystray
-    from PIL import Image
-    from pystray import MenuItem, Menu
 
     def get_autorun_ids():
         sf_data = configparser.ConfigParser()
@@ -1244,27 +1257,13 @@ def ask_sync_disk():
                 autorun_ids.append(sf_data.get(saving, 'disk_number'))
         return autorun_ids
 
-    def quit_window(current_menu: pystray.Icon):
-        current_menu.stop()
-
-    menu = (
-        MenuItem('设置', lambda: ask_info(muti_ask=True), default=True), Menu.SEPARATOR, MenuItem('退出', quit_window))
-    image = Image.open(mf_data_path + 'Movefile.ico')
-    task_menu = pystray.Icon("icon", image, "图标名称", menu)
-    # 重新定义点击关闭按钮的处理
-    threading.Thread(target=task_menu.run, daemon=True).start()
-
     while get_autorun_ids():
-        candidates = []
+        run_list = []
         for area_data in detect_removable_disks():
             for autorun_id in get_autorun_ids():
-                if area_data[2] == autorun_id:
-                    candidates.append([area_data[0], area_data[1]])
-        run_list = []
-        for detected in candidates:
-            if tk.messagebox.askokcancel(title='Movefile',
-                                         message=f'检测到可移动磁盘{detected[1]}接入，点击"确定“来按配置同步'):
-                run_list.append(detected)
+                if area_data[2] == autorun_id and tk.messagebox.askokcancel(title='Movefile',
+                                         message=f'检测到可移动磁盘{area_data[0]}接入，点击"确定“来按配置同步'):
+                    run_list.append([area_data[0], area_data[1]])
         if run_list:
             sf_autorun_operation()
 
