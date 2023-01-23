@@ -1217,10 +1217,10 @@ def make_ui(muti_ask=False, first_ask=False):
     main_menu.add_cascade(label="文件", menu=file_menu)
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
-
++
     # 托盘菜单
     menu = (
-        MenuItem('设置', root.deiconify, default=True), Menu.SEPARATOR, MenuItem('退出', exit_program))
+        MenuItem('设置', lambda: root.deiconify(), default=True), Menu.SEPARATOR, MenuItem('退出', lambda: exit_program()))
     image = Image.open(mf_data_path + 'Movefile.ico')
     task_menu = pystray.Icon("icon", image, "图标名称", menu)
     # 重新定义点击关闭按钮的处理
