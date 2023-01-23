@@ -74,13 +74,12 @@ def scan_removable_disks(number=None):
 
 
 def detect_removable_disks():
-    new_area_data = []
+    global new_areas_data
     disk_list = []
     area_data_list = []
     number_book = {}
-    found_new_disk = False
-    while not found_new_disk:
-        print('114')
+    new_areas_data = []
+    while True:
         for item in psutil.disk_partitions():
             # 判断是不是可移动磁盘
             if "removable" in item.opts:
@@ -99,10 +98,8 @@ def detect_removable_disks():
                     if area_number not in area_data_list:
                         area_data_list.append(area_number)
                         number_book[pf] = area_number
-                        new_area_data.append([pf, area_name, area_number])
-                        found_new_disk = True
+                        new_areas_data.append([pf, area_name, area_number])
         time.sleep(2)
-    return new_area_data
 
 
 def set_data_path():
@@ -205,20 +202,18 @@ def data_error(mode_, name_):
         try:
             cf = configparser.ConfigParser()
             cf.read(sf_data_path + r'Syncfile_data.ini')
-            path_1_ = cf.get(name_, 'path_1')
+            if cf.has_option(name_, 'path_1'):
+                path_1_ = cf.get(name_, 'path_1')
+                usb_mode = False
+            else:
+                path_1_ = cf.get(name_, 'disk_number')
+                usb_mode = True
             path_2_ = cf.get(name_, 'path_2')
             mode_s = cf.get(name_, 'mode')
-            if os.path.exists(path_1_) and os.path.exists(path_2_):
-                right_path = True
-            else:
-                right_path = False
-            if mode_s == 'double' or mode_s == 'single':
-                right_option = True
-            else:
-                right_option = False
-            if right_path and right_option:
-                return False
-            else:
+            if not usb_mode:
+                os.listdir(path_1_)
+            os.listdir(path_2_)
+            if not (mode_s == 'double' or mode_s == 'single'):
                 return True
         except:
             return True
@@ -532,11 +527,13 @@ def make_ui(muti_ask=False, first_ask=False):
         if mode == 'movable':
             sf_label_path_1['text'] = '选择可移动磁盘：'
             sf_label_path_2['text'] = '本地文件夹路径：'
+            sf_option_autorun['text'] = '可移动磁盘接入后自动按本存档设置同步(若保存)'
             sf_browse_path_1_button.grid_forget()
             sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
         else:
             sf_label_path_1['text'] = '文件夹路径-A：'
             sf_label_path_2['text'] = '文件夹路径-B：'
+            sf_option_autorun['text'] = '开机自动运行本存档(若保存)'
             sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             sf_entry_select_removable.grid_forget()
 
@@ -1011,6 +1008,9 @@ def make_ui(muti_ask=False, first_ask=False):
             cf_is_folder_move.set(cf_file.get(setting_name, 'move_folder'))
             change_active_mode('cf')
             cf_or_sf.set('cf')
+            if data_error('cf', setting_name):
+                tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
+请尽量不要手动更改ini配置文件''')
 
         def open_sf_saving(setting_name):
             if sf_entry_path_1.get() != '':
@@ -1020,7 +1020,8 @@ def make_ui(muti_ask=False, first_ask=False):
             place_mode = sf_file.get(setting_name, 'place_mode')
             sf_place_mode.set(place_mode)
             sf_change_place_mode(place_mode)
-            cf_entry_old_path.insert(0, get_desktop())
+            if not cf_entry_old_path.get():
+                cf_entry_old_path.insert(0, get_desktop())
             cf_refresh_whitelist_entry()
             if place_mode == 'local':
                 sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
@@ -1038,6 +1039,9 @@ def make_ui(muti_ask=False, first_ask=False):
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
             change_active_mode('sf')
             cf_or_sf.set('sf')
+            if data_error('sf', setting_name):
+                tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
+请尽量不要手动更改ini配置文件''')
 
         def refresh_saving():
             nonlocal new_values
@@ -1049,7 +1053,6 @@ def make_ui(muti_ask=False, first_ask=False):
                 elif mode_entry.get() == '同步文件(Syncfile)':
                     new_values = sf_save_names
                     name_entry['value'] = new_values
-                    print()
                 else:
                     new_values = []
                 if name_entry.get() not in new_values:
@@ -1072,10 +1075,12 @@ def make_ui(muti_ask=False, first_ask=False):
                 ini_file.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         def sure_open():
+            saving_name = name_entry.get()
             if mode_entry.get() == '清理文件(Cleanfile)':
-                open_cf_saving(name_entry.get())
+                open_cf_saving(saving_name)
             elif mode_entry.get() == '同步文件(Syncfile)':
-                open_sf_saving(name_entry.get())
+                open_sf_saving(saving_name)
+            root.title('Movefile   --> ' + saving_name)
             ask_saving_root.quit()
             ask_saving_root.destroy()
 
@@ -1113,8 +1118,10 @@ def make_ui(muti_ask=False, first_ask=False):
             ask_saving_root.mainloop()
         elif mode == 'cf':
             open_cf_saving(save_name)
+            root.title('Movefile   --> ' + save_name)
         elif mode == 'sf':
             open_sf_saving(save_name)
+            root.title('Movefile   --> ' + save_name)
 
     def ask_save_name():
         list_saving_data()
@@ -1192,7 +1199,7 @@ def make_ui(muti_ask=False, first_ask=False):
     def exit_program():
         root.quit()
         root.destroy()
-        background_detect.join()
+        ask_permit.join()
         butt_icon.join()
 
     # 创建按键
@@ -1217,12 +1224,13 @@ def make_ui(muti_ask=False, first_ask=False):
     main_menu.add_cascade(label="文件", menu=file_menu)
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
-+
+
     # 托盘菜单
     menu = (
-        MenuItem('设置', lambda: root.deiconify(), default=True), Menu.SEPARATOR, MenuItem('退出', lambda: exit_program()))
+        MenuItem('设置', lambda: root.deiconify(), default=True), Menu.SEPARATOR,
+        MenuItem('退出', lambda: exit_program()))
     image = Image.open(mf_data_path + 'Movefile.ico')
-    task_menu = pystray.Icon("icon", image, "图标名称", menu)
+    task_menu = pystray.Icon("icon", image, "Movefile", menu)
     # 重新定义点击关闭按钮的处理
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
@@ -1249,34 +1257,39 @@ def make_ui(muti_ask=False, first_ask=False):
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
             change_active_mode('cf')
-            # tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
-    # 请尽量不要手动更改ini配置文件''')
+
+    def get_autorun_ids():
+        sf_dat = configparser.ConfigParser()
+        sf_dat.read(sf_data_path + 'Syncfile_data.ini')
+        savings = sf_dat.sections()
+        autorun_ids = []
+        for saving in savings:
+            if sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.get(saving, 'autorun') == 'True':
+                autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving])
+        return autorun_ids
 
     def ask_sync_disk():
-        def get_autorun_ids():
-            sf_dat = configparser.ConfigParser()
-            sf_dat.read(sf_data_path + 'Syncfile_data.ini')
-            savings = sf_dat.sections()
-            autorun_ids = []
-            for saving in savings:
-                if sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.get(saving, 'autorun') == 'True':
-                    autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving])
-            return autorun_ids
-
-        while get_autorun_ids():
+        while True:
             run_list = []
-            for area_data in detect_removable_disks():
+            for new_area_data in new_areas_data:
+                print(new_area_data)
                 for autorun_id in get_autorun_ids():
-                    if area_data[2] == autorun_id[0] and tk.messagebox.askokcancel(title='Movefile',
-                                                                                   message=f'检测到可移动磁盘{area_data[0]}接入，点击"确定“来按配置同步'):
-                        run_list.append([area_data[0], area_data[1], autorun_id[1]])
+                    print(autorun_id)
+                    if str(new_area_data[2]) == autorun_id[0] and tk.messagebox.askokcancel(title='Movefile',
+                                                                                            message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，'+'\n' +
+                                                                                                    f'确定按配置 "{autorun_id[1]}" 进行同步?'):
+                        run_list.append([new_area_data[0], new_area_data[1], autorun_id[1]])
+                new_areas_data.remove(new_area_data)
             if run_list:
                 sf_autorun_operation(run_list)
+            time.sleep(1)
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
-    background_detect = threading.Thread(target=lambda: ask_sync_disk())
+    background_detect = threading.Thread(target=detect_removable_disks, daemon=True)
     background_detect.start()
+    ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
+    ask_permit.start()
     root.mainloop()
 
 
