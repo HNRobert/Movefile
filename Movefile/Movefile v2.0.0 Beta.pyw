@@ -352,18 +352,18 @@ def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
     pas = False
     if no_judge:
         sf_creat_folder(file2_path)
-        shutil.copyfile(file1_path, file2_path)
+        if not single_way:
+            shutil.copyfile(file1_path, file2_path)
         pas = True
     elif last_edit_time_1 > last_edit_time_2:
         new_file = file1_path
         prior_file = file2_path
-    elif last_edit_time_1 < last_edit_time_2:
+    elif last_edit_time_1 < last_edit_time_2 and not single_way:
         new_file = file2_path
         prior_file = file1_path
-        if single_way:
-            pas = True
     else:
         pas = True
+
     if not pas:
         shutil.copyfile(new_file, prior_file)
 
@@ -402,10 +402,11 @@ def sync_dir(path1, path2, single_sync):
                 sf_ask_operation()
         else:
             sf_sync_file(file1_path, path2 + file1, no_judge=True, single_way=single_sync)
-    for file2 in all_files_2:
-        file2_path = path2 + file2
-        if file2 not in all_files_1:
-            sf_sync_file(file2_path, path1 + file2, no_judge=True, single_way=single_sync)
+    if not single_sync:
+        for file2 in all_files_2:
+            file2_path = path2 + file2
+            if file2 not in all_files_1:
+                sf_sync_file(file2_path, path1 + file2, no_judge=True, single_way=single_sync)
 
 
 def cf_autorun_operation():
@@ -416,7 +417,7 @@ def cf_autorun_operation():
     def get_cf_autorun_savings():
         autorun_savings = []
         for cf_name in cf_save_names:
-            if cf_file.get(cf_name, '_last_edit_') == 'True':
+            if cf_file.get(cf_name, 'autorun') == 'True':
                 autorun_savings.append(cf_name)
         return autorun_savings
 
@@ -439,7 +440,7 @@ def cf_autorun_operation():
         cf_show_notice(path_names[0], path_names[1])
 
 
-def sf_autorun_operation(saving_datas):
+def autorun_sf(saving_datas):
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_data_path + 'Syncfile_data.ini')
     for saving in saving_datas:
@@ -452,7 +453,7 @@ def sf_autorun_operation(saving_datas):
         sync_dir(path1, path2, single_sync)
 
 
-def make_ui(muti_ask=False, first_ask=False):
+def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     cf_ori_old_path = ''
@@ -1037,6 +1038,7 @@ def make_ui(muti_ask=False, first_ask=False):
                     count_i += 1
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
+            sf_entry_is_autorun.set(sf_file.get(setting_name, 'autorun'))
             change_active_mode('sf')
             cf_or_sf.set('sf')
             if data_error('sf', setting_name):
@@ -1177,7 +1179,10 @@ def make_ui(muti_ask=False, first_ask=False):
         return [old_path, new_path]
 
     def sf_operate_from_root():
-        path1 = sf_entry_path_1.get()
+        if sf_place_mode.get() == 'movable':
+            path1 = sf_entry_select_removable.get().split(':')[0][-1] + ':'
+        else:
+            path1 = sf_entry_path_1.get()
         path2 = sf_entry_path_2.get()
         mode = sf_entry_mode.get()
         if mode == 'single':
@@ -1215,7 +1220,6 @@ def make_ui(muti_ask=False, first_ask=False):
     file_menu.add_command(label="读取配置文件", command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
     file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
                           accelerator="Ctrl+S")
-    file_menu.add_command(label='退出软件', command=lambda: exit_program())
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label="关于本软件", command=cf_helpfunc)
     help_menu.add_command(label="使用前注意事项", command=cf_help_before_use)
@@ -1249,14 +1253,15 @@ def make_ui(muti_ask=False, first_ask=False):
         change_active_mode('cf')
         cf_helpfunc()
         cf_help_before_use()
-
-    if muti_ask:
+    elif muti_ask:
         read_saving(ask_path=False)
         cf_refresh_whitelist_entry()
         bt2.config(state=tk.NORMAL)
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
             change_active_mode('cf')
+        if startup_ask:
+            root.withdraw()
 
     def get_autorun_ids():
         sf_dat = configparser.ConfigParser()
@@ -1272,16 +1277,14 @@ def make_ui(muti_ask=False, first_ask=False):
         while True:
             run_list = []
             for new_area_data in new_areas_data:
-                print(new_area_data)
                 for autorun_id in get_autorun_ids():
-                    print(autorun_id)
                     if str(new_area_data[2]) == autorun_id[0] and tk.messagebox.askokcancel(title='Movefile',
                                                                                             message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，'+'\n' +
                                                                                                     f'确定按配置 "{autorun_id[1]}" 进行同步?'):
                         run_list.append([new_area_data[0], new_area_data[1], autorun_id[1]])
                 new_areas_data.remove(new_area_data)
             if run_list:
-                sf_autorun_operation(run_list)
+                autorun_sf(run_list)
             time.sleep(1)
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
@@ -1318,6 +1321,7 @@ def mainprocess():
         make_ui(muti_ask=True)
     elif boot_time <= 60 and ask_time_today == 1:
         cf_autorun_operation()
+        make_ui(muti_ask=True, startup_ask=True)
 
 
 if __name__ == '__main__':
