@@ -10,6 +10,7 @@ update_time = '2023/1/18-night'
 
 import base64
 import configparser
+import hashlib
 import os
 import psutil
 import shutil
@@ -123,6 +124,8 @@ def set_data_path():
 
 
 def asktime_plus():
+    global toaster
+    toaster = ToastNotifier()
     gencf = configparser.ConfigParser()
     time_now = datetime.today()
     date = str(time_now.date())
@@ -250,11 +253,20 @@ def set_startup():
         Description=desc)
 
 
+def filehash(filepath):
+    md5_hash = hashlib.md5()
+    with open(filepath, "rb") as f:
+        # Read and update hash in chunks of 4K
+        for byte_block in iter(lambda: f.read(4096), b""):
+            md5_hash.update(byte_block)
+    return md5_hash.hexdigest()
+
+
 def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder,
                 test=False):
-    global Movename, Errorname
-    Movename = ''
-    Errorname = ''
+    global cf_movename, cf_errorname
+    cf_movename = ''
+    cf_errorname = ''
     files = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
     for file in files:
         file_path = old__path + "/" + file
@@ -278,18 +290,17 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             if (now - last >= overdue_time) and not test:  # 移动过期文件
                 try:
                     shutil.move(file_path, new__path)
-                    Movename += (file + ',  ')
+                    cf_movename += (file + ',  ')
                 except:
-                    Errorname += (file + ',  ')
+                    cf_errorname += (file + ',  ')
 
 
 def cf_show_notice(old_path, new_path):
-    toaster = ToastNotifier()
     new_folder = new_path.split('\\')[-1]
     old_folder = old_path.split('\\')[-1]
-    if len(Movename) > 0:
+    if len(cf_movename) > 0:
         toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
-                           Movename,
+                           cf_movename,
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
@@ -299,13 +310,44 @@ def cf_show_notice(old_path, new_path):
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
-    if len(Errorname) > 0:
+    if len(cf_errorname) > 0:
         toaster.show_toast("Couldn't move files",
-                           Errorname + """
+                           cf_errorname[:-1] + """
 无法被移动，请在关闭文件或移除重名文件后重试""",
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
+
+
+def cf_autorun_operation():
+    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
+    cf_file = configparser.ConfigParser()
+    cf_file.read(cf_store_path)
+
+    def get_cf_autorun_savings():
+        autorun_savings = []
+        for cf_name in cf_save_names:
+            if cf_file.get(cf_name, 'autorun') == 'True':
+                autorun_savings.append(cf_name)
+        return autorun_savings
+
+    def autorun_cf(name):
+        old_path = cf_file.get(name, 'old_path')  # 旧文件夹
+        new_path = cf_file.get(name, 'new_path')  # 新文件夹
+        pass_file = cf_file.get(name, 'pass_filename').split(',')  # 设置跳过白名单
+        pass_format = cf_file.get(name, 'pass_format').split(',')  # 设置跳过格式
+        time_ = cf_file.getint(name, 'set_hour') * 3600  # 设置过期时间(hour)
+        mode = cf_file.getint(name, 'mode')  # 设置判断模式
+        is_move_folder = cf_file.get(name, 'move_folder')  # 设置是否移动文件夹
+        cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
+                    overdue_time=time_,
+                    check__mode=mode, is__move__folder=is_move_folder)
+        return [old_path, new_path]
+
+    run_saves = get_cf_autorun_savings()
+    for save_name in run_saves:
+        path_names = autorun_cf(save_name)
+        cf_show_notice(path_names[0], path_names[1])
 
 
 def sf_ask_operation():
@@ -343,6 +385,7 @@ def sf_creat_folder(target_path):
 
 
 def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
+    sf_errorname = ''
     last_edit_time_1 = int(os.stat(file1_path).st_mtime)
     if os.path.exists(file2_path):
         last_edit_time_2 = int(os.stat(file2_path).st_mtime)
@@ -352,8 +395,12 @@ def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
     pas = False
     if no_judge:
         sf_creat_folder(file2_path)
-        if not single_way:
+        try:
             shutil.copyfile(file1_path, file2_path)
+        except:
+            sf_errorname += file1_path + ' , '
+        pas = True
+    elif filehash(file1_path) == filehash(file2_path):
         pas = True
     elif last_edit_time_1 > last_edit_time_2:
         new_file = file1_path
@@ -365,7 +412,11 @@ def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
         pas = True
 
     if not pas:
-        shutil.copyfile(new_file, prior_file)
+        try:
+            shutil.copyfile(new_file, prior_file)
+        except:
+            sf_errorname += new_file + ' , '
+    return sf_errorname
 
 
 def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
@@ -387,70 +438,86 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sync_dir(path1, path2, single_sync):
-    all_files_1 = sf_scan_files(path1)
-    all_files_2 = sf_scan_files(path2)
-    for file1 in all_files_1:
-        file1_path = path1 + file1
-        for file2 in all_files_2:
-            file2_path = path2 + file2
-            match_possibility = sf_match_possibility(path1, path2, file1, file2)
-            if match_possibility > 50:
-                sf_sync_file(file1_path, file2_path, single_way=single_sync)
-                break
-            elif match_possibility == 50:
-                sf_ask_operation()
-        else:
-            sf_sync_file(file1_path, path2 + file1, no_judge=True, single_way=single_sync)
-    if not single_sync:
-        for file2 in all_files_2:
-            file2_path = path2 + file2
-            if file2 not in all_files_1:
-                sf_sync_file(file2_path, path1 + file2, no_judge=True, single_way=single_sync)
+def sync_dir(path1, path2, single_sync, area_name=None):
+    def sf_show_notice(path_1, path_2, sf_errorname):
+        toaster.show_toast('Sync Successfully',
+                           'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
+                           icon_path=mf_data_path + r'Movefile.ico',
+                           duration=10,
+                           threaded=False)
+        if len(sf_errorname) > 0:
+            toaster.show_toast("Couldn't sync files",
+                               sf_errorname + """
+        无法被移动，请在关闭文件或移除重名文件后重试""",
+                               icon_path=mf_data_path + r'Movefile.ico',
+                               duration=10,
+                               threaded=False)
 
+    def get_task():
+        all_files_1 = sf_scan_files(path1)
+        all_files_2 = sf_scan_files(path2)
+        sync_tasks = []
+        for file1 in all_files_1:
+            file1_path = path1 + file1
+            for file2 in all_files_2:
+                file2_path = path2 + file2
+                match_possibility = sf_match_possibility(path1, path2, file1, file2)
+                if match_possibility > 50:
+                    sync_tasks.append([file1_path, file2_path, False, single_sync])
+                    break
+                elif match_possibility == 50:
+                    sf_ask_operation()
+            else:
+                sync_tasks.append([file1_path, path2 + file1, True, single_sync])
+        if not single_sync:
+            for file2 in all_files_2:
+                file2_path = path2 + file2
+                if file2 not in all_files_1:
+                    sync_tasks.append([file2_path, path1 + file2, True, single_sync])
+        return sync_tasks
 
-def cf_autorun_operation():
-    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-    cf_file = configparser.ConfigParser()
-    cf_file.read(cf_store_path)
+    def run_sync_tasks():
+        out_data = ''
+        progress_bar['value'] = 0
+        sync_bar.update()
+        tasks = get_task()
+        progress_bar['maximum'] = len(tasks)
+        for task in tasks:
+            show_filename['text'] = '文件同步中：' + task[0].split('\\')[-1]
+            out_data += sf_sync_file(task[0], task[1], task[2], task[3])
+            progress_bar['value'] += 1
+            sync_bar.update()
+        sync_bar.withdraw()
+        path_name_1 = path1.split('\\')[-1]
+        if area_name:
+            path_name_1 = area_name
+        try:
+            sf_show_notice(path_name_1, path2.split('\\')[-1], out_data)
+        except:
+            pass
 
-    def get_cf_autorun_savings():
-        autorun_savings = []
-        for cf_name in cf_save_names:
-            if cf_file.get(cf_name, 'autorun') == 'True':
-                autorun_savings.append(cf_name)
-        return autorun_savings
-
-    def autorun_cf(name):
-        old_path = cf_file.get(name, 'old_path')  # 旧文件夹
-        new_path = cf_file.get(name, 'new_path')  # 新文件夹
-        pass_file = cf_file.get(name, 'pass_filename').split(',')  # 设置跳过白名单
-        pass_format = cf_file.get(name, 'pass_format').split(',')  # 设置跳过格式
-        time_ = cf_file.getint(name, 'set_hour') * 3600  # 设置过期时间(hour)
-        mode = cf_file.getint(name, 'mode')  # 设置判断模式
-        is_move_folder = cf_file.get(name, 'move_folder')  # 设置是否移动文件夹
-        cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
-                    overdue_time=time_,
-                    check__mode=mode, is__move__folder=is_move_folder)
-        return [old_path, new_path]
-
-    run_saves = get_cf_autorun_savings()
-    for save_name in run_saves:
-        path_names = autorun_cf(save_name)
-        cf_show_notice(path_names[0], path_names[1])
+    sync_bar = tk.Tk()
+    sync_bar.title('Movefile  -Syncfile Progress')
+    sync_bar.geometry('420x60')
+    show_filename = ttk.Label(sync_bar, text='扫描文件中...')
+    show_filename.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
+    progress_bar = ttk.Progressbar(sync_bar)
+    progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
+    run_sync_tasks()
+    sync_bar.mainloop()
 
 
 def autorun_sf(saving_datas):
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_data_path + 'Syncfile_data.ini')
-    for saving in saving_datas:
-        path1 = saving_datas[0]
-        path2 = sf_file.get(saving[2], 'path_2')
-        if sf_file.get(saving[2], 'mode') == 'double':
+    for saving_data in saving_datas:
+        path1 = saving_data[0]
+        path2 = sf_file.get(saving_data[2], 'path_2')
+        if sf_file.get(saving_data[2], 'mode') == 'double':
             single_sync = False
         else:
             single_sync = True
-        sync_dir(path1, path2, single_sync)
+        sync_dir(path1, path2, single_sync, saving_data[1])
 
 
 def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
@@ -933,8 +1000,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
                 file.close()
             cf_data.read(cf_data_path + r'Cleanfile_data.ini')
-            if not cf_data.has_section(save_name):
-                cf_data.add_section(save_name)
+            if not cf_data.has_section(str(save_name)):
+                cf_data.add_section(str(save_name))
             cf_data.set(save_name, '_last_edit_', 'True')
             cf_data.set(save_name, "old_path", cf_entry_old_path.get())
             cf_data.set(save_name, "new_path", cf_entry_new_path.get())
@@ -951,8 +1018,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 file = open(sf_data_path + r'Syncfile_data.ini', 'w', encoding='ANSI')
                 file.close()
             sf_data.read(sf_data_path + r'Syncfile_data.ini')
-            if not sf_data.has_section(save_name):
-                sf_data.add_section(save_name)
+            if not sf_data.has_section(str(save_name)):
+                sf_data.add_section(str(save_name))
             sf_data.set(save_name, '_last_edit_', 'True')
             sf_data.set(save_name, 'place_mode', sf_place_mode.get())
             if sf_place_mode.get() == 'local':
@@ -1185,20 +1252,25 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             path1 = sf_entry_path_1.get()
         path2 = sf_entry_path_2.get()
         mode = sf_entry_mode.get()
+        area_name = None
+        if len(path1) == 2:
+            area_name = win32api.GetVolumeInformation(path1)[0]
         if mode == 'single':
             single_sync = True
         else:
             single_sync = False
-        sync_dir(path1, path2, single_sync)
+        sync_dir(path1, path2, single_sync, area_name)
 
     def continue_going():
+        global sf_operator
         if cf_or_sf.get() == 'cf' and not cf_has_error():
             bt2.config(state=tk.DISABLED)
             paths = cf_operate_from_root()
             root.withdraw()
             cf_show_notice(paths[0], paths[1])
         elif cf_or_sf.get() == 'sf' and not sf_has_error():
-            sf_operate_from_root()
+            sf_operator = threading.Thread(target=lambda: sf_operate_from_root(), daemon=True)
+            sf_operator.start()
             root.withdraw()
 
     def exit_program():
@@ -1289,7 +1361,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
-    background_detect = threading.Thread(target=detect_removable_disks, daemon=True)
+    background_detect = threading.Thread(target=lambda: detect_removable_disks(), daemon=True)
     background_detect.start()
     ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
     ask_permit.start()
