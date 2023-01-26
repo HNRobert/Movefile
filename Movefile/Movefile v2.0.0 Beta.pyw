@@ -264,7 +264,29 @@ def filehash(filepath):
 
 def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder,
                 test=False):
-    global cf_movename, cf_errorname
+    def cf_show_notice(old_path, new_path, movename, errorname):
+        new_folder = new_path.split('\\')[-1]
+        old_folder = old_path.split('\\')[-1]
+        if len(movename) > 0:
+            toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
+                               movename,
+                               icon_path=mf_data_path + r'Movefile.ico',
+                               duration=10,
+                               threaded=False)
+        else:
+            toaster.show_toast(old_folder + ' is pretty clean now',
+                               'Nothing is moved away',
+                               icon_path=mf_data_path + r'Movefile.ico',
+                               duration=10,
+                               threaded=False)
+        if len(errorname) > 0:
+            toaster.show_toast("Couldn't move files",
+                               errorname[:-1] + """
+    无法被移动，请在关闭文件或移除重名文件后重试""",
+                               icon_path=mf_data_path + r'Movefile.ico',
+                               duration=10,
+                               threaded=False)
+
     cf_movename = ''
     cf_errorname = ''
     files = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
@@ -293,30 +315,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                     cf_movename += (file + ',  ')
                 except:
                     cf_errorname += (file + ',  ')
-
-
-def cf_show_notice(old_path, new_path):
-    new_folder = new_path.split('\\')[-1]
-    old_folder = old_path.split('\\')[-1]
-    if len(cf_movename) > 0:
-        toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
-                           cf_movename,
-                           icon_path=mf_data_path + r'Movefile.ico',
-                           duration=10,
-                           threaded=False)
-    else:
-        toaster.show_toast(old_folder + ' is pretty clean now',
-                           'Nothing is moved away',
-                           icon_path=mf_data_path + r'Movefile.ico',
-                           duration=10,
-                           threaded=False)
-    if len(cf_errorname) > 0:
-        toaster.show_toast("Couldn't move files",
-                           cf_errorname[:-1] + """
-无法被移动，请在关闭文件或移除重名文件后重试""",
-                           icon_path=mf_data_path + r'Movefile.ico',
-                           duration=10,
-                           threaded=False)
+    cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
 
 
 def cf_autorun_operation():
@@ -342,12 +341,10 @@ def cf_autorun_operation():
         cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
                     overdue_time=time_,
                     check__mode=mode, is__move__folder=is_move_folder)
-        return [old_path, new_path]
 
     run_saves = get_cf_autorun_savings()
     for save_name in run_saves:
-        path_names = autorun_cf(save_name)
-        cf_show_notice(path_names[0], path_names[1])
+        autorun_cf(save_name)
 
 
 def sf_ask_operation():
@@ -457,22 +454,29 @@ def sync_dir(path1, path2, single_sync, area_name=None):
         all_files_1 = sf_scan_files(path1)
         all_files_2 = sf_scan_files(path2)
         sync_tasks = []
+        task_number = 0
         for file1 in all_files_1:
             file1_path = path1 + file1
             for file2 in all_files_2:
                 file2_path = path2 + file2
                 match_possibility = sf_match_possibility(path1, path2, file1, file2)
                 if match_possibility > 50:
+                    task_number += 1
+                    show_filename['text'] = f'扫描文件中...  发现新项目{task_number}个'
                     sync_tasks.append([file1_path, file2_path, False, single_sync])
                     break
                 elif match_possibility == 50:
                     sf_ask_operation()
             else:
+                task_number += 1
+                show_filename['text'] = f'扫描文件中...  发现新项目{task_number}个'
                 sync_tasks.append([file1_path, path2 + file1, True, single_sync])
         if not single_sync:
             for file2 in all_files_2:
                 file2_path = path2 + file2
                 if file2 not in all_files_1:
+                    task_number += 1
+                    show_filename['text'] = f'扫描文件中...  发现新项目{task_number}个'
                     sync_tasks.append([file2_path, path1 + file2, True, single_sync])
         return sync_tasks
 
@@ -496,6 +500,13 @@ def sync_dir(path1, path2, single_sync, area_name=None):
         except:
             pass
 
+    def sync_bar_on_exit():
+        global stop_sync
+        stop_sync = False
+        if tkinter.messagebox.askyesno(title='Syncfile', message='''文件正在同步中，
+确定中断同步进程并退出?'''):
+            stop_sync = True
+
     sync_bar = tk.Tk()
     sync_bar.title('Movefile  -Syncfile Progress')
     sync_bar.geometry('420x60')
@@ -504,20 +515,44 @@ def sync_dir(path1, path2, single_sync, area_name=None):
     progress_bar = ttk.Progressbar(sync_bar)
     progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
     run_sync_tasks()
+    sync_bar.protocol('WM_DELETE_WINDOW', lambda: sync_bar_on_exit())
     sync_bar.mainloop()
 
 
-def autorun_sf(saving_datas):
+def sf_autorun_operation(place, saving_datas=None):
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_data_path + 'Syncfile_data.ini')
-    for saving_data in saving_datas:
-        path1 = saving_data[0]
-        path2 = sf_file.get(saving_data[2], 'path_2')
-        if sf_file.get(saving_data[2], 'mode') == 'double':
-            single_sync = False
-        else:
+
+    def get_sf_startup_savings():
+        sf_startup_settings = []
+        for section in sf_file.sections():
+            if sf_file.get(section, 'place_mode') == 'local' and sf_file.get(section, 'autorun') == 'True':
+                sf_startup_settings.append(section)
+        return sf_startup_settings
+
+    def autorun_movable_sf(data):
+        for saving_data in data:
+            path1 = saving_data[0]
+            path2 = sf_file.get(saving_data[2], 'path_2')
             single_sync = True
-        sync_dir(path1, path2, single_sync, saving_data[1])
+            if sf_file.get(saving_data[2], 'mode') == 'double':
+                single_sync = False
+            sync_dir(path1, path2, single_sync, saving_data[1])
+
+    def autorun_local_sf(data_name):
+        for saving_data in data_name:
+            path1 = sf_file.get(saving_data, 'path_1')
+            path2 = sf_file.get(saving_data, 'path_2')
+            single_sync = True
+            if sf_file.get(saving_data, 'mode') == 'double':
+                single_sync = False
+            sync_dir(path1, path2, single_sync)
+
+    if place == 'movable':
+        autorun_movable_sf(saving_datas)
+    elif place == 'local':
+        autorun_savings = get_sf_startup_savings()
+        autorun_local_sf(autorun_savings)
 
 
 def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
@@ -833,15 +868,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                         variable=sf_entry_is_autorun)
     sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
-    def cf_helpfunc():
+    def help_main():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
 功能概述：
-本程序可将某个文件夹中
-一定时间未修改或者未访问
-且满足其他一些设定要求的文件
-转移到另一个文件夹
+本程序可将某个文件夹中满足一定设定要求的文件
+转移到另一个文件夹，或者与另外一个文件夹同步
 使你可以方便地整理文件
 
 如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
@@ -849,29 +882,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 作者：Robert He
 如果对本软件有任何改进意见，请联系作者
 如果意见被采纳，新版本中会进行更改
-作者QQ：2567466856
+
+如有功能异常请先访问 Github 查看有无新版本，
+或者阅读 Github 中的其他注意事项和运行机制说明
+地址：https://github.com/HNRobert/Movefile
 """)
 
-    def cf_help_keep():
-        tkinter.messagebox.showinfo(title='Movefile', message="""保留项目/文件格式选择功能详解：
-
-保留项目选择：
-选中的项目不会被转移
-
-保留文件格式选择：
-某种格式类型的文件都不会被转移
-比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""")
-
-    def cf_help_timeset():
-        tkinter.messagebox.showinfo(title='Movefile', message="""过期时间功能详解：
-
-本软件可以获取文件的最后修改、访问时间
-可以保留一定时间内修改/访问过的文件
-例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
-则运行日期前两天内修改过的文件不会被删除
-如果不想用此方法，则过期时间设为"0"即可""")
-
-    def cf_help_before_use():
+    def help_before_use():
         tkinter.messagebox.showinfo(title='Movefile', message="""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
   后续将推出32位操作系统版本
@@ -892,8 +909,50 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 5.如果经过版本新后软件无法运行，
   可以尝试删除位于Roaming文件夹中的配置文件
 6.若有其他原因导致软件功能无法正常运行，
-  且无法按上面的解释修复
-  请联系作者（QQ:2567466856）,我会尽快尝试帮你修复""")
+  且无法按上面的解释修复，可以访问 Github 网站
+  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""")
+
+    def cf_help():
+        tkinter.messagebox.showinfo(title='Movefile', message="""Cleanfile
+清理文件工具
+
+这是一个用来整理文件夹（尤其是桌面）的程序，
+也是Movefile推出的第一个程序块
+包含选取保留文件，保留文件类型
+设定是否移动文件夹，
+设定过期时间以及判断方式
+开机自动运行存档等功能""")
+
+    def cf_help_keep():
+        tkinter.messagebox.showinfo(title='Movefile', message="""保留项目/文件格式选择功能详解：
+
+保留项目选择：
+选中的项目不会被转移
+
+保留文件格式选择：
+某种格式类型的文件都不会被转移
+比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""")
+
+    def cf_help_timeset():
+        tkinter.messagebox.showinfo(title='Movefile', message="""过期时间功能详解：
+
+本软件可以获取文件的最后修改、访问时间
+可以保留一定时间内修改/访问过的文件
+例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
+则运行日期前两天内修改过的文件不会被删除
+如果不想用此方法，则过期时间设为"0"即可""")
+
+    def sf_help():
+        tkinter.messagebox.showinfo(title='Movefile', message='''Syncfile
+同步文件工具
+
+这是一个用来同步文件两个路径下文件的程序，
+也可以将U盘数据与电脑同步
+
+包括 可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择，
+选择单向与双向同步模式，保留最新更改文件
+开机自动运行存档
+自动检测选定的可移动磁盘接入并自动同步等功能''')
 
     def cf_is_num():
         try:
@@ -1243,7 +1302,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
                     overdue_time=time_,
                     check__mode=mode, is__move__folder=is_move_folder)
-        return [old_path, new_path]
 
     def sf_operate_from_root():
         if sf_place_mode.get() == 'movable':
@@ -1262,12 +1320,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         sync_dir(path1, path2, single_sync, area_name)
 
     def continue_going():
-        global sf_operator
         if cf_or_sf.get() == 'cf' and not cf_has_error():
-            bt2.config(state=tk.DISABLED)
-            paths = cf_operate_from_root()
+            cf_operator = threading.Thread(target=lambda: cf_operate_from_root(), daemon=True)
+            cf_operator.start()
             root.withdraw()
-            cf_show_notice(paths[0], paths[1])
         elif cf_or_sf.get() == 'sf' and not sf_has_error():
             sf_operator = threading.Thread(target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
@@ -1293,10 +1349,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
                           accelerator="Ctrl+S")
     help_menu = tk.Menu(main_menu, tearoff=False)
-    help_menu.add_command(label="关于本软件", command=cf_helpfunc)
-    help_menu.add_command(label="使用前注意事项", command=cf_help_before_use)
+    help_menu.add_command(label="关于本软件", command=help_main)
+    help_menu.add_command(label="使用前注意事项", command=help_before_use)
+    help_menu.add_separator()
+    help_menu.add_command(label='Cleanfile', command=cf_help)
     help_menu.add_command(label="保留文件/文件格式选择", command=cf_help_keep)
     help_menu.add_command(label="过期时间设定", command=cf_help_timeset)
+    help_menu.add_separator()
+    help_menu.add_command(label='Syncfile', command=sf_help)
     main_menu.add_cascade(label="文件", menu=file_menu)
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
@@ -1323,8 +1383,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         cf_refresh_whitelist_entry()
         cf_or_sf.set('cf')
         change_active_mode('cf')
-        cf_helpfunc()
-        cf_help_before_use()
+        help_main()
+        help_before_use()
     elif muti_ask:
         read_saving(ask_path=False)
         cf_refresh_whitelist_entry()
@@ -1335,7 +1395,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if startup_ask:
             root.withdraw()
 
-    def get_autorun_ids():
+    def get_movable_autorun_ids():
         sf_dat = configparser.ConfigParser()
         sf_dat.read(sf_data_path + 'Syncfile_data.ini')
         savings = sf_dat.sections()
@@ -1349,14 +1409,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         while True:
             run_list = []
             for new_area_data in new_areas_data:
-                for autorun_id in get_autorun_ids():
+                for autorun_id in get_movable_autorun_ids():
                     if str(new_area_data[2]) == autorun_id[0] and tk.messagebox.askokcancel(title='Movefile',
                                                                                             message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，'+'\n' +
                                                                                                     f'确定按配置 "{autorun_id[1]}" 进行同步?'):
                         run_list.append([new_area_data[0], new_area_data[1], autorun_id[1]])
                 new_areas_data.remove(new_area_data)
             if run_list:
-                autorun_sf(run_list)
+                sf_autorun_operation('movable', run_list)
             time.sleep(1)
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
@@ -1393,6 +1453,7 @@ def mainprocess():
         make_ui(muti_ask=True)
     elif boot_time <= 60 and ask_time_today == 1:
         cf_autorun_operation()
+        sf_autorun_operation('local')
         make_ui(muti_ask=True, startup_ask=True)
 
 
