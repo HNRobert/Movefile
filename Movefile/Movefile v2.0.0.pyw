@@ -1435,7 +1435,7 @@ def mainprocess():
     asktime_plus()
 
     first_visit = False
-    if not list_saving_data():  # 判断是否为首次访问
+    if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
         first_visit = True
 
     cf = configparser.ConfigParser()
