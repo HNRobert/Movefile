@@ -8,7 +8,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes" />
+    <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
+      <change beforePath="$PROJECT_DIR$/Movefile/Movefile v2.0.0.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile/Movefile v2.0.0.pyw" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -62,30 +64,6 @@
       <recent name="C:\Users\25674\Desktop" />
       <recent name="C:\Users\25674\Desktop\Movefile" />
     </key>
-  </component>
-  <component name="RunManager">
-    <configuration name="Movefile v2.0.0 Beta.pyw" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="Movefile" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Movefile" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="C:\Users\25674\Documents\GitHub\Movefile\Movefile\Movefile v2.0.0 Beta.pyw" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -144,6 +122,7 @@
       <workItem from="1674749011803" duration="8657000" />
       <workItem from="1674758526941" duration="41000" />
       <workItem from="1674841024830" duration="1229000" />
+      <workItem from="1674842455747" duration="1098000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -210,7 +189,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$scratch_2.coverage" NAME="scratch_2 覆盖结果" MODIFIED="1674654839282" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
-    <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_pyw.coverage" NAME="Movefile v2.0.0.pyw 覆盖结果" MODIFIED="1674841886599" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
+    <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_pyw.coverage" NAME="Movefile v2.0.0.pyw 覆盖结果" MODIFIED="1674843562433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1674757537872" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile$scratch_1.coverage" NAME="scratch_1 覆盖结果" MODIFIED="1674841303029" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$base64.coverage" NAME="图片转base64 覆盖结果" MODIFIED="1673626934008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
@@ -227,6 +206,7 @@
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$memory_pic.coverage" NAME="memory_pic 覆盖结果" MODIFIED="1673627084544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703530914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_pyw.coverage" NAME="Movefile.pyw 覆盖结果" MODIFIED="1674842056188" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../../_Robert's Softwares/_Working/_Programming/Z-Robert's Programmes/Movefile" />
+    <SUITE FILE_PATH="coverage/Movefile$scratch_3.coverage" NAME="scratch_3 覆盖结果" MODIFIED="1674843236809" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703576059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673626917553" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$scratch_1.coverage" NAME="scratch_1 覆盖结果" MODIFIED="1674653072250" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />

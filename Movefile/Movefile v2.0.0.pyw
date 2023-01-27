@@ -158,12 +158,16 @@ def list_saving_data():
     all_save_names = cf_save_names + sf_save_names
     for cf_save_name in cf_save_names:
         if cf_file.get(cf_save_name, '_last_edit_') == 'True':
-            last_saving_data = ['cf', cf_save_name, sf_save_names[0]]
+            last_saving_data = ['cf', cf_save_name, '']
+            if sf_save_names:
+                last_saving_data[2] = sf_save_names[0]
             break
     else:
         for sf_save_name in sf_save_names:
             if sf_file.get(sf_save_name, '_last_edit_') == 'True':
-                last_saving_data = ['sf', sf_save_name, cf_save_names[0]]
+                last_saving_data = ['sf', sf_save_name, '']
+                if cf_save_names:
+                    last_saving_data[2] = cf_save_names[0]
                 break
         else:
             if cf_save_names:
