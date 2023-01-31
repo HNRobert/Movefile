@@ -4,31 +4,31 @@ Created on Wed Dec 21 17:07:30 2022
 
 @author: Robert He
 """
-
-vision = 'v2.0.0'
-update_time = '2023/1/28-morning'
+file_name = 'Movefile v2.0.2.pyw'[:-3] + 'exe'
+vision = file_name[9:15]
+update_time = '2023/1/30-night'
 
 import base64
 import configparser
 import hashlib
 import os
-import psutil
 import shutil
+import threading
 import time
-import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.ttk as ttk
 import winreg
+from datetime import datetime
+
+import psutil
+import pystray
 import win32api
 import win32com.client as com
-from datetime import datetime
-import threading
-import pystray
-from PIL import Image
-from pystray import MenuItem, Menu
-
 import winshell
+from PIL import Image
+from mttkinter import mtTkinter as tk
+from pystray import MenuItem, Menu
 from win10toast import ToastNotifier
 
 import Movefile_icon as icon
@@ -257,6 +257,20 @@ def set_startup():
         Description=desc)
 
 
+def check_window():
+    global c_root
+    c_root = tk.Tk()
+    c_root.geometry('420x60')
+    c_root.iconbitmap(mf_data_path + r'Movefile.ico')
+    c_root.title('Movefile initialization')
+    c_label = tk.Label(c_root, text='Movefile 初始化中')
+    c_label.grid(row=0, column=0, padx=10, pady=5)
+    c_bar = ttk.Progressbar(c_root, mode='indeterminate')
+    c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
+    c_bar.start(25)
+    c_bar.mainloop()
+
+
 def filehash(filepath):
     md5_hash = hashlib.md5()
     with open(filepath, "rb") as f:
@@ -439,7 +453,7 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sync_dir(path1, path2, single_sync, area_name=None):
+def sf_sync_dir(path1, path2, single_sync, area_name=None):
     def sf_show_notice(path_1, path_2, sf_errorname):
         toaster.show_toast('Sync Successfully',
                            'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
@@ -504,6 +518,26 @@ def sync_dir(path1, path2, single_sync, area_name=None):
         except:
             pass
 
+    def show_running():
+        points = tk.Label(sync_bar, text='')
+        points.grid(row=0, column=0, sticky='SE')
+
+        def going():
+            num = 0
+            while True:
+                if num % 3 == 0:
+                    text = '.'
+                elif num % 3 == 1:
+                    text = '..'
+                else:
+                    text = '...'
+                points['text'] = text
+                time.sleep(1)
+        show_running_points = threading.Thread(target=going)
+        show_running_points.setDaemon(True)
+        show_running_points.start()
+        show_running_points.join()
+
     def sync_bar_on_exit():
         global stop_sync
         stop_sync = False
@@ -518,8 +552,10 @@ def sync_dir(path1, path2, single_sync, area_name=None):
     show_filename.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
     progress_bar = ttk.Progressbar(sync_bar)
     progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
-    run_sync_tasks()
+    ttk.Progressbar(sync_bar, mode='indeterminate')
     sync_bar.protocol('WM_DELETE_WINDOW', lambda: sync_bar_on_exit())
+    show_running()
+    run_sync_tasks()
     sync_bar.mainloop()
 
 
@@ -541,7 +577,7 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data[2], 'mode') == 'double':
                 single_sync = False
-            sync_dir(path1, path2, single_sync, saving_data[1])
+            sf_sync_dir(path1, path2, single_sync, saving_data[1])
 
     def autorun_local_sf(data_name):
         for saving_data in data_name:
@@ -550,7 +586,7 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data, 'mode') == 'double':
                 single_sync = False
-            sync_dir(path1, path2, single_sync)
+            sf_sync_dir(path1, path2, single_sync)
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
@@ -673,8 +709,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
             cf_option_mode_2.grid(row=3, column=1, padx=175, ipadx=0, sticky='E')
             cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
-            cf_entry_keep_files.grid(row=2, column=1, ipadx=240, pady=5, sticky='W')
-            cf_entry_keep_formats.grid(row=3, column=1, ipadx=240, pady=0, sticky='W')
+            cf_entry_keep_files.grid(row=4, column=1, ipadx=240, pady=0, sticky='W')
+            cf_entry_keep_formats.grid(row=5, column=1, ipadx=240, pady=0, sticky='W')
+            cf_entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
+            cf_entry_frame_keep_formats.grid(row=5, column=1, pady=5, ipadx=5, sticky='E')
             cf_entry_time.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
             cf_option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
             cf_label_old_path.grid(row=1, column=0, pady=5, sticky='E')
@@ -695,6 +733,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_option_folder_move.grid_forget()
             cf_entry_keep_files.grid_forget()
             cf_entry_keep_formats.grid_forget()
+            cf_entry_frame_keep_files.grid_forget()
+            cf_entry_frame_keep_formats.grid_forget()
             cf_entry_time.grid_forget()
             cf_option_is_auto.grid_forget()
             cf_label_old_path.grid_forget()
@@ -728,12 +768,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
+        label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
+        option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
+        option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
         if mode == 'cf':
             cf_state()
         else:
             sf_state()
 
     root = tk.Tk()
+    root.wm_attributes('-topmost', 1)
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
@@ -743,134 +787,92 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.geometry("800x310")
 
     label_choose_state = ttk.Label(root, text='功能选择：')
-    label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
     cf_or_sf = tk.StringVar()
     option_is_cleanfile = ttk.Radiobutton(root, text='清理文件', variable=cf_or_sf, value='cf',
                                           command=lambda: change_active_mode(cf_or_sf.get()))
-    option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
     option_is_syncfile = ttk.Radiobutton(root, text='同步文件', variable=cf_or_sf, value='sf',
                                          command=lambda: change_active_mode(cf_or_sf.get()))
-    option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
 
     cf_label_old_path = ttk.Label(root, text="原文件夹路径：")
-    cf_label_old_path.grid(row=1, column=0, pady=5, sticky='E')
     cf_entry_old_path = ttk.Entry(root, textvariable=oldpath)
-    cf_entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     cf_browse_old_path_button = ttk.Button(root, text="浏览", command=lambda: select_path(place='old',
                                                                                           ori_content=cf_entry_old_path.get()))
-    cf_browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
 
     cf_label_new_path = ttk.Label(root, text='新文件夹路径：')
-    cf_label_new_path.grid(row=2, column=0, pady=5, sticky='E')
     cf_entry_new_path = ttk.Entry(root, textvariable=newpath)
-    cf_entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     cf_browse_new_path_button = ttk.Button(root, text="浏览", command=lambda: select_path(place='new',
                                                                                           ori_content=cf_entry_new_path.get()))
-    cf_browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
 
     cf_label_move_options = ttk.Label(root, text='文件移动选项：')
-    cf_label_move_options.grid(row=3, column=0, pady=5, sticky='E')
     cf_entry_mode = tk.IntVar()
     cf_option_mode_1 = ttk.Radiobutton(root, text="以项目最后修改时间为过期判断依据", variable=cf_entry_mode, value=1)
-    cf_option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
     cf_option_mode_2 = ttk.Radiobutton(root, text="以项目最后访问时间为过期判断依据", variable=cf_entry_mode, value=2)
-    cf_option_mode_2.grid(row=3, column=1, padx=175, ipadx=0, sticky='E')
     cf_is_folder_move = tk.BooleanVar()
     cf_option_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=cf_is_folder_move)
-    cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
 
     cf_entry_frame_keep_files = tk.Frame(root)
-    cf_entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
     cf_label_keep_files = ttk.Label(root, text='保留项目(选填)：')
-    cf_label_keep_files.grid(row=4, column=0, pady=5, sticky='E')
     cf_entry_keep_files = Combopicker(master=cf_entry_frame_keep_files, values='', frameheight=120)
-    cf_entry_keep_files.grid(row=4, column=1, ipadx=240, pady=0, sticky='W')
     cf_entry_keep_files.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_entry_frame_keep_formats = tk.Frame(root)
-    cf_entry_frame_keep_formats.grid(row=5, column=1, pady=5, ipadx=5, sticky='E')
     cf_label_keep_formats = ttk.Label(root, text='     保留文件格式(选填)：')
-    cf_label_keep_formats.grid(row=5, column=0, sticky='E')
     cf_entry_keep_formats = Combopicker(master=cf_entry_frame_keep_formats, values='', frameheight=90)
-    cf_entry_keep_formats.grid(row=5, column=1, ipadx=240, pady=0, sticky='W')
     cf_entry_keep_formats.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_label_time = ttk.Label(root, text='过期时间设定(小时)：')
-    cf_label_time.grid(row=6, column=0, sticky='E')
     cf_entry_time = ttk.Entry(root)
-    cf_entry_time.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
 
     cf_label_start_options = ttk.Label(root, text='系统选项：')
-    cf_label_start_options.grid(row=7, column=0, sticky='E')
     cf_is_autorun = tk.BooleanVar()
     cf_option_is_auto = ttk.Checkbutton(root, text='开机自动运行本存档(若保存)', variable=cf_is_autorun)
-    cf_option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
 
     sf_label_place_mode = ttk.Label(root, text='路径模式选择：')
-    sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
     sf_place_mode = tk.StringVar()
     sf_option_mode_usb = ttk.Radiobutton(root, text='可移动磁盘(卷)同步模式',
                                          variable=sf_place_mode,
                                          value='movable',
                                          command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
-    sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
     sf_option_mode_local = ttk.Radiobutton(root, text='本地文件夹同步模式',
                                            variable=sf_place_mode,
                                            value='local',
                                            command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
-    sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
     sf_place_mode.set('movable')
 
     sf_label_path_1 = ttk.Label(root, text="文件夹路径-A：")
-    sf_label_path_1.grid(row=2, column=0, pady=5, sticky='E')
     sf_entry_path_1 = ttk.Entry(root, textvariable=path_1)
-    sf_entry_path_1.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     sf_browse_path_1_button = ttk.Button(root, text="浏览",
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
-    sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
 
     sf_entry_select_removable = ttk.Combobox(root, values=scan_removable_disks(), state='readonly')
-    sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
     sf_entry_select_removable.bind('<Button-1>', lambda event: sf_refresh_disk_list())
 
     sf_label_path_2 = ttk.Label(root, text='文件夹路径-B：')
-    sf_label_path_2.grid(row=3, column=0, pady=5, sticky='E')
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
-    sf_entry_path_2.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
     sf_browse_path_2_button = ttk.Button(root, text="浏览",
                                          command=lambda: select_path(place='2', ori_content=sf_entry_path_2.get()))
-    sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
 
     sf_label_mode = ttk.Label(root, text='             同步模式选择：')
-    sf_label_mode.grid(row=4, column=0, pady=5, sticky='E')
     sf_entry_mode = tk.StringVar()
     sf_option_mode_double = ttk.Radiobutton(root, text="双向同步（皆保留最新版本）", variable=sf_entry_mode,
                                             value='double')
-    sf_option_mode_double.grid(row=4, column=1, padx=10, ipadx=0, sticky='W')
     sf_option_mode_single = ttk.Radiobutton(root, text="单向同步（来自路径B的新数据不会同步到路径A）",
                                             variable=sf_entry_mode,
                                             value='single')
-    sf_option_mode_single.grid(row=4, column=1, padx=165, ipadx=0, sticky='E')
 
     sf_label_lock_folder = ttk.Label(root, text='锁定文件夹(开发中)：')
-    sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
     sf_entry_lock_files = ttk.Entry(root)
-    sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     sf_entry_lock_files.config(state=tk.DISABLED)
 
     sf_label_match_directly = ttk.Label(root, text='手动配对(开发中)：')
-    sf_label_match_directly.grid(row=6, column=0, pady=5, sticky='E')
     sf_entry_match_directly = ttk.Entry(root)
-    sf_entry_match_directly.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
     sf_entry_match_directly.config(state=tk.DISABLED)
 
     sf_label_autorun = ttk.Label(root, text='系统选项：')
-    sf_label_autorun.grid(row=7, column=0, sticky='E')
     sf_entry_is_autorun = tk.BooleanVar()
     sf_option_autorun = ttk.Checkbutton(root,
                                         text='可移动磁盘接入后自动同步',
                                         variable=sf_entry_is_autorun)
-    sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
     def help_main():
         tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
@@ -1195,7 +1197,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         def del_saving():
             del_mode = mode_entry.get()
             del_name = name_entry.get()
-            is_continue = tk.messagebox.askyesno(title='Movefile', message='确认删除配置 ' + del_name + ' ?')
+            is_continue = tkinter.messagebox.askyesno(title='Movefile', message='确认删除配置 ' + del_name + ' ?')
             ini_file = configparser.ConfigParser()
             if del_mode == '清理文件(Cleanfile)' and is_continue:
                 ini_file.read(cf_data_path + 'Cleanfile_data.ini')
@@ -1321,7 +1323,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             single_sync = True
         else:
             single_sync = False
-        sync_dir(path1, path2, single_sync, area_name)
+        sf_sync_dir(path1, path2, single_sync, area_name)
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not cf_has_error():
@@ -1414,7 +1416,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             run_list = []
             for new_area_data in new_areas_data:
                 for autorun_id in get_movable_autorun_ids():
-                    if str(new_area_data[2]) == autorun_id[0] and tk.messagebox.askokcancel(title='Movefile',
+                    if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
                                                                                             message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，'+'\n' +
                                                                                                     f'确定按配置 "{autorun_id[1]}" 进行同步?'):
                         run_list.append([new_area_data[0], new_area_data[1], autorun_id[1]])
@@ -1433,6 +1435,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def mainprocess():
+    startup_root = threading.Thread(target=check_window)
+    startup_root.setDaemon(True)
+    startup_root.start()
     set_data_path()
     load_icon()
     set_startup()
@@ -1451,6 +1456,9 @@ def mainprocess():
 
     boot_time = get_boot_time()
     ask_time_today = mf.getint("General", "asktime_today")
+    c_root.quit()
+    c_root.destroy()
+    time.sleep(0.5)
     if first_visit:
         make_ui(first_ask=True)
     elif ask_time_today > 1:
