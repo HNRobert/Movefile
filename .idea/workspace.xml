@@ -10,7 +10,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,25 +40,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/Users/25674/Desktop",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "advanced.settings",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/25674/Desktop&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/新建临时文件": [
-      "Python"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/新建临时文件&quot;: [
+      &quot;Python&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\25674\Desktop" />
@@ -67,6 +66,25 @@
     </key>
   </component>
   <component name="RunManager">
+    <configuration name="Movefile v2.0.2.pyw" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Movefile" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Movefile Code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="Movefile" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -89,6 +107,11 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.Movefile v2.0.2.pyw" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
@@ -159,6 +182,7 @@
       <workItem from="1675093379624" duration="613000" />
       <workItem from="1675094123728" duration="992000" />
       <workItem from="1675136032963" duration="1366000" />
+      <workItem from="1675238843297" duration="411000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -247,8 +271,8 @@
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1673752920805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/workspace_xml$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703855471" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$Movefile_v2_0_1_pyw.coverage" NAME="Movefile v2.0.1.pyw 覆盖结果" MODIFIED="1675071364754" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
-    <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$Movefile_v2_0_2_pyw.coverage" NAME="Movefile v2.0.2.pyw 覆盖结果" MODIFIED="1675082497284" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$main.coverage" NAME="main 覆盖结果" MODIFIED="1675083107639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../../_Robert's Softwares/_Working/_Programming/Z-Robert's Programmes/2048GameAutoMovePython-main/2048python" />
+    <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$Movefile_v2_0_2_pyw.coverage" NAME="Movefile v2.0.2.pyw 覆盖结果" MODIFIED="1675239220277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_2_pyw.coverage" NAME="Movefile v1.4.2.pyw 覆盖结果" MODIFIED="1673579721893" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703826728" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$memory_pic.coverage" NAME="memory_pic 覆盖结果" MODIFIED="1673627084544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Pictures/Screenshots" />
