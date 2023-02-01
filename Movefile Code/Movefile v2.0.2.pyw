@@ -533,10 +533,10 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
                     text = '...'
                 points['text'] = text
                 time.sleep(1)
+
         show_running_points = threading.Thread(target=going)
         show_running_points.setDaemon(True)
         show_running_points.start()
-        show_running_points.join()
 
     def sync_bar_on_exit():
         global stop_sync
@@ -1417,8 +1417,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             for new_area_data in new_areas_data:
                 for autorun_id in get_movable_autorun_ids():
                     if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
-                                                                                            message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，'+'\n' +
-                                                                                                    f'确定按配置 "{autorun_id[1]}" 进行同步?'):
+                                                                                                 message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，' + '\n' +
+                                                                                                         f'确定按配置 "{autorun_id[1]}" 进行同步?'):
                         run_list.append([new_area_data[0], new_area_data[1], autorun_id[1]])
                 new_areas_data.remove(new_area_data)
             if run_list:
@@ -1458,7 +1458,7 @@ def mainprocess():
     ask_time_today = mf.getint("General", "asktime_today")
     c_root.quit()
     c_root.destroy()
-    time.sleep(0.5)
+
     if first_visit:
         make_ui(first_ask=True)
     elif ask_time_today > 1:
