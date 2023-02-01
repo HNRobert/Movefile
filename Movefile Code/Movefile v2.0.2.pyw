@@ -480,6 +480,7 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
                 match_possibility = sf_match_possibility(path1, path2, file1, file2)
                 if match_possibility > 50:
                     task_number += 1
+                    print('114')
                     show_filename['text'] = f'扫描文件中...  发现新项目{task_number}个'
                     sync_tasks.append([file1_path, file2_path, False, single_sync])
                     break
@@ -500,14 +501,15 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
 
     def run_sync_tasks():
         out_data = ''
-        progress_bar['value'] = 0
+        main_progress_bar['value'] = 0
         sync_bar.update()
         tasks = get_task()
-        progress_bar['maximum'] = len(tasks)
+        main_progress_bar['maximum'] = len(tasks)
+        show_running_bar.start(10)
         for task in tasks:
-            show_filename['text'] = '文件同步中：' + task[0].split('\\')[-1]
+            current_file_label['text'] = '文件同步中：' + task[0].split('\\')[-1]
             out_data += sf_sync_file(task[0], task[1], task[2], task[3])
-            progress_bar['value'] += 1
+            main_progress_bar['value'] += 1
             sync_bar.update()
         sync_bar.withdraw()
         path_name_1 = path1.split('\\')[-1]
@@ -518,26 +520,6 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
         except:
             pass
 
-    def show_running():
-        points = tk.Label(sync_bar, text='')
-        points.grid(row=0, column=0, sticky='SE')
-
-        def going():
-            num = 0
-            while True:
-                if num % 3 == 0:
-                    text = '.'
-                elif num % 3 == 1:
-                    text = '..'
-                else:
-                    text = '...'
-                points['text'] = text
-                time.sleep(1)
-
-        show_running_points = threading.Thread(target=going)
-        show_running_points.setDaemon(True)
-        show_running_points.start()
-
     def sync_bar_on_exit():
         global stop_sync
         stop_sync = False
@@ -547,14 +529,16 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
 
     sync_bar = tk.Tk()
     sync_bar.title('Movefile  -Syncfile Progress')
-    sync_bar.geometry('420x60')
+    sync_bar.geometry('420x100')
     show_filename = ttk.Label(sync_bar, text='扫描文件中...')
     show_filename.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
-    progress_bar = ttk.Progressbar(sync_bar)
-    progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
-    ttk.Progressbar(sync_bar, mode='indeterminate')
+    main_progress_bar = ttk.Progressbar(sync_bar)
+    main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
+    current_file_label = ttk.Label(sync_bar, text='文件复制')
+    current_file_label.grid(row=2, column=0, pady=5, sticky='SW')
+    show_running_bar = ttk.Progressbar(sync_bar, mode='indeterminate')
+    show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150)
     sync_bar.protocol('WM_DELETE_WINDOW', lambda: sync_bar_on_exit())
-    show_running()
     run_sync_tasks()
     sync_bar.mainloop()
 
