@@ -6,7 +6,7 @@ Created on Wed Dec 21 17:07:30 2022
 """
 file_name = 'Movefile v2.0.2.pyw'[:-3] + 'exe'
 vision = file_name[9:15]
-update_time = '2023/1/30-night'
+update_time = '2023/1/30'
 
 import base64
 import configparser
@@ -761,7 +761,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_state()
 
     root = tk.Tk()
-    root.wm_attributes('-topmost', 1)
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
@@ -1442,7 +1441,7 @@ def mainprocess():
     ask_time_today = mf.getint("General", "asktime_today")
     c_root.quit()
     c_root.destroy()
-
+    time.sleep(0.01)
     if first_visit:
         make_ui(first_ask=True)
     elif ask_time_today > 1:
