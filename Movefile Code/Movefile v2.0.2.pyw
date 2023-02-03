@@ -468,6 +468,9 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
                                duration=10,
                                threaded=False)
 
+    def show_running():
+        show_running_bar.start(10)
+
     def get_task():
         all_files_1 = sf_scan_files(path1)
         all_files_2 = sf_scan_files(path2)
@@ -480,7 +483,6 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
                 match_possibility = sf_match_possibility(path1, path2, file1, file2)
                 if match_possibility > 50:
                     task_number += 1
-                    print('114')
                     show_filename['text'] = f'扫描文件中...  发现新项目{task_number}个'
                     sync_tasks.append([file1_path, file2_path, False, single_sync])
                     break
@@ -505,7 +507,6 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
         sync_bar.update()
         tasks = get_task()
         main_progress_bar['maximum'] = len(tasks)
-        show_running_bar.start(10)
         for task in tasks:
             current_file_label['text'] = '文件同步中：' + task[0].split('\\')[-1]
             out_data += sf_sync_file(task[0], task[1], task[2], task[3])
@@ -521,8 +522,6 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
             pass
 
     def sync_bar_on_exit():
-        global stop_sync
-        stop_sync = False
         if tkinter.messagebox.askyesno(title='Syncfile', message='''文件正在同步中，
 确定中断同步进程并退出?'''):
             stop_sync = True
@@ -539,7 +538,10 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
     show_running_bar = ttk.Progressbar(sync_bar, mode='indeterminate')
     show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150)
     sync_bar.protocol('WM_DELETE_WINDOW', lambda: sync_bar_on_exit())
-    run_sync_tasks()
+    roll_bar = threading.Thread(target=show_running, daemon=True)
+    roll_bar.start()
+    run_tasks = threading.Thread(target=run_sync_tasks, daemon=True)
+    run_tasks.start()
     sync_bar.mainloop()
 
 
@@ -768,6 +770,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     path_2 = tk.StringVar()
     root.title('Movefile Setting')
     root.geometry("800x310")
+    root.attributes('-topmost', True)
+    root.attributes('-topmost', False)
+    root.update()
 
     label_choose_state = ttk.Label(root, text='功能选择：')
     cf_or_sf = tk.StringVar()
@@ -1441,7 +1446,7 @@ def mainprocess():
     ask_time_today = mf.getint("General", "asktime_today")
     c_root.quit()
     c_root.destroy()
-    time.sleep(0.01)
+    startup_root.join()
     if first_visit:
         make_ui(first_ask=True)
     elif ask_time_today > 1:
