@@ -786,6 +786,26 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.attributes('-topmost', False)
     root.update()
 
+    label_dic = {'label_choose_state': ['功能选择：', 'Function：'],
+                 'cf_label_old_path': ['原文件夹路径：', 'original path：'],
+                 'cf_label_new_path': ['目标文件夹路径：', 'Target path：'],
+                 'cf_label_move_options': ['文件夹移动选项：', 'Cleanfile options：'],
+                 'cf_option_mode_1': ['以项目最后修改时间为过期判断依据', "Use last edit time as expire criteria"],
+                 'cf_option_mode_2': ['以项目最后访问时间为过期判断依据', "Use last ask time as expire criteria"],
+                 'cf_option_folder_move': ['移动项目包括文件夹', 'Move items including Folders'],
+                 'cf_label_keep_files': ['保留项目(选填)：', 'Reserved Files(optional)：'],
+                 'cf_label_keep_formats': ['     保留文件格式(选填)：', 'Reserved Formats(opt)：'],
+                 'cf_label_time': ['过期时间设定(小时)：', 'Expire time setting(Hours)：'],
+                 'cf_label_start_options': ['系统选项：', 'Boot option：'],
+                 'cf_option_is_auto': ['开机自动运行本存档(若保存)', 'Autorun this config(if saved)'],
+                 'sf_label_place_mode': ['路径模式选择：', 'Sync-Path mode：'],
+                 'sf_option_mode_usb': ['可移动磁盘(卷)同步模式', 'Removable Volume mode'],
+                 'sf_option_mode_local': ['本地文件夹同步模式', 'Local Folder mode'],
+                 'sf_label_path_1': ['文件夹路径-A：', 'Folder Path-A：'],
+                 'sf_label_path_2': ['文件夹路径-B：', 'Folder Path-B：'],
+                 'sf_label_mode': ['             同步模式选择：', 'Sync mode：'],
+                 }
+
     label_choose_state = ttk.Label(root, text='功能选择：')
     cf_or_sf = tk.StringVar()
     option_is_cleanfile = ttk.Radiobutton(root, text='清理文件', variable=cf_or_sf, value='cf',
@@ -1357,7 +1377,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
-    option_menu.add_checkbutton(label='开机自动启动本软件', variable=is_startup_run, command=set_startup(is_startup_run.get()))
+    option_menu.add_checkbutton(label='开机自动启动本软件', variable=is_startup_run,
+                                command=set_startup(is_startup_run.get()))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
     root_language = tk.StringVar()
