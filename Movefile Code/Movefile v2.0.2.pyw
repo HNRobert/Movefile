@@ -83,6 +83,11 @@ def asktime_plus():
         gencf.set("General", "date", date)
     asktime_pre = gencf.getint("General", "asktime_today") + 1
     gencf.set("General", "asktime_today", str(asktime_pre))
+
+    if not gencf.has_option('General', 'language'):
+        gencf.set('General', 'language', 'English')
+    if not gencf.has_option('General', 'autorun'):
+        gencf.set('General', 'autorun', 'False')
     gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
@@ -596,6 +601,10 @@ def sf_autorun_operation(place, saving_datas=None):
 def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
+    general_data = configparser.ConfigParser()
+    general_data.read(mf_data_path + r'Movefile_data.ini')
+    root_language = tk.StringVar()
+    root_language.set(general_data.get('General', 'language'))
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
@@ -804,6 +813,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                  'sf_label_path_1': ['文件夹路径-A：', 'Folder Path-A：'],
                  'sf_label_path_2': ['文件夹路径-B：', 'Folder Path-B：'],
                  'sf_label_mode': ['             同步模式选择：', 'Sync mode：'],
+                 'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Two-way Sync'],
+                 'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'One-way Sync'],
                  }
 
     label_choose_state = ttk.Label(root, text='功能选择：')
@@ -876,7 +887,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     sf_entry_mode = tk.StringVar()
     sf_option_mode_double = ttk.Radiobutton(root, text="双向同步（皆保留最新版本）", variable=sf_entry_mode,
                                             value='double')
-    sf_option_mode_single = ttk.Radiobutton(root, text="单向同步（来自路径B的新数据不会同步到路径A）",
+    sf_option_mode_single = ttk.Radiobutton(root, text="单向同步（仅从A向B同步）",
                                             variable=sf_entry_mode,
                                             value='single')
 
@@ -1381,7 +1392,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                 command=set_startup(is_startup_run.get()))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
-    root_language = tk.StringVar()
     language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese')
     language_menu.add_radiobutton(label='English', variable=root_language, value='English')
 
@@ -1480,11 +1490,7 @@ def mainprocess():
     if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
         first_visit = True
 
-    cf = configparser.ConfigParser()
-    sf = configparser.ConfigParser()
     mf = configparser.ConfigParser()
-    cf.read(cf_data_path + r'Cleanfile_data.ini')
-    sf.read(sf_data_path + r'Syncfile_data.ini')
     mf.read(mf_data_path + r"Movefile_data.ini")
 
     boot_time = get_boot_time()
