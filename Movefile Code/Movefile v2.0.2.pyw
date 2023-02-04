@@ -44,65 +44,6 @@ def get_boot_time():
     return boot_time_s
 
 
-def scan_removable_disks(number=None):
-    disk_list = []
-    show_list = []
-    num_disk_pairs = []
-    for item in psutil.disk_partitions():
-        # 判断是不是可移动磁盘
-        if "removable" in item.opts:
-            # 获取可移动磁盘的盘符
-            if item.mountpoint not in disk_list:
-                disk_list.append(item.mountpoint)
-    if disk_list:
-        for pf in disk_list:
-            seria_data = win32api.GetVolumeInformation(pf)
-            area_name = seria_data[0]
-            area_number = seria_data[1]
-            fso = com.Dispatch("Scripting.FileSystemObject")
-            drv = fso.GetDrive(pf)
-            total_space = drv.TotalSize / 2 ** 30
-            show_name = area_name + ' (' + pf[:-1] + ')' + '   ' + str(total_space // 0.01 / 100) + ' GB'
-            num_disk_pair = [str(area_number), show_name]
-            show_list.append(show_name)
-            num_disk_pairs.append(num_disk_pair)
-        if number is None:
-            return show_list
-        else:
-            for pair in num_disk_pairs:
-                if pair[0] == number:
-                    return pair[1]
-
-
-def detect_removable_disks():
-    global new_areas_data
-    disk_list = []
-    area_data_list = []
-    number_book = {}
-    new_areas_data = []
-    while True:
-        for item in psutil.disk_partitions():
-            # 判断是不是可移动磁盘
-            if "removable" in item.opts:
-                # 获取可移动磁盘的盘符
-                if item.mountpoint not in disk_list:
-                    disk_list.append(item.mountpoint)
-        if disk_list:
-            for pf in disk_list:
-                if not os.path.exists(pf):
-                    disk_list.remove(pf)
-                    area_data_list.remove(number_book[pf])
-                else:
-                    seria_number = win32api.GetVolumeInformation(pf)
-                    area_name = seria_number[0]
-                    area_number = seria_number[1]
-                    if area_number not in area_data_list:
-                        area_data_list.append(area_number)
-                        number_book[pf] = area_number
-                        new_areas_data.append([pf, area_name, area_number])
-        time.sleep(2)
-
-
 def set_data_path():
     try:
         global mf_data_path, cf_data_path, sf_data_path
@@ -179,6 +120,64 @@ def list_saving_data():
     return last_saving_data
 
 
+def get_desktop():
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    return winreg.QueryValueEx(key, "Desktop")[0]
+
+
+def load_icon():
+    image = open(mf_data_path + r'Movefile.ico', 'wb')
+    image.write(base64.b64decode(icon.Movefile_ico))
+    image.close()
+
+
+def set_startup(state=True):
+    # 将快捷方式添加到自启动目录
+    # 获取用户名
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+    startup_path = os.path.join(roaming_path + r"\Microsoft\Windows\Start Menu\Programs\Startup")
+    bin_path = r"Movefile " + vision + ".exe"
+    shortcut_path = startup_path + "\\Movefile" + ".lnk"
+    desc = "自动转移文件程序"
+    icon_ = mf_data_path + r'Movefile.ico'
+    if state:
+        if os.path.exists(shortcut_path):
+            os.remove(shortcut_path)
+        winshell.CreateShortcut(
+            Path=shortcut_path,
+            Target=bin_path,
+            Icon=(icon_, 0),
+            Description=desc)
+    elif os.path.exists(shortcut_path):
+        os.remove(shortcut_path)
+
+
+def check_window():
+    global c_root
+    c_root = tk.Tk()
+    c_root.geometry('420x60')
+    c_root.iconbitmap(mf_data_path + r'Movefile.ico')
+    c_root.title('Movefile initialization')
+    c_label = tk.Label(c_root, text='Movefile 初始化中')
+    c_label.grid(row=0, column=0, padx=10, pady=5)
+    c_bar = ttk.Progressbar(c_root, mode='indeterminate')
+    c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
+    c_bar.start(10)
+    c_bar.mainloop()
+
+
+def filehash(filepath):
+    md5_hash = hashlib.md5()
+    with open(filepath, "rb") as f:
+        # Read and update hash in chunks of 4K
+        for byte_block in iter(lambda: f.read(4096), b""):
+            md5_hash.update(byte_block)
+    return md5_hash.hexdigest()
+
+
 def data_error(mode_, name_):
     if mode_ == 'cf':
         try:
@@ -226,62 +225,63 @@ def data_error(mode_, name_):
             return True
 
 
-def get_desktop():
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    return winreg.QueryValueEx(key, "Desktop")[0]
+def scan_removable_disks(number=None):
+    disk_list = []
+    show_list = []
+    num_disk_pairs = []
+    for item in psutil.disk_partitions():
+        # 判断是不是可移动磁盘
+        if "removable" in item.opts:
+            # 获取可移动磁盘的盘符
+            if item.mountpoint not in disk_list:
+                disk_list.append(item.mountpoint)
+    if disk_list:
+        for pf in disk_list:
+            seria_data = win32api.GetVolumeInformation(pf)
+            area_name = seria_data[0]
+            area_number = seria_data[1]
+            fso = com.Dispatch("Scripting.FileSystemObject")
+            drv = fso.GetDrive(pf)
+            total_space = drv.TotalSize / 2 ** 30
+            show_name = area_name + ' (' + pf[:-1] + ')' + '   ' + str(total_space // 0.01 / 100) + ' GB'
+            num_disk_pair = [str(area_number), show_name]
+            show_list.append(show_name)
+            num_disk_pairs.append(num_disk_pair)
+        if number is None:
+            return show_list
+        else:
+            for pair in num_disk_pairs:
+                if pair[0] == number:
+                    return pair[1]
 
 
-def load_icon():
-    image = open(mf_data_path + r'Movefile.ico', 'wb')
-    image.write(base64.b64decode(icon.Movefile_ico))
-    image.close()
-
-
-def set_startup(state=True):
-    # 将快捷方式添加到自启动目录
-    # 获取用户名
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    startup_path = os.path.join(roaming_path + r"\Microsoft\Windows\Start Menu\Programs\Startup")
-    bin_path = r"Movefile " + vision + ".exe"
-    shortcut_path = startup_path + "\\Movefile" + ".lnk"
-    desc = "自动转移文件程序"
-    icon_ = mf_data_path + r'Movefile.ico'
-    if state:
-        if os.path.exists(shortcut_path):
-            os.remove(shortcut_path)
-        winshell.CreateShortcut(
-            Path=shortcut_path,
-            Target=bin_path,
-            Icon=(icon_, 0),
-            Description=desc)
-    elif os.path.exists(shortcut_path):
-        os.remove(shortcut_path)
-
-
-def check_window():
-    global c_root
-    c_root = tk.Tk()
-    c_root.geometry('420x60')
-    c_root.iconbitmap(mf_data_path + r'Movefile.ico')
-    c_root.title('Movefile initialization')
-    c_label = tk.Label(c_root, text='Movefile 初始化中')
-    c_label.grid(row=0, column=0, padx=10, pady=5)
-    c_bar = ttk.Progressbar(c_root, mode='indeterminate')
-    c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
-    c_bar.start(25)
-    c_bar.mainloop()
-
-
-def filehash(filepath):
-    md5_hash = hashlib.md5()
-    with open(filepath, "rb") as f:
-        # Read and update hash in chunks of 4K
-        for byte_block in iter(lambda: f.read(4096), b""):
-            md5_hash.update(byte_block)
-    return md5_hash.hexdigest()
+def detect_removable_disks_thread():
+    global new_areas_data
+    disk_list = []
+    area_data_list = []
+    number_book = {}
+    new_areas_data = []
+    while True:
+        for item in psutil.disk_partitions():
+            # 判断是不是可移动磁盘
+            if "removable" in item.opts:
+                # 获取可移动磁盘的盘符
+                if item.mountpoint not in disk_list:
+                    disk_list.append(item.mountpoint)
+        if disk_list:
+            for pf in disk_list:
+                if not os.path.exists(pf):
+                    disk_list.remove(pf)
+                    area_data_list.remove(number_book[pf])
+                else:
+                    seria_number = win32api.GetVolumeInformation(pf)
+                    area_name = seria_number[0]
+                    area_number = seria_number[1]
+                    if area_number not in area_data_list:
+                        area_data_list.append(area_number)
+                        number_book[pf] = area_number
+                        new_areas_data.append([pf, area_name, area_number])
+        time.sleep(2)
 
 
 def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder,
@@ -1355,8 +1355,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
                           accelerator="Ctrl+S")
 
-    option_menu = tk.Menu(root)
-    option_menu.add_checkbutton(label='开机自动启动本软件')
+    option_menu = tk.Menu(main_menu, tearoff=False)
+    is_startup_run = tk.BooleanVar()
+    option_menu.add_checkbutton(label='开机自动启动本软件', variable=is_startup_run, command=set_startup(is_startup_run.get()))
+
+    language_menu = tk.Menu(main_menu, tearoff=False)
+    root_language = tk.StringVar()
+    language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese')
+    language_menu.add_radiobutton(label='English', variable=root_language, value='English')
 
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label="关于本软件", command=help_main)
@@ -1370,6 +1376,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     main_menu.add_cascade(label="文件", menu=file_menu)
     main_menu.add_cascade(label='选项', menu=option_menu)
+    main_menu.add_cascade(label='语言', menu=language_menu)
     main_menu.add_cascade(label="帮助", menu=help_menu)
     root.config(menu=main_menu)
 
@@ -1433,7 +1440,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
-    background_detect = threading.Thread(target=lambda: detect_removable_disks(), daemon=True)
+    background_detect = threading.Thread(target=lambda: detect_removable_disks_thread(), daemon=True)
     background_detect.start()
     ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
     ask_permit.start()
@@ -1441,8 +1448,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def mainprocess():
-    startup_root = threading.Thread(target=check_window)
-    startup_root.setDaemon(True)
+    startup_root = threading.Thread(target=check_window, daemon=True)
     startup_root.start()
     set_data_path()
     load_icon()
