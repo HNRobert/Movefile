@@ -9,6 +9,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/Movefile Code/Label_Text_Dictionary.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" afterDir="false" />
     </list>
@@ -196,6 +197,7 @@
       <workItem from="1675480114047" duration="2400000" />
       <workItem from="1675484307999" duration="1172000" />
       <workItem from="1675500820527" duration="2428000" />
+      <workItem from="1675619453963" duration="4769000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>

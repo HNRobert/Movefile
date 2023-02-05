@@ -599,20 +599,11 @@ def sf_autorun_operation(place, saving_datas=None):
 
 
 def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
+    from Label_Text_Dictionary import r_label_text_dic
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
     general_data.read(mf_data_path + r'Movefile_data.ini')
-
-    root_language = tk.StringVar()
-    root_language.set(general_data.get('General', 'language'))
-    language_name = root_language.get()
-    if language_name == 'Chinese':
-        lang_num = 0
-    elif language_name == 'English':
-        lang_num = 1
-    else:
-        lang_num = 2
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
@@ -802,100 +793,95 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
     root.update()
+    root_language = tk.StringVar()
+    root_language.set(general_data.get('General', 'language'))
+    language_name = root_language.get()
+    if language_name == 'Chinese':
+        lang_num = 0
+    elif language_name == 'English':
+        lang_num = 1
+    else:
+        lang_num = 2
 
-    label_dic = {'label_choose_state': ['功能选择：', 'Function：'],
-                 'cf_label_old_path': ['原文件夹路径：', 'original path：'],
-                 'cf_label_new_path': ['目标文件夹路径：', 'Target path：'],
-                 'cf_label_move_options': ['文件夹移动选项：', 'Cleanfile options：'],
-                 'cf_option_mode_1': ['以项目最后修改时间为过期判断依据', "Use last edit time as expire criteria"],
-                 'cf_option_mode_2': ['以项目最后访问时间为过期判断依据', "Use last ask time as expire criteria"],
-                 'cf_option_folder_move': ['移动项目包括文件夹', 'Move items including Folders'],
-                 'cf_label_keep_files': ['保留项目(选填)：', 'Reserved Files(optional)：'],
-                 'cf_label_keep_formats': ['     保留文件格式(选填)：', 'Reserved Formats(opt)：'],
-                 'cf_label_time': ['过期时间设定(小时)：', 'Expire time setting(Hours)：'],
-                 'cf_label_start_options': ['系统选项：', 'Boot option：'],
-                 'cf_option_is_auto': ['开机自动运行本存档(若保存)', 'Autorun this config(if saved)'],
-                 'sf_label_place_mode': ['路径模式选择：', 'Sync-Path mode：'],
-                 'sf_option_mode_usb': ['可移动磁盘(卷)同步模式', 'Removable Volume mode'],
-                 'sf_option_mode_local': ['本地文件夹同步模式', 'Local Folder mode'],
-                 'sf_label_path_1': ['文件夹路径-A：', 'Folder Path-A：'],
-                 'sf_label_path_2': ['文件夹路径-B：', 'Folder Path-B：'],
-                 'sf_label_mode': ['             同步模式选择：', 'Sync mode：'],
-                 'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Two-way Sync'],
-                 'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'One-way Sync'],
-                 }
-
-    label_choose_state = ttk.Label(root, text=label_dic['label_choose_state'][lang_num])
+    label_choose_state = ttk.Label(root, text=r_label_text_dic['label_choose_state'][lang_num])
     cf_or_sf = tk.StringVar()
-    option_is_cleanfile = ttk.Radiobutton(root, text='清理文件', variable=cf_or_sf, value='cf',
+    option_is_cleanfile = ttk.Radiobutton(root, text=r_label_text_dic['option_is_cleanfile'][lang_num], variable=cf_or_sf,
+                                          value='cf',
                                           command=lambda: change_active_mode(cf_or_sf.get()))
-    option_is_syncfile = ttk.Radiobutton(root, text='同步文件', variable=cf_or_sf, value='sf',
+    option_is_syncfile = ttk.Radiobutton(root, text=r_label_text_dic['option_is_syncfile'][lang_num], variable=cf_or_sf,
+                                         value='sf',
                                          command=lambda: change_active_mode(cf_or_sf.get()))
 
-    cf_label_old_path = ttk.Label(root, text="原文件夹路径：")
+    cf_label_old_path = ttk.Label(root, text=r_label_text_dic['cf_label_old_path'][lang_num])
     cf_entry_old_path = ttk.Entry(root, textvariable=oldpath)
-    cf_browse_old_path_button = ttk.Button(root, text="浏览", command=lambda: select_path(place='old',
-                                                                                          ori_content=cf_entry_old_path.get()))
+    cf_browse_old_path_button = ttk.Button(root, text=r_label_text_dic['cf_browse_old_path_button'][lang_num],
+                                           command=lambda: select_path(place='old',
+                                                                       ori_content=cf_entry_old_path.get()))
 
-    cf_label_new_path = ttk.Label(root, text='新文件夹路径：')
+    cf_label_new_path = ttk.Label(root, text=r_label_text_dic['cf_label_new_path'][lang_num])
     cf_entry_new_path = ttk.Entry(root, textvariable=newpath)
-    cf_browse_new_path_button = ttk.Button(root, text="浏览", command=lambda: select_path(place='new',
-                                                                                          ori_content=cf_entry_new_path.get()))
+    cf_browse_new_path_button = ttk.Button(root, text=r_label_text_dic['cf_browse_new_path_button'][lang_num],
+                                           command=lambda: select_path(place='new',
+                                                                       ori_content=cf_entry_new_path.get()))
 
-    cf_label_move_options = ttk.Label(root, text='文件移动选项：')
+    cf_label_move_options = ttk.Label(root, text=r_label_text_dic['cf_label_move_options'][lang_num])
     cf_entry_mode = tk.IntVar()
-    cf_option_mode_1 = ttk.Radiobutton(root, text="以项目最后修改时间为过期判断依据", variable=cf_entry_mode, value=1)
-    cf_option_mode_2 = ttk.Radiobutton(root, text="以项目最后访问时间为过期判断依据", variable=cf_entry_mode, value=2)
+    cf_option_mode_1 = ttk.Radiobutton(root, text=r_label_text_dic['cf_option_mode_1'][lang_num], variable=cf_entry_mode,
+                                       value=1)
+    cf_option_mode_2 = ttk.Radiobutton(root, text=r_label_text_dic['cf_option_mode_2'][lang_num], variable=cf_entry_mode,
+                                       value=2)
     cf_is_folder_move = tk.BooleanVar()
-    cf_option_folder_move = ttk.Checkbutton(root, text='移动项目包括文件夹', variable=cf_is_folder_move)
+    cf_option_folder_move = ttk.Checkbutton(root, text=r_label_text_dic['cf_option_folder_move'][lang_num],
+                                            variable=cf_is_folder_move)
 
     cf_entry_frame_keep_files = tk.Frame(root)
-    cf_label_keep_files = ttk.Label(root, text='保留项目(选填)：')
+    cf_label_keep_files = ttk.Label(root, text=r_label_text_dic['cf_label_keep_files'][lang_num])
     cf_entry_keep_files = Combopicker(master=cf_entry_frame_keep_files, values='', frameheight=120)
     cf_entry_keep_files.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_entry_frame_keep_formats = tk.Frame(root)
-    cf_label_keep_formats = ttk.Label(root, text='     保留文件格式(选填)：')
+    cf_label_keep_formats = ttk.Label(root, text=r_label_text_dic['cf_label_keep_formats'][lang_num])
     cf_entry_keep_formats = Combopicker(master=cf_entry_frame_keep_formats, values='', frameheight=90)
     cf_entry_keep_formats.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
-    cf_label_time = ttk.Label(root, text='过期时间设定(小时)：')
+    cf_label_time = ttk.Label(root, text=r_label_text_dic['cf_label_time'][lang_num])
     cf_entry_time = ttk.Entry(root)
 
-    cf_label_start_options = ttk.Label(root, text='系统选项：')
+    cf_label_start_options = ttk.Label(root, text=r_label_text_dic['cf_label_start_options'][lang_num])
     cf_is_autorun = tk.BooleanVar()
-    cf_option_is_auto = ttk.Checkbutton(root, text='开机自动运行本存档(若保存)', variable=cf_is_autorun)
+    cf_option_is_auto = ttk.Checkbutton(root, text=r_label_text_dic['cf_option_is_auto'][lang_num], variable=cf_is_autorun)
 
-    sf_label_place_mode = ttk.Label(root, text='路径模式选择：')
+    sf_label_place_mode = ttk.Label(root, text=r_label_text_dic['sf_label_place_mode'][lang_num])
     sf_place_mode = tk.StringVar()
-    sf_option_mode_usb = ttk.Radiobutton(root, text='可移动磁盘(卷)同步模式',
+    sf_option_mode_usb = ttk.Radiobutton(root, text=r_label_text_dic['sf_option_mode_usb'][lang_num],
                                          variable=sf_place_mode,
                                          value='movable',
                                          command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
-    sf_option_mode_local = ttk.Radiobutton(root, text='本地文件夹同步模式',
+    sf_option_mode_local = ttk.Radiobutton(root, text=r_label_text_dic['sf_option_mode_local'][lang_num],
                                            variable=sf_place_mode,
                                            value='local',
                                            command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
     sf_place_mode.set('movable')
 
-    sf_label_path_1 = ttk.Label(root, text="文件夹路径-A：")
+    sf_label_path_1 = ttk.Label(root, text=r_label_text_dic['sf_label_path_1'][lang_num])
     sf_entry_path_1 = ttk.Entry(root, textvariable=path_1)
-    sf_browse_path_1_button = ttk.Button(root, text="浏览",
+    sf_browse_path_1_button = ttk.Button(root, text=r_label_text_dic['sf_browse_path_1_button'][lang_num],
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
 
     sf_entry_select_removable = ttk.Combobox(root, values=scan_removable_disks(), state='readonly')
     sf_entry_select_removable.bind('<Button-1>', lambda event: sf_refresh_disk_list())
 
-    sf_label_path_2 = ttk.Label(root, text='文件夹路径-B：')
+    sf_label_path_2 = ttk.Label(root, text=r_label_text_dic['sf_label_path_2'][lang_num])
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
-    sf_browse_path_2_button = ttk.Button(root, text="浏览",
+    sf_browse_path_2_button = ttk.Button(root, text=r_label_text_dic['sf_browse_path_2_button'][lang_num],
                                          command=lambda: select_path(place='2', ori_content=sf_entry_path_2.get()))
 
-    sf_label_mode = ttk.Label(root, text='             同步模式选择：')
+    sf_label_mode = ttk.Label(root, text=r_label_text_dic['sf_label_mode'][lang_num])
     sf_entry_mode = tk.StringVar()
-    sf_option_mode_double = ttk.Radiobutton(root, text="双向同步（皆保留最新版本）", variable=sf_entry_mode,
+    sf_option_mode_double = ttk.Radiobutton(root, text=r_label_text_dic['sf_option_mode_double'][lang_num],
+                                            variable=sf_entry_mode,
                                             value='double')
-    sf_option_mode_single = ttk.Radiobutton(root, text="单向同步（仅从A向B同步）",
+    sf_option_mode_single = ttk.Radiobutton(root, text=r_label_text_dic['sf_option_mode_single'][lang_num],
                                             variable=sf_entry_mode,
                                             value='single')
 
@@ -907,10 +893,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     sf_entry_match_directly = ttk.Entry(root)
     sf_entry_match_directly.config(state=tk.DISABLED)
 
-    sf_label_autorun = ttk.Label(root, text='系统选项：')
+    sf_label_autorun = ttk.Label(root, text=r_label_text_dic['sf_label_autorun'][lang_num])
     sf_entry_is_autorun = tk.BooleanVar()
     sf_option_autorun = ttk.Checkbutton(root,
-                                        text='可移动磁盘接入后自动同步',
+                                        text=r_label_text_dic['sf_option_autorun'][lang_num],
                                         variable=sf_entry_is_autorun)
 
     def help_main():
@@ -1058,23 +1044,23 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     def cf_has_error():
         if not cf_is_num():
-            tkinter.messagebox.showwarning('Movefile', '警告：请在时间设定栏内输入数字')
+            tkinter.messagebox.showwarning('Movefile', r_label_text_dic['num_warning'][lang_num])
             return True
         elif cf_has_blank():
-            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填写所有非选填项目！')
+            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
             return True
         elif cf_path_error():
-            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
+            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
             return True
         else:
             return False
 
     def sf_has_error():
         if sf_has_blank():
-            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填写所有非选填项目！')
+            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
             return True
         elif sf_path_error():
-            tkinter.messagebox.showwarning(title='Movefile', message='警告：请填输入有效路径！（建议使用浏览）')
+            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
             return True
         else:
             return False
@@ -1138,7 +1124,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
             sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
-        tkinter.messagebox.showinfo(title='信息提示', message='信息保存成功！')
+        tkinter.messagebox.showinfo(title=r_label_text_dic['succ_save'][lang_num][0],
+                                    message=r_label_text_dic['succ_save'][lang_num][1])
         bt2.config(state=tk.NORMAL)
 
     def read_saving(ask_path=False):
@@ -1181,8 +1168,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             change_active_mode('cf')
             cf_or_sf.set('cf')
             if data_error('cf', setting_name):
-                tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
-请尽量不要手动更改ini配置文件''')
+                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
 
         def open_sf_saving(setting_name):
             if sf_entry_path_1.get() != '':
@@ -1213,17 +1199,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             change_active_mode('sf')
             cf_or_sf.set('sf')
             if data_error('sf', setting_name):
-                tkinter.messagebox.showwarning(title='Movefile', message='''错误：配置信息无效！
-请尽量不要手动更改ini配置文件''')
+                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
 
         def refresh_saving():
             nonlocal new_values
             try:
                 list_saving_data()
-                if read_mode_entry.get() == '清理文件(Cleanfile)':
+                if read_mode_entry.get() in ['清理文件(Cleanfile)', 'Cleanfile']:
                     new_values = cf_save_names
                     read_name_entry['value'] = new_values
-                elif read_mode_entry.get() == '同步文件(Syncfile)':
+                elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
                     new_values = sf_save_names
                     read_name_entry['value'] = new_values
                 else:
@@ -1364,6 +1349,17 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             single_sync = False
         sf_sync_dir(path1, path2, single_sync, area_name)
 
+    def change_language(language):
+        attitude = tkinter.messagebox.askyesnocancel(title='Movefile', message='保存文件吗？')
+        if attitude is not None:
+            if attitude:
+                pass
+            general_data.set('General', 'language', language)
+            general_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+            root.quit()
+            root.destroy()
+            make_ui(muti_ask=True)
+
     def continue_going():
         if cf_or_sf.get() == 'cf' and not cf_has_error():
             cf_operator = threading.Thread(target=lambda: cf_operate_from_root(), daemon=True)
@@ -1400,8 +1396,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                 command=set_startup(is_startup_run.get()))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
-    language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese')
-    language_menu.add_radiobutton(label='English', variable=root_language, value='English')
+    language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese', command=lambda: change_language('Chinese'))
+    language_menu.add_radiobutton(label='English', variable=root_language, value='English', command=lambda: change_language('English'))
 
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label="关于本软件", command=help_main)
