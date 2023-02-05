@@ -603,8 +603,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
     general_data.read(mf_data_path + r'Movefile_data.ini')
+
     root_language = tk.StringVar()
     root_language.set(general_data.get('General', 'language'))
+    language_name = root_language.get()
+    if language_name == 'Chinese':
+        lang_num = 0
+    elif language_name == 'English':
+        lang_num = 1
+    else:
+        lang_num = 2
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
@@ -817,7 +825,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                  'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'One-way Sync'],
                  }
 
-    label_choose_state = ttk.Label(root, text='功能选择：')
+    label_choose_state = ttk.Label(root, text=label_dic['label_choose_state'][lang_num])
     cf_or_sf = tk.StringVar()
     option_is_cleanfile = ttk.Radiobutton(root, text='清理文件', variable=cf_or_sf, value='cf',
                                           command=lambda: change_active_mode(cf_or_sf.get()))
@@ -1212,22 +1220,22 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             nonlocal new_values
             try:
                 list_saving_data()
-                if mode_entry.get() == '清理文件(Cleanfile)':
+                if read_mode_entry.get() == '清理文件(Cleanfile)':
                     new_values = cf_save_names
-                    name_entry['value'] = new_values
-                elif mode_entry.get() == '同步文件(Syncfile)':
+                    read_name_entry['value'] = new_values
+                elif read_mode_entry.get() == '同步文件(Syncfile)':
                     new_values = sf_save_names
-                    name_entry['value'] = new_values
+                    read_name_entry['value'] = new_values
                 else:
                     new_values = []
-                if name_entry.get() not in new_values:
-                    name_entry.delete(0, 'end')
+                if read_name_entry.get() not in new_values:
+                    read_name_entry.delete(0, 'end')
             except:
                 pass
 
         def del_saving():
-            del_mode = mode_entry.get()
-            del_name = name_entry.get()
+            del_mode = read_mode_entry.get()
+            del_name = read_name_entry.get()
             is_continue = tkinter.messagebox.askyesno(title='Movefile', message='确认删除配置 ' + del_name + ' ?')
             ini_file = configparser.ConfigParser()
             if del_mode == '清理文件(Cleanfile)' and is_continue:
@@ -1240,10 +1248,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 ini_file.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         def sure_open():
-            saving_name = name_entry.get()
-            if mode_entry.get() == '清理文件(Cleanfile)':
+            saving_name = read_name_entry.get()
+            if read_mode_entry.get() == '清理文件(Cleanfile)':
                 open_cf_saving(saving_name)
-            elif mode_entry.get() == '同步文件(Syncfile)':
+            elif read_mode_entry.get() == '同步文件(Syncfile)':
                 open_sf_saving(saving_name)
             root.title('Movefile   --> ' + saving_name)
             ask_saving_root.quit()
@@ -1260,26 +1268,26 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             if last_saving_data:
                 last_edit_mode = last_saving_data[0]
                 last_edit_name = last_saving_data[1]
-            name_label = ttk.Label(ask_saving_root, text='     选择存档：')
-            name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
-            mode_entry = ttk.Combobox(ask_saving_root, values=['清理文件(Cleanfile)', '同步文件(Syncfile)'],
-                                      state='readonly')
-            mode_entry.grid(row=0, column=1, pady=5, padx=5, )
+            read_name_label = ttk.Label(ask_saving_root, text='     选择存档：')
+            read_name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
+            read_mode_entry = ttk.Combobox(ask_saving_root, values=['清理文件(Cleanfile)', '同步文件(Syncfile)'],
+                                           state='readonly')
+            read_mode_entry.grid(row=0, column=1, pady=5, padx=5, )
             if last_edit_mode == 'sf':
-                mode_entry.current(1)
+                read_mode_entry.current(1)
             elif last_edit_mode == 'cf':
-                mode_entry.current(0)
-            name_entry = ttk.Combobox(ask_saving_root, values=save_names, state='readonly')
+                read_mode_entry.current(0)
+            read_name_entry = ttk.Combobox(ask_saving_root, values=save_names, state='readonly')
             refresh_saving()
             for save_index, name in enumerate(new_values):
                 if name == last_edit_name:
-                    name_entry.current(save_index)
-            name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
+                    read_name_entry.current(save_index)
+            read_name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
             del_save_button = ttk.Button(ask_saving_root, text='删除存档', command=lambda: del_saving())
             del_save_button.grid(row=0, column=3, padx=5, pady=5)
             sure_name_bottom = ttk.Button(ask_saving_root, text='读取存档', command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
-            name_entry.bind('<Button-1>', lambda event: refresh_saving())
+            read_name_entry.bind('<Button-1>', lambda event: refresh_saving())
             ask_saving_root.mainloop()
         elif mode == 'cf':
             open_cf_saving(save_name)
