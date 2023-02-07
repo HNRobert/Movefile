@@ -602,7 +602,7 @@ def sf_autorun_operation(place, saving_datas=None):
         autorun_local_sf(autorun_savings)
 
 
-def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=False):
+def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     from LT_Dic import r_label_text_dic
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
@@ -678,15 +678,15 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
 
     def sf_change_place_mode(mode):
         if mode == 'movable':
-            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][0])
-            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][0])
-            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][0])
+            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][0])
+            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][0])
+            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][0])
             sf_browse_path_1_button.grid_forget()
             sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
         else:
-            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][1])
-            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][1])
-            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][1])
+            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][1])
+            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][1])
+            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][1])
             sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             sf_entry_select_removable.grid_forget()
 
@@ -839,6 +839,22 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
     sf_label_autorun_text = tk.StringVar()
     sf_option_autorun_text = tk.StringVar()
 
+    save_button_text = tk.StringVar()
+    continue_button_text = tk.StringVar()
+    file_menu_text = tk.StringVar()
+    readfile_menu_text = tk.StringVar()
+    savefile_menu_text = tk.StringVar()
+    option_menu_text = tk.StringVar()
+    autorun_menu_text = tk.StringVar()
+    language_menu_text = tk.StringVar()
+    help_menu_text = tk.StringVar()
+    about_menu_text = tk.StringVar()
+    precautions_menu_text = tk.StringVar()
+    cf_keep_menu_text = tk.StringVar()
+    cf_expire_menu_text = tk.StringVar()
+    taskbar_setting_text = tk.StringVar()
+    taskbar_exit_text = tk.StringVar()
+
     def set_language(lang_number):
         label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
         option_is_cleanfile_text.set(r_label_text_dic['option_is_cleanfile'][lang_number])
@@ -868,7 +884,23 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
         sf_option_mode_single_text.set(r_label_text_dic['sf_option_mode_single'][lang_number])
         sf_label_autorun_text.set(r_label_text_dic['sf_label_autorun'][lang_number])
         sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_number])
+        save_button_text.set(r_label_text_dic['save_button'][lang_number])
+        continue_button_text.set(r_label_text_dic['continue_button'][lang_number])
 
+        file_menu_text.set(r_label_text_dic['file_menu'][lang_number])
+        readfile_menu_text.set(r_label_text_dic['readfile_menu'][lang_number])
+        savefile_menu_text.set(r_label_text_dic['savefile_menu'][lang_number])
+        option_menu_text.set(r_label_text_dic['option_menu'][lang_number])
+        autorun_menu_text.set(r_label_text_dic['autorun_menu'][lang_number])
+        language_menu_text.set(r_label_text_dic['language_menu'][lang_number])
+        help_menu_text.set(r_label_text_dic['help_menu'][lang_number])
+        about_menu_text.set(r_label_text_dic['about_menu'][lang_number])
+        precautions_menu_text.set(r_label_text_dic['precautions_menu'][lang_number])
+        cf_keep_menu_text.set(r_label_text_dic['cf_keep_menu'][lang_number])
+        cf_expire_menu_text.set(r_label_text_dic['cf_expire_menu'][lang_number])
+
+        taskbar_setting_text.set(r_label_text_dic['taskbar_setting'][lang_number])
+        taskbar_exit_text.set(r_label_text_dic['taskbar_exit'][lang_number])
     set_language(lang_num)
 
     label_choose_state = ttk.Label(root, text=label_choose_state_text, textvariable=label_choose_state_text)
@@ -888,7 +920,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
 
     cf_label_new_path = ttk.Label(root, textvariable=cf_label_new_path_text)
     cf_entry_new_path = ttk.Entry(root, textvariable=newpath)
-    cf_browse_new_path_button = ttk.Button(root, text=cf_browse_new_path_button_text,
+    cf_browse_new_path_button = ttk.Button(root, textvariable=cf_browse_new_path_button_text,
                                            command=lambda: select_path(place='new',
                                                                        ori_content=cf_entry_new_path.get()))
 
@@ -1194,7 +1226,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
 
         tkinter.messagebox.showinfo(title=r_label_text_dic['succ_save'][lang_num][0],
                                     message=r_label_text_dic['succ_save'][lang_num][1])
-        bt2.config(state=tk.NORMAL)
+        continue_button.config(state=tk.NORMAL)
 
     def read_saving(ask_path=False):
         cf_store_path = cf_data_path + r'Cleanfile_data.ini'
@@ -1291,20 +1323,20 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
             del_name = read_name_entry.get()
             is_continue = tkinter.messagebox.askyesno(title='Movefile', message='确认删除配置 ' + del_name + ' ?')
             ini_file = configparser.ConfigParser()
-            if del_mode == '清理文件(Cleanfile)' and is_continue:
+            if del_mode in ['清理文件(Cleanfile)', 'Cleanfile'] and is_continue:
                 ini_file.read(cf_data_path + 'Cleanfile_data.ini')
                 ini_file.remove_section(del_name)
                 ini_file.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
-            elif del_mode == '同步文件(Syncfile)' and is_continue:
+            elif del_mode in ['同步文件(Syncfile)', 'Syncfile'] and is_continue:
                 ini_file.read(sf_data_path + 'Syncfile_data.ini')
                 ini_file.remove_section(del_name)
                 ini_file.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
         def sure_open():
             saving_name = read_name_entry.get()
-            if read_mode_entry.get() == '清理文件(Cleanfile)':
+            if read_mode_entry.get() in ['清理文件(Cleanfile)', 'Cleanfile']:
                 open_cf_saving(saving_name)
-            elif read_mode_entry.get() == '同步文件(Syncfile)':
+            elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
                 open_sf_saving(saving_name)
             root.title('Movefile   --> ' + saving_name)
             ask_saving_root.quit()
@@ -1314,16 +1346,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
             ask_saving_root = tk.Tk()
             ask_saving_root.iconbitmap(mf_data_path + r'Movefile.ico')
             ask_saving_root.geometry('675x35')
-            ask_saving_root.title('读取存档')
+            ask_saving_root.title(r_label_text_dic['readfile_menu'][lang_num])
             last_edit_mode = ''
             last_edit_name = ''
             save_names = []
             if last_saving_data:
                 last_edit_mode = last_saving_data[0]
                 last_edit_name = last_saving_data[1]
-            read_name_label = ttk.Label(ask_saving_root, text='     选择存档：')
+            read_name_label = ttk.Label(ask_saving_root, text=r_label_text_dic['read_name_label'][lang_num])
             read_name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
-            read_mode_entry = ttk.Combobox(ask_saving_root, values=['清理文件(Cleanfile)', '同步文件(Syncfile)'],
+            read_mode_entry = ttk.Combobox(ask_saving_root, values=r_label_text_dic['read_mode_entry'][lang_num],
                                            state='readonly')
             read_mode_entry.grid(row=0, column=1, pady=5, padx=5, )
             if last_edit_mode == 'sf':
@@ -1336,9 +1368,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
                 if name == last_edit_name:
                     read_name_entry.current(save_index)
             read_name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
-            del_save_button = ttk.Button(ask_saving_root, text='删除存档', command=lambda: del_saving())
+            del_save_button = ttk.Button(ask_saving_root, text=r_label_text_dic['del_save_button'][lang_num], command=lambda: del_saving())
             del_save_button.grid(row=0, column=3, padx=5, pady=5)
-            sure_name_bottom = ttk.Button(ask_saving_root, text='读取存档', command=lambda: sure_open())
+            sure_name_bottom = ttk.Button(ask_saving_root, text=r_label_text_dic['sure_name_bottom'][lang_num], command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
             read_name_entry.bind('<Button-1>', lambda event: refresh_saving())
             ask_saving_root.mainloop()
@@ -1371,21 +1403,21 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
             ask_name_window = tk.Tk()
             ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
             ask_name_window.geometry('400x35')
-            ask_name_window.title('设置配置存档名称')
+            ask_name_window.title(r_label_text_dic['ask_name_window'][lang_num])
             last_edit_name = 'New_Setting'
             if last_saving_data:
                 if last_saving_data[0] == mode:
                     last_edit_name = last_saving_data[1]
                 else:
                     last_edit_name = last_saving_data[2]
-            name_label = ttk.Label(ask_name_window, text='  请输入存档的名称：')
+            name_label = ttk.Label(ask_name_window, text=r_label_text_dic['name_label'][lang_num])
             name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
 
             name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
             name_entry.insert(0, last_edit_name)
             name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
-            sure_name_bottom = ttk.Button(ask_name_window, text='确定保存', command=lambda: sure_save())
-            sure_name_bottom.grid(row=0, column=2, sticky='W')
+            sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num], command=lambda: sure_save())
+            sure_name_button.grid(row=0, column=2, sticky='W')
             ask_name_window.mainloop()
 
     def cf_operate_from_root():
@@ -1423,6 +1455,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
         general_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
+        sf_change_place_mode(cf_or_sf.get())
+        judge_button_pix()
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not cf_has_error():
@@ -1439,25 +1473,32 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
         root.destroy()
         ask_permit.join()
         butt_icon.join()
+        background_detect.join()
 
+    def judge_button_pix():
+        if lang_num == 0:
+            save_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
+            continue_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
+        elif lang_num == 1:
+            save_button.grid(row=8, column=1, ipadx=95, pady=4, padx=10, sticky='W')
+            continue_button.grid(row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
     # 创建按键
-    bt1 = ttk.Button(root, text='保存', command=lambda: ask_save_name())
-    bt1.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
-    bt2 = ttk.Button(root, text='运行当前配置', command=lambda: continue_going())
-    bt2.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
-    bt2.config(state=tk.DISABLED)
+    save_button = ttk.Button(root, textvariable=save_button_text, command=lambda: ask_save_name())
+    continue_button = ttk.Button(root, textvariable=continue_button_text, command=lambda: continue_going())
+    continue_button.config(state=tk.DISABLED)
+    judge_button_pix()
 
     # 菜单栏
     main_menu = tk.Menu(root)
     file_menu = tk.Menu(main_menu, tearoff=False)
-    file_menu.add_command(label="读取配置文件", command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
-    file_menu.add_command(label="保存", command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
+    file_menu.add_command(label=readfile_menu_text.get(), command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
+    file_menu.add_command(label=savefile_menu_text.get(), command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
                           accelerator="Ctrl+S")
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
     is_startup_run.set(general_data.get('General', 'autorun'))
-    option_menu.add_checkbutton(label='开机自动启动本软件', variable=is_startup_run,
+    option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
                                 command=set_startup(is_startup_run.get()))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
@@ -1465,25 +1506,25 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
     language_menu.add_radiobutton(label='English', variable=root_language, value='English', command=lambda: change_language('English'))
 
     help_menu = tk.Menu(main_menu, tearoff=False)
-    help_menu.add_command(label="关于本软件", command=help_main)
-    help_menu.add_command(label="使用前注意事项", command=help_before_use)
+    help_menu.add_command(label=about_menu_text.get(), command=help_main)
+    help_menu.add_command(label=precautions_menu_text.get(), command=help_before_use)
     help_menu.add_separator()
     help_menu.add_command(label='Cleanfile', command=cf_help)
-    help_menu.add_command(label="保留文件/文件格式选择", command=cf_help_keep)
-    help_menu.add_command(label="过期时间设定", command=cf_help_timeset)
+    help_menu.add_command(label=cf_keep_menu_text.get(), command=cf_help_keep)
+    help_menu.add_command(label=cf_expire_menu_text.get(), command=cf_help_timeset)
     help_menu.add_separator()
     help_menu.add_command(label='Syncfile', command=sf_help)
 
-    main_menu.add_cascade(label="文件", menu=file_menu)
-    main_menu.add_cascade(label='选项', menu=option_menu)
-    main_menu.add_cascade(label='语言', menu=language_menu)
-    main_menu.add_cascade(label="帮助", menu=help_menu)
+    main_menu.add_cascade(label=file_menu_text.get(), menu=file_menu)
+    main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
+    main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
+    main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
     root.config(menu=main_menu)
 
     # 托盘菜单
     menu = (
-        MenuItem('设置', lambda: root.deiconify(), default=True), Menu.SEPARATOR,
-        MenuItem('退出', lambda: exit_program()))
+        MenuItem(taskbar_setting_text.get(), lambda: root.deiconify(), default=True), Menu.SEPARATOR,
+        MenuItem(taskbar_exit_text.get(), lambda: exit_program()))
     image = Image.open(mf_data_path + 'Movefile.ico')
     task_menu = pystray.Icon("icon", image, "Movefile", menu)
     # 重新定义点击关闭按钮的处理
@@ -1531,19 +1572,19 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
     elif muti_ask:
         read_saving(ask_path=False)
         cf_refresh_whitelist_entry()
-        bt2.config(state=tk.NORMAL)
+        continue_button.config(state=tk.NORMAL)
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
             change_active_mode('cf')
         if startup_ask:
             root.withdraw()
-    if not refresh_root:
-        butt_icon = threading.Thread(target=task_menu.run, daemon=True)
-        butt_icon.start()
-        background_detect = threading.Thread(target=lambda: detect_removable_disks_thread(), daemon=True)
-        background_detect.start()
-        ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
-        ask_permit.start()
+
+    butt_icon = threading.Thread(target=task_menu.run, daemon=True)
+    butt_icon.start()
+    background_detect = threading.Thread(target=lambda: detect_removable_disks_thread(), daemon=True)
+    background_detect.start()
+    ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
+    ask_permit.start()
 
     root.mainloop()
 
