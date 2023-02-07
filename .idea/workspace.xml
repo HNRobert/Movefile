@@ -10,7 +10,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile Code/Label_Text_Dictionary.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/Label_Text_Dictionary.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile Code/Label_Text_Dictionary.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/LT_Dic.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/Movefile v2.0.2.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -200,6 +200,8 @@
       <workItem from="1675619453963" duration="4966000" />
       <workItem from="1675667078168" duration="1712000" />
       <workItem from="1675739318859" duration="2322000" />
+      <workItem from="1675757726926" duration="3541000" />
+      <workItem from="1675761327234" duration="757000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -287,7 +289,7 @@
     <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$scratch_4.coverage" NAME="scratch_4 覆盖结果" MODIFIED="1675071543011" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1673752920805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/workspace_xml$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703855471" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
-    <SUITE FILE_PATH="coverage/Movefile_v2_0_2_pyw$Movefile_v2_0_2_pyw.coverage" NAME="Movefile v2.0.2.pyw 覆盖结果" MODIFIED="1675741378271" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
+    <SUITE FILE_PATH="coverage/Movefile_v2_0_2_pyw$Movefile_v2_0_2_pyw.coverage" NAME="Movefile v2.0.2.pyw 覆盖结果" MODIFIED="1675762057833" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$Movefile_v2_0_1_pyw.coverage" NAME="Movefile v2.0.1.pyw 覆盖结果" MODIFIED="1675071364754" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$main.coverage" NAME="main 覆盖结果" MODIFIED="1675083107639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../../_Robert's Softwares/_Working/_Programming/Z-Robert's Programmes/2048GameAutoMovePython-main/2048python" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$Movefile_v2_0_2_pyw.coverage" NAME="Movefile v2.0.2.pyw 覆盖结果" MODIFIED="1675668729502" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />

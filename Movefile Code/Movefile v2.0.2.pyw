@@ -148,16 +148,20 @@ def set_startup(state=True):
     shortcut_path = startup_path + "\\Movefile" + ".lnk"
     desc = "自动转移文件程序"
     icon_ = mf_data_path + r'Movefile.ico'
+    gen_cf = configparser.ConfigParser()
+    gen_cf.read(mf_data_path + 'Movefile_data.ini')
+    if os.path.exists(shortcut_path):
+        os.remove(shortcut_path)
     if state:
-        if os.path.exists(shortcut_path):
-            os.remove(shortcut_path)
+        gen_cf.set('General', 'autorun', 'True')
         winshell.CreateShortcut(
             Path=shortcut_path,
             Target=bin_path,
             Icon=(icon_, 0),
             Description=desc)
-    elif os.path.exists(shortcut_path):
-        os.remove(shortcut_path)
+    else:
+        gen_cf.set('General', 'autorun', 'False')
+    gen_cf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
 def check_window():
@@ -599,7 +603,7 @@ def sf_autorun_operation(place, saving_datas=None):
 
 
 def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=False):
-    from Label_Text_Dictionary import r_label_text_dic
+    from LT_Dic import r_label_text_dic
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
@@ -674,15 +678,15 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
 
     def sf_change_place_mode(mode):
         if mode == 'movable':
-            sf_label_path_1['text'] = r_label_text_dic['sf_label_path_1'][lang_num][0]
-            sf_label_path_2['text'] = r_label_text_dic['sf_label_path_2'][lang_num][0]
-            sf_option_autorun['text'] = r_label_text_dic['sf_option_autorun'][lang_num][0]
+            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][0])
+            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][0])
+            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][0])
             sf_browse_path_1_button.grid_forget()
             sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
         else:
-            sf_label_path_1['text'] = r_label_text_dic['sf_label_path_1'][lang_num][1]
-            sf_label_path_2['text'] = r_label_text_dic['sf_label_path_2'][lang_num][1]
-            sf_option_autorun['text'] = r_label_text_dic['sf_option_autorun'][lang_num][1]
+            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][1])
+            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][1])
+            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][1])
             sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             sf_entry_select_removable.grid_forget()
 
@@ -802,88 +806,150 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
     root.update()
-    root_language = general_data.get('General', 'language')
-    lang_num = language_num(root_language)
+    root_language = tk.StringVar()
+    root_language.set(general_data.get('General', 'language'))
+    lang_num = language_num(root_language.get())
 
-    label_choose_state = ttk.Label(root, textvariable=r_label_text_dic['label_choose_state'][lang_num])
+    label_choose_state_text = tk.StringVar()
+    option_is_cleanfile_text = tk.StringVar()
+    option_is_syncfile_text = tk.StringVar()
+    cf_label_old_path_text = tk.StringVar()
+    cf_browse_old_path_button_text = tk.StringVar()
+    cf_browse_new_path_button_text = tk.StringVar()
+    cf_label_new_path_text = tk.StringVar()
+    cf_label_move_options_text = tk.StringVar()
+    cf_option_mode_1_text = tk.StringVar()
+    cf_option_mode_2_text = tk.StringVar()
+    cf_option_folder_move_text = tk.StringVar()
+    cf_label_keep_files_text = tk.StringVar()
+    cf_label_keep_formats_text = tk.StringVar()
+    cf_label_time_text = tk.StringVar()
+    cf_label_start_options_text = tk.StringVar()
+    cf_option_is_auto_text = tk.StringVar()
+    sf_label_place_mode_text = tk.StringVar()
+    sf_option_mode_usb_text = tk.StringVar()
+    sf_option_mode_local_text = tk.StringVar()
+    sf_label_path_1_text = tk.StringVar()
+    sf_label_path_2_text = tk.StringVar()
+    sf_browse_path_1_button_text = tk.StringVar()
+    sf_browse_path_2_button_text = tk.StringVar()
+    sf_label_mode_text = tk.StringVar()
+    sf_option_mode_double_text = tk.StringVar()
+    sf_option_mode_single_text = tk.StringVar()
+    sf_label_autorun_text = tk.StringVar()
+    sf_option_autorun_text = tk.StringVar()
+
+    def set_language(lang_number):
+        label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
+        option_is_cleanfile_text.set(r_label_text_dic['option_is_cleanfile'][lang_number])
+        option_is_syncfile_text.set(r_label_text_dic['option_is_syncfile'][lang_number])
+        cf_label_old_path_text.set(r_label_text_dic['cf_label_old_path'][lang_number])
+        cf_browse_old_path_button_text.set(r_label_text_dic['cf_browse_old_path_button'][lang_number])
+        cf_browse_new_path_button_text.set(r_label_text_dic['cf_browse_new_path_button'][lang_number])
+        cf_label_new_path_text.set(r_label_text_dic['cf_label_new_path'][lang_number])
+        cf_label_move_options_text.set(r_label_text_dic['cf_label_move_options'][lang_number])
+        cf_option_mode_1_text.set(r_label_text_dic['cf_option_mode_1'][lang_number])
+        cf_option_mode_2_text.set(r_label_text_dic['cf_option_mode_2'][lang_number])
+        cf_option_folder_move_text.set(r_label_text_dic['cf_option_folder_move'][lang_number])
+        cf_label_keep_files_text.set(r_label_text_dic['cf_label_keep_files'][lang_number])
+        cf_label_keep_formats_text.set(r_label_text_dic['cf_label_keep_formats'][lang_number])
+        cf_label_time_text.set(r_label_text_dic['cf_label_time'][lang_number])
+        cf_label_start_options_text.set(r_label_text_dic['cf_label_start_options'][lang_number])
+        cf_option_is_auto_text.set(r_label_text_dic['cf_option_is_auto'][lang_number])
+        sf_label_place_mode_text.set(r_label_text_dic['sf_label_place_mode'][lang_number])
+        sf_option_mode_usb_text.set(r_label_text_dic['sf_option_mode_usb'][lang_number])
+        sf_option_mode_local_text.set(r_label_text_dic['sf_option_mode_local'][lang_number])
+        sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_number][0])
+        sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_number][0])
+        sf_browse_path_1_button_text.set(r_label_text_dic['sf_browse_path_1_button'][lang_number])
+        sf_browse_path_2_button_text.set(r_label_text_dic['sf_browse_path_2_button'][lang_number])
+        sf_label_mode_text.set(r_label_text_dic['sf_label_mode'][lang_number])
+        sf_option_mode_double_text.set(r_label_text_dic['sf_option_mode_double'][lang_number])
+        sf_option_mode_single_text.set(r_label_text_dic['sf_option_mode_single'][lang_number])
+        sf_label_autorun_text.set(r_label_text_dic['sf_label_autorun'][lang_number])
+        sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_number])
+
+    set_language(lang_num)
+
+    label_choose_state = ttk.Label(root, text=label_choose_state_text, textvariable=label_choose_state_text)
     cf_or_sf = tk.StringVar()
-    option_is_cleanfile = ttk.Radiobutton(root, textvariable=r_label_text_dic['option_is_cleanfile'][lang_num], variable=cf_or_sf,
+    option_is_cleanfile = ttk.Radiobutton(root, textvariable=option_is_cleanfile_text, variable=cf_or_sf,
                                           value='cf',
                                           command=lambda: change_active_mode(cf_or_sf.get()))
-    option_is_syncfile = ttk.Radiobutton(root, textvariable=r_label_text_dic['option_is_syncfile'][lang_num], variable=cf_or_sf,
+    option_is_syncfile = ttk.Radiobutton(root, textvariable=option_is_syncfile_text, variable=cf_or_sf,
                                          value='sf',
                                          command=lambda: change_active_mode(cf_or_sf.get()))
 
-    cf_label_old_path = ttk.Label(root, textvariable=r_label_text_dic['cf_label_old_path'][lang_num])
+    cf_label_old_path = ttk.Label(root, textvariable=cf_label_old_path_text)
     cf_entry_old_path = ttk.Entry(root, textvariable=oldpath)
-    cf_browse_old_path_button = ttk.Button(root, textvariable=r_label_text_dic['cf_browse_old_path_button'][lang_num],
+    cf_browse_old_path_button = ttk.Button(root, textvariable=cf_browse_old_path_button_text,
                                            command=lambda: select_path(place='old',
                                                                        ori_content=cf_entry_old_path.get()))
 
-    cf_label_new_path = ttk.Label(root, textvariable=r_label_text_dic['cf_label_new_path'][lang_num])
+    cf_label_new_path = ttk.Label(root, textvariable=cf_label_new_path_text)
     cf_entry_new_path = ttk.Entry(root, textvariable=newpath)
-    cf_browse_new_path_button = ttk.Button(root, text=r_label_text_dic['cf_browse_new_path_button'][lang_num],
+    cf_browse_new_path_button = ttk.Button(root, text=cf_browse_new_path_button_text,
                                            command=lambda: select_path(place='new',
                                                                        ori_content=cf_entry_new_path.get()))
 
-    cf_label_move_options = ttk.Label(root, textvariable=r_label_text_dic['cf_label_move_options'][lang_num])
+    cf_label_move_options = ttk.Label(root, textvariable=cf_label_move_options_text)
     cf_entry_mode = tk.IntVar()
-    cf_option_mode_1 = ttk.Radiobutton(root, textvariable=r_label_text_dic['cf_option_mode_1'][lang_num], variable=cf_entry_mode,
+    cf_option_mode_1 = ttk.Radiobutton(root, textvariable=cf_option_mode_1_text, variable=cf_entry_mode,
                                        value=1)
-    cf_option_mode_2 = ttk.Radiobutton(root, textvariable=r_label_text_dic['cf_option_mode_2'][lang_num], variable=cf_entry_mode,
+    cf_option_mode_2 = ttk.Radiobutton(root, textvariable=cf_option_mode_2_text, variable=cf_entry_mode,
                                        value=2)
     cf_is_folder_move = tk.BooleanVar()
-    cf_option_folder_move = ttk.Checkbutton(root, textvariable=r_label_text_dic['cf_option_folder_move'][lang_num],
+    cf_option_folder_move = ttk.Checkbutton(root, textvariable=cf_option_folder_move_text,
                                             variable=cf_is_folder_move)
 
     cf_entry_frame_keep_files = tk.Frame(root)
-    cf_label_keep_files = ttk.Label(root, textvariable=r_label_text_dic['cf_label_keep_files'][lang_num])
+    cf_label_keep_files = ttk.Label(root, textvariable=cf_label_keep_files_text)
     cf_entry_keep_files = Combopicker(master=cf_entry_frame_keep_files, values='', frameheight=120)
     cf_entry_keep_files.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_entry_frame_keep_formats = tk.Frame(root)
-    cf_label_keep_formats = ttk.Label(root, textvariable=r_label_text_dic['cf_label_keep_formats'][lang_num])
+    cf_label_keep_formats = ttk.Label(root, textvariable=cf_label_keep_formats_text)
     cf_entry_keep_formats = Combopicker(master=cf_entry_frame_keep_formats, values='', frameheight=90)
     cf_entry_keep_formats.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
-    cf_label_time = ttk.Label(root, textvariable=r_label_text_dic['cf_label_time'][lang_num])
+    cf_label_time = ttk.Label(root, textvariable=cf_label_time_text)
     cf_entry_time = ttk.Entry(root)
 
-    cf_label_start_options = ttk.Label(root, textvariable=r_label_text_dic['cf_label_start_options'][lang_num])
+    cf_label_start_options = ttk.Label(root, textvariable=cf_label_start_options_text)
     cf_is_autorun = tk.BooleanVar()
-    cf_option_is_auto = ttk.Checkbutton(root, textvariable=r_label_text_dic['cf_option_is_auto'][lang_num], variable=cf_is_autorun)
+    cf_option_is_auto = ttk.Checkbutton(root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun)
 
-    sf_label_place_mode = ttk.Label(root, textvariable=r_label_text_dic['sf_label_place_mode'][lang_num])
+    sf_label_place_mode = ttk.Label(root, textvariable=sf_label_place_mode_text)
     sf_place_mode = tk.StringVar()
-    sf_option_mode_usb = ttk.Radiobutton(root, textvariable=r_label_text_dic['sf_option_mode_usb'][lang_num],
+    sf_option_mode_usb = ttk.Radiobutton(root, textvariable=sf_option_mode_usb_text,
                                          variable=sf_place_mode,
                                          value='movable',
                                          command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
-    sf_option_mode_local = ttk.Radiobutton(root, textvariable=r_label_text_dic['sf_option_mode_local'][lang_num],
+    sf_option_mode_local = ttk.Radiobutton(root, textvariable=sf_option_mode_local_text,
                                            variable=sf_place_mode,
                                            value='local',
                                            command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
     sf_place_mode.set('movable')
 
-    sf_label_path_1 = ttk.Label(root, text=r_label_text_dic['sf_label_path_1'][lang_num])
+    sf_label_path_1 = ttk.Label(root, textvariable=sf_label_path_1_text)
     sf_entry_path_1 = ttk.Entry(root, textvariable=path_1)
-    sf_browse_path_1_button = ttk.Button(root, textvariable=r_label_text_dic['sf_browse_path_1_button'][lang_num],
+    sf_browse_path_1_button = ttk.Button(root, textvariable=sf_browse_path_1_button_text,
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
 
     sf_entry_select_removable = ttk.Combobox(root, values=scan_removable_disks(), state='readonly')
     sf_entry_select_removable.bind('<Button-1>', lambda event: sf_refresh_disk_list())
 
-    sf_label_path_2 = ttk.Label(root, text=r_label_text_dic['sf_label_path_2'][lang_num])
+    sf_label_path_2 = ttk.Label(root, textvariable=sf_label_path_2_text)
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
-    sf_browse_path_2_button = ttk.Button(root, textvariable=r_label_text_dic['sf_browse_path_2_button'][lang_num],
+    sf_browse_path_2_button = ttk.Button(root, textvariable=sf_browse_path_2_button_text,
                                          command=lambda: select_path(place='2', ori_content=sf_entry_path_2.get()))
 
-    sf_label_mode = ttk.Label(root, text=r_label_text_dic['sf_label_mode'][lang_num])
+    sf_label_mode = ttk.Label(root, textvariable=sf_label_mode_text)
     sf_entry_mode = tk.StringVar()
-    sf_option_mode_double = ttk.Radiobutton(root, textvariable=r_label_text_dic['sf_option_mode_double'][lang_num],
+    sf_option_mode_double = ttk.Radiobutton(root, textvariable=sf_option_mode_double_text,
                                             variable=sf_entry_mode,
                                             value='double')
-    sf_option_mode_single = ttk.Radiobutton(root, textvariable=r_label_text_dic['sf_option_mode_single'][lang_num],
+    sf_option_mode_single = ttk.Radiobutton(root, textvariable=sf_option_mode_single_text,
                                             variable=sf_entry_mode,
                                             value='single')
 
@@ -895,10 +961,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
     sf_entry_match_directly = ttk.Entry(root)
     sf_entry_match_directly.config(state=tk.DISABLED)
 
-    sf_label_autorun = ttk.Label(root, textvariable=r_label_text_dic['sf_label_autorun'][lang_num])
+    sf_label_autorun = ttk.Label(root, textvariable=sf_label_autorun_text)
     sf_entry_is_autorun = tk.BooleanVar()
     sf_option_autorun = ttk.Checkbutton(root,
-                                        textvariable=r_label_text_dic['sf_option_autorun'][lang_num],
+                                        textvariable=sf_option_autorun_text,
                                         variable=sf_entry_is_autorun)
 
     def help_main():
@@ -1356,6 +1422,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
         general_data.set('General', 'language', language)
         general_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
         lang_num = language_num(language)
+        set_language(lang_num)
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not cf_has_error():
@@ -1389,6 +1456,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False, refresh_root=Fal
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
+    is_startup_run.set(general_data.get('General', 'autorun'))
     option_menu.add_checkbutton(label='开机自动启动本软件', variable=is_startup_run,
                                 command=set_startup(is_startup_run.get()))
 
@@ -1485,7 +1553,6 @@ def mainprocess():
     startup_root.start()
     set_data_path()
     load_icon()
-    set_startup()
     asktime_plus()
 
     first_visit = False
