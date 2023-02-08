@@ -1,3 +1,6 @@
+vision = 'v2.1.0'
+update_time = '2023/1/30'
+
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取配置文件', 'Read config'],
@@ -21,9 +24,9 @@ r_label_text_dic = {
     'cf_browse_old_path_button': ['浏览', 'Browse'],
     'cf_browse_new_path_button': ['浏览', 'Browse'],
     'cf_label_new_path': ['目标文件夹路径：', 'Target path：'],
-    'cf_label_move_options': ['过期时间判断依据：', 'Expire Criteria：'],
-    'cf_option_mode_1': ['项目最后修改时间', "Files' latest edit time"],
-    'cf_option_mode_2': ['项目最后访问时间', "Files' latest ask time"],
+    'cf_label_move_options': ['文件移动选项：', 'Expire Criteria：'],
+    'cf_option_mode_1': ['以项目最后修改时间为过期判断依据', "Use Items' latest edit time"],
+    'cf_option_mode_2': ['以项目最后访问时间为过期判断依据', "Use Items' latest ask time"],
     'cf_option_folder_move': ['移动项目包括文件夹', 'Move items including Folders'],
     'cf_label_keep_files': ['保留项目(选填)：', 'Reserved Files(opt)：'],
     'cf_label_keep_formats': ['保留文件格式(选填)：', 'Reserved Fmts(opt)：'],
@@ -41,7 +44,7 @@ r_label_text_dic = {
     'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Two-way Sync'],
     'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'One-way Sync'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
-    'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动同步'], ['Automatically run when this Removable Volume inserted', 'Automatically run this config after Startup(if saved)']],
+    'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动运行本存档(若保存)'], ['Automatically run when this Removable Volume inserted', 'Automatically run this config after Startup(if saved)']],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行当前配置', 'Run current configuration'],
 
@@ -60,8 +63,93 @@ r_label_text_dic = {
                       'Warning: Please fill all the blanks not optional'],
     'path_warning': ['警告：请填输入有效路径！（建议使用浏览）',
                      'Warning: Please input a path that exists (Browse suggested)'],
-    'ini_error': ['错误：配置信息无效，请尽量不要手动更改ini配置文件',
-                  "Error：Config File invalid, please don't edit the config file directly"],
+    'ini_error': ['''错误：配置信息无效
+请尽量不要手动更改ini配置文件''', """Error：Config File invalid, 
+please don't edit the config file directly"""],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
-
+    'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software
+to make the language of some labels changed''']
     }
+
+cr_label_text_dic = {
+    'c_label': ['Movefile 初始化中...', 'Movefile initializing...']}
+
+help_main_text = """软件名称： Movefile
+软件版本： """ + vision + """               更新时间： """ + update_time + """
+
+功能概述：
+本程序可将某个文件夹中满足一定设定要求的文件
+转移到另一个文件夹，或者与另外一个文件夹同步
+使你可以方便地整理文件
+
+如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
+
+作者：Robert He
+如果对本软件有任何改进意见，请联系作者
+如果意见被采纳，新版本中会进行更改
+
+如有功能异常请先访问 Github 查看有无新版本，
+或者阅读 Github 中的其他注意事项和运行机制说明
+地址：https://github.com/HNRobert/Movefile
+"""
+
+help_before_use_text = """使用前特别注意事项：
+1.本软件必须在64位操作系统下运行，
+  后续将推出32位操作系统版本
+2.本exe文件的名称请不要改变："Movefile """ + vision + """.exe"
+  否则会影响开机自启功能
+3.使用本软件前请打开Windows设置中的
+  系统/通知和操作/通知/
+  “获取来自应用和其他发送者的通知” 选项，
+  否则会影响操作结果通知功能
+4.使用本软件前请先将本软件放入
+  Windows安全中心的防病毒扫描排除项中，
+  否则在运行时会被直接删除
+  这是因为本软件涉及更改开机启动项。
+  如果本软件在使用中被意外删除，
+  请在Windows安全中心中
+  病毒威胁和防护的 "保护历史记录"
+  或其他安全软件中找回本软件
+5.如果经过版本新后软件无法运行，
+  可以尝试删除位于Roaming文件夹中的配置文件
+6.若有其他原因导致软件功能无法正常运行，
+  且无法按上面的解释修复，可以访问 Github 网站
+  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复"""
+
+cf_help_text = """Cleanfile
+清理文件工具
+
+这是一个用来整理文件夹（尤其是桌面）的程序，
+也是Movefile推出的第一个程序块
+包含选取保留文件，保留文件类型
+设定是否移动文件夹，
+设定过期时间以及判断方式
+开机自动运行存档等功能"""
+
+cf_help_keep_text = """保留项目/文件格式选择功能详解：
+
+保留项目选择：
+选中的项目不会被转移
+
+保留文件格式选择：
+某种格式类型的文件都不会被转移
+比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移"""
+
+cf_help_timeset_text = """过期时间功能详解：
+
+本软件可以获取文件的最后修改、访问时间
+可以保留一定时间内修改/访问过的文件
+例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
+则运行日期前两天内修改过的文件不会被删除
+如果不想用此方法，则过期时间设为"0"即可"""
+
+sf_help_text = '''Syncfile
+同步文件工具
+
+这是一个用来同步文件两个路径下文件的程序，
+也可以将U盘数据与电脑同步
+
+包括 可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择，
+选择单向与双向同步模式，保留最新更改文件
+开机自动运行存档
+自动检测选定的可移动磁盘接入并自动同步等功能'''

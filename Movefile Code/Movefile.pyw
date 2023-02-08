@@ -4,10 +4,6 @@ Created on Wed Dec 21 17:07:30 2022
 
 @author: Robert He
 """
-file_name = 'Movefile v2.0.2.pyw'[:-3] + 'exe'
-vision = file_name[9:15]
-update_time = '2023/1/30'
-
 import base64
 import configparser
 import hashlib
@@ -33,6 +29,7 @@ from win10toast import ToastNotifier
 
 import Movefile_icon as icon
 from ComBoPicker import Combopicker
+from LT_Dic import vision
 
 
 def get_boot_time():
@@ -164,13 +161,27 @@ def set_startup(state=True):
     gen_cf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
+def language_num(language_name):
+    if language_name == 'Chinese':
+        l_num = 0
+    elif language_name == 'English':
+        l_num = 1
+    else:
+        l_num = 2
+    return l_num
+
+
 def check_window():
+    from LT_Dic import cr_label_text_dic
     global c_root
+    mf_file = configparser.ConfigParser()
+    mf_file.read(mf_data_path + 'Movefile_data.ini')
+    l_n = language_num(mf_file.get('General', 'language'))
     c_root = tk.Tk()
     c_root.geometry('420x60')
     c_root.iconbitmap(mf_data_path + r'Movefile.ico')
-    c_root.title('Movefile initialization')
-    c_label = tk.Label(c_root, text='Movefile 初始化中')
+    c_root.title('Movefile')
+    c_label = tk.Label(c_root, text=cr_label_text_dic['c_label'][l_n])
     c_label.grid(row=0, column=0, padx=10, pady=5)
     c_bar = ttk.Progressbar(c_root, mode='indeterminate')
     c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
@@ -181,7 +192,6 @@ def check_window():
 def filehash(filepath):
     md5_hash = hashlib.md5()
     with open(filepath, "rb") as f:
-        # Read and update hash in chunks of 4K
         for byte_block in iter(lambda: f.read(4096), b""):
             md5_hash.update(byte_block)
     return md5_hash.hexdigest()
@@ -691,6 +701,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_entry_select_removable.grid_forget()
 
     def change_active_mode(mode):
+        def judge_button_pix():
+            if lang_num == 0:
+                save_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
+                continue_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
+                cf_option_mode_2.grid(row=3, column=1, padx=180, ipadx=0, sticky='E')
+            elif lang_num == 1:
+                save_button.grid(row=8, column=1, ipadx=95, pady=4, padx=10, sticky='W')
+                continue_button.grid(row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
+                cf_option_mode_2.grid(row=3, column=1, padx=210, ipadx=0, sticky='W')
+
         def cf_state():
             sf_label_place_mode.grid_forget()
             sf_option_mode_usb.grid_forget()
@@ -717,7 +737,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             cf_option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
-            cf_option_mode_2.grid(row=3, column=1, padx=210, ipadx=0, sticky='W')
+            cf_option_mode_2.grid(row=3, column=1, padx=180, ipadx=0, sticky='W')
+            cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
             cf_entry_keep_files.grid(row=4, column=1, ipadx=240, pady=0, sticky='W')
             cf_entry_keep_formats.grid(row=5, column=1, ipadx=240, pady=0, sticky='W')
             cf_entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
@@ -731,7 +752,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_label_keep_formats.grid(row=5, column=0, sticky='E')
             cf_label_time.grid(row=6, column=0, sticky='E')
             cf_label_start_options.grid(row=7, column=0, sticky='E')
-            cf_option_folder_move.grid(row=7, column=1, padx=10, sticky='E')
 
         def sf_state():
             cf_entry_old_path.grid_forget()
@@ -785,75 +805,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_state()
         else:
             sf_state()
-
-    def language_num(language_name):
-        if language_name == 'Chinese':
-            l_num = 0
-        elif language_name == 'English':
-            l_num = 1
-        else:
-            l_num = 2
-        return l_num
-
-    root = tk.Tk()
-    root.iconbitmap(mf_data_path + r'Movefile.ico')
-    oldpath = tk.StringVar()
-    newpath = tk.StringVar()
-    path_1 = tk.StringVar()
-    path_2 = tk.StringVar()
-    root.title('Movefile Setting')
-    root.geometry("800x285")
-    root.attributes('-topmost', True)
-    root.attributes('-topmost', False)
-    root.update()
-    root_language = tk.StringVar()
-    root_language.set(general_data.get('General', 'language'))
-    lang_num = language_num(root_language.get())
-
-    label_choose_state_text = tk.StringVar()
-    option_is_cleanfile_text = tk.StringVar()
-    option_is_syncfile_text = tk.StringVar()
-    cf_label_old_path_text = tk.StringVar()
-    cf_browse_old_path_button_text = tk.StringVar()
-    cf_browse_new_path_button_text = tk.StringVar()
-    cf_label_new_path_text = tk.StringVar()
-    cf_label_move_options_text = tk.StringVar()
-    cf_option_mode_1_text = tk.StringVar()
-    cf_option_mode_2_text = tk.StringVar()
-    cf_option_folder_move_text = tk.StringVar()
-    cf_label_keep_files_text = tk.StringVar()
-    cf_label_keep_formats_text = tk.StringVar()
-    cf_label_time_text = tk.StringVar()
-    cf_label_start_options_text = tk.StringVar()
-    cf_option_is_auto_text = tk.StringVar()
-    sf_label_place_mode_text = tk.StringVar()
-    sf_option_mode_usb_text = tk.StringVar()
-    sf_option_mode_local_text = tk.StringVar()
-    sf_label_path_1_text = tk.StringVar()
-    sf_label_path_2_text = tk.StringVar()
-    sf_browse_path_1_button_text = tk.StringVar()
-    sf_browse_path_2_button_text = tk.StringVar()
-    sf_label_mode_text = tk.StringVar()
-    sf_option_mode_double_text = tk.StringVar()
-    sf_option_mode_single_text = tk.StringVar()
-    sf_label_autorun_text = tk.StringVar()
-    sf_option_autorun_text = tk.StringVar()
-
-    save_button_text = tk.StringVar()
-    continue_button_text = tk.StringVar()
-    file_menu_text = tk.StringVar()
-    readfile_menu_text = tk.StringVar()
-    savefile_menu_text = tk.StringVar()
-    option_menu_text = tk.StringVar()
-    autorun_menu_text = tk.StringVar()
-    language_menu_text = tk.StringVar()
-    help_menu_text = tk.StringVar()
-    about_menu_text = tk.StringVar()
-    precautions_menu_text = tk.StringVar()
-    cf_keep_menu_text = tk.StringVar()
-    cf_expire_menu_text = tk.StringVar()
-    taskbar_setting_text = tk.StringVar()
-    taskbar_exit_text = tk.StringVar()
+        judge_button_pix()
 
     def set_language(lang_number):
         label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
@@ -901,6 +853,71 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
         taskbar_setting_text.set(r_label_text_dic['taskbar_setting'][lang_number])
         taskbar_exit_text.set(r_label_text_dic['taskbar_exit'][lang_number])
+
+    c_root.quit()
+    c_root.destroy()
+    startup_root.join()
+
+    root = tk.Tk()
+    root.iconbitmap(mf_data_path + r'Movefile.ico')
+    root.title('Movefile Setting')
+    root.geometry("800x285")
+    root.attributes('-topmost', True)
+    root.attributes('-topmost', False)
+    root.update()
+
+    oldpath = tk.StringVar()
+    newpath = tk.StringVar()
+    path_1 = tk.StringVar()
+    path_2 = tk.StringVar()
+    label_choose_state_text = tk.StringVar()
+    option_is_cleanfile_text = tk.StringVar()
+    option_is_syncfile_text = tk.StringVar()
+    cf_label_old_path_text = tk.StringVar()
+    cf_browse_old_path_button_text = tk.StringVar()
+    cf_browse_new_path_button_text = tk.StringVar()
+    cf_label_new_path_text = tk.StringVar()
+    cf_label_move_options_text = tk.StringVar()
+    cf_option_mode_1_text = tk.StringVar()
+    cf_option_mode_2_text = tk.StringVar()
+    cf_option_folder_move_text = tk.StringVar()
+    cf_label_keep_files_text = tk.StringVar()
+    cf_label_keep_formats_text = tk.StringVar()
+    cf_label_time_text = tk.StringVar()
+    cf_label_start_options_text = tk.StringVar()
+    cf_option_is_auto_text = tk.StringVar()
+    sf_label_place_mode_text = tk.StringVar()
+    sf_option_mode_usb_text = tk.StringVar()
+    sf_option_mode_local_text = tk.StringVar()
+    sf_label_path_1_text = tk.StringVar()
+    sf_label_path_2_text = tk.StringVar()
+    sf_browse_path_1_button_text = tk.StringVar()
+    sf_browse_path_2_button_text = tk.StringVar()
+    sf_label_mode_text = tk.StringVar()
+    sf_option_mode_double_text = tk.StringVar()
+    sf_option_mode_single_text = tk.StringVar()
+    sf_label_autorun_text = tk.StringVar()
+    sf_option_autorun_text = tk.StringVar()
+
+    save_button_text = tk.StringVar()
+    continue_button_text = tk.StringVar()
+    file_menu_text = tk.StringVar()
+    readfile_menu_text = tk.StringVar()
+    savefile_menu_text = tk.StringVar()
+    option_menu_text = tk.StringVar()
+    autorun_menu_text = tk.StringVar()
+    language_menu_text = tk.StringVar()
+    help_menu_text = tk.StringVar()
+    about_menu_text = tk.StringVar()
+    precautions_menu_text = tk.StringVar()
+    cf_keep_menu_text = tk.StringVar()
+    cf_expire_menu_text = tk.StringVar()
+    taskbar_setting_text = tk.StringVar()
+    taskbar_exit_text = tk.StringVar()
+
+    root_language = tk.StringVar()
+    root_language.set(general_data.get('General', 'language'))
+    lang_num = language_num(root_language.get())
     set_language(lang_num)
 
     label_choose_state = ttk.Label(root, text=label_choose_state_text, textvariable=label_choose_state_text)
@@ -1000,90 +1017,29 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                         variable=sf_entry_is_autorun)
 
     def help_main():
-        tkinter.messagebox.showinfo(title='Movefile', message="""软件名称： Movefile
-软件版本： """ + vision + """               更新时间： """ + update_time + """
-
-功能概述：
-本程序可将某个文件夹中满足一定设定要求的文件
-转移到另一个文件夹，或者与另外一个文件夹同步
-使你可以方便地整理文件
-
-如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
-
-作者：Robert He
-如果对本软件有任何改进意见，请联系作者
-如果意见被采纳，新版本中会进行更改
-
-如有功能异常请先访问 Github 查看有无新版本，
-或者阅读 Github 中的其他注意事项和运行机制说明
-地址：https://github.com/HNRobert/Movefile
-""")
+        from LT_Dic import help_main_text
+        tkinter.messagebox.showinfo(title='Movefile', message=help_main_text)
 
     def help_before_use():
-        tkinter.messagebox.showinfo(title='Movefile', message="""使用前特别注意事项：
-1.本软件必须在64位操作系统下运行，
-  后续将推出32位操作系统版本
-2.本exe文件的名称请不要改变："Movefile """ + vision + """.exe"
-  否则会影响开机自启功能
-3.使用本软件前请打开Windows设置中的
-  系统/通知和操作/通知/
-  “获取来自应用和其他发送者的通知” 选项，
-  否则会影响操作结果通知功能
-4.使用本软件前请先将本软件放入
-  Windows安全中心的防病毒扫描排除项中，
-  否则在运行时会被直接删除
-  这是因为本软件涉及更改开机启动项。
-  如果本软件在使用中被意外删除，
-  请在Windows安全中心中
-  病毒威胁和防护的 "保护历史记录"
-  或其他安全软件中找回本软件
-5.如果经过版本新后软件无法运行，
-  可以尝试删除位于Roaming文件夹中的配置文件
-6.若有其他原因导致软件功能无法正常运行，
-  且无法按上面的解释修复，可以访问 Github 网站
-  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""")
+        from LT_Dic import help_before_use_text
+        tkinter.messagebox.showinfo(title='Movefile',
+                                    message=help_before_use_text)
 
     def cf_help():
-        tkinter.messagebox.showinfo(title='Movefile', message="""Cleanfile
-清理文件工具
-
-这是一个用来整理文件夹（尤其是桌面）的程序，
-也是Movefile推出的第一个程序块
-包含选取保留文件，保留文件类型
-设定是否移动文件夹，
-设定过期时间以及判断方式
-开机自动运行存档等功能""")
+        from LT_Dic import cf_help_text
+        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_text)
 
     def cf_help_keep():
-        tkinter.messagebox.showinfo(title='Movefile', message="""保留项目/文件格式选择功能详解：
-
-保留项目选择：
-选中的项目不会被转移
-
-保留文件格式选择：
-某种格式类型的文件都不会被转移
-比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""")
+        from LT_Dic import cf_help_keep_text
+        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_keep_text)
 
     def cf_help_timeset():
-        tkinter.messagebox.showinfo(title='Movefile', message="""过期时间功能详解：
-
-本软件可以获取文件的最后修改、访问时间
-可以保留一定时间内修改/访问过的文件
-例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
-则运行日期前两天内修改过的文件不会被删除
-如果不想用此方法，则过期时间设为"0"即可""")
+        from LT_Dic import cf_help_timeset_text
+        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_timeset_text)
 
     def sf_help():
-        tkinter.messagebox.showinfo(title='Movefile', message='''Syncfile
-同步文件工具
-
-这是一个用来同步文件两个路径下文件的程序，
-也可以将U盘数据与电脑同步
-
-包括 可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择，
-选择单向与双向同步模式，保留最新更改文件
-开机自动运行存档
-自动检测选定的可移动磁盘接入并自动同步等功能''')
+        from LT_Dic import sf_help_text
+        tkinter.messagebox.showinfo(title='Movefile', message=sf_help_text)
 
     def cf_is_num():
         try:
@@ -1229,6 +1185,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         continue_button.config(state=tk.NORMAL)
 
     def read_saving(ask_path=False):
+        global ask_saving_root
         cf_store_path = cf_data_path + r'Cleanfile_data.ini'
         sf_store_path = sf_data_path + r'Syncfile_data.ini'
         cf_file = configparser.ConfigParser()
@@ -1340,7 +1297,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 open_sf_saving(saving_name)
             root.title('Movefile   --> ' + saving_name)
             ask_saving_root.quit()
-            ask_saving_root.destroy()
+            ask_saving_root.withdraw()
 
         if ask_path:
             ask_saving_root = tk.Tk()
@@ -1368,11 +1325,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 if name == last_edit_name:
                     read_name_entry.current(save_index)
             read_name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
-            del_save_button = ttk.Button(ask_saving_root, text=r_label_text_dic['del_save_button'][lang_num], command=lambda: del_saving())
+            del_save_button = ttk.Button(ask_saving_root, text=r_label_text_dic['del_save_button'][lang_num],
+                                         command=lambda: del_saving())
             del_save_button.grid(row=0, column=3, padx=5, pady=5)
-            sure_name_bottom = ttk.Button(ask_saving_root, text=r_label_text_dic['sure_name_bottom'][lang_num], command=lambda: sure_open())
+            sure_name_bottom = ttk.Button(ask_saving_root, text=r_label_text_dic['sure_name_bottom'][lang_num],
+                                          command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
             read_name_entry.bind('<Button-1>', lambda event: refresh_saving())
+            ask_saving_root.protocol('WM_DELETE_WINDOW', ask_saving_root.withdraw)
             ask_saving_root.mainloop()
         elif mode == 'cf':
             open_cf_saving(save_name)
@@ -1382,12 +1342,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             root.title('Movefile   --> ' + save_name)
 
     def ask_save_name():
+        global ask_name_window
         list_saving_data()
 
         def sure_save():
             savefile(mode=cf_or_sf.get(), save_name=name_entry.get())
             ask_name_window.quit()
-            ask_name_window.destroy()
+            ask_name_window.withdraw()
 
         mode = cf_or_sf.get()
         if mode == 'cf':
@@ -1416,8 +1377,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
             name_entry.insert(0, last_edit_name)
             name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
-            sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num], command=lambda: sure_save())
+            sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num],
+                                          command=lambda: sure_save())
             sure_name_button.grid(row=0, column=2, sticky='W')
+            ask_name_window.protocol('WM_DELETE_WINDOW', ask_name_window.withdraw)
             ask_name_window.mainloop()
 
     def cf_operate_from_root():
@@ -1457,7 +1420,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         set_language(lang_num)
         sf_change_place_mode(sf_place_mode.get())
         change_active_mode(cf_or_sf.get())
-        judge_button_pix()
+        tkinter.messagebox.showinfo(title='Movefile', message=r_label_text_dic['change_language'][lang_num])
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not cf_has_error():
@@ -1470,43 +1433,45 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             root.withdraw()
 
     def exit_program():
+        try:
+            ask_saving_root.quit()
+            ask_saving_root.destroy()
+        except: pass
+        try:
+            ask_name_window.quit()
+            ask_name_window.destroy()
+        except: pass
         root.quit()
         root.destroy()
         ask_permit.join()
         butt_icon.join()
         background_detect.join()
 
-    def judge_button_pix():
-        if lang_num == 0:
-            save_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
-            continue_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
-        elif lang_num == 1:
-            save_button.grid(row=8, column=1, ipadx=95, pady=4, padx=10, sticky='W')
-            continue_button.grid(row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
     # 创建按键
     blank_pix = ttk.Label(root, text=' ')
     blank_pix.grid(row=8, column=0, ipadx=67, pady=4, padx=0, sticky='E')
     save_button = ttk.Button(root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(root, textvariable=continue_button_text, command=lambda: continue_going())
     continue_button.config(state=tk.DISABLED)
-    judge_button_pix()
 
     # 菜单栏
     main_menu = tk.Menu(root)
     file_menu = tk.Menu(main_menu, tearoff=False)
-    file_menu.add_command(label=readfile_menu_text.get(), command=lambda: read_saving(ask_path=True), accelerator="Ctrl+O")
-    file_menu.add_command(label=savefile_menu_text.get(), command=lambda: savefile(mode=cf_or_sf.get(), save_name=ask_save_name()),
-                          accelerator="Ctrl+S")
+    file_menu.add_command(label=readfile_menu_text.get(), command=lambda: read_saving(ask_path=True),
+                          accelerator="Ctrl+O")
+    file_menu.add_command(label=savefile_menu_text.get(), command=lambda: ask_save_name(), accelerator="Ctrl+S")
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
     is_startup_run.set(general_data.get('General', 'autorun'))
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
-                                command=set_startup(is_startup_run.get()))
+                                command=lambda: set_startup(is_startup_run.get()))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
-    language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese', command=lambda: change_language('Chinese'))
-    language_menu.add_radiobutton(label='English', variable=root_language, value='English', command=lambda: change_language('English'))
+    language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese',
+                                  command=lambda: change_language('Chinese'))
+    language_menu.add_radiobutton(label='English', variable=root_language, value='English',
+                                  command=lambda: change_language('English'))
 
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label=about_menu_text.get(), command=help_main)
@@ -1593,9 +1558,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def mainprocess():
+    set_data_path()
+    global startup_root
     startup_root = threading.Thread(target=check_window, daemon=True)
     startup_root.start()
-    set_data_path()
     load_icon()
     asktime_plus()
 
@@ -1608,9 +1574,6 @@ def mainprocess():
 
     boot_time = get_boot_time()
     ask_time_today = mf.getint("General", "asktime_today")
-    c_root.quit()
-    c_root.destroy()
-    startup_root.join()
     if first_visit:
         make_ui(first_ask=True)
     elif ask_time_today > 1:
