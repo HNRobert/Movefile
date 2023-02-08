@@ -548,6 +548,8 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
         except:
             pass
         finally:
+            sync_bar.quit()
+            sync_bar.destroy()
             roll_bar.join()
 
     def sync_bar_on_exit():
