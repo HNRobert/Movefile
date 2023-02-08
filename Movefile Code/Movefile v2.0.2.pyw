@@ -717,8 +717,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
             cf_option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
-            cf_option_mode_2.grid(row=3, column=1, padx=175, ipadx=0, sticky='E')
-            cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
+            cf_option_mode_2.grid(row=3, column=1, padx=210, ipadx=0, sticky='W')
             cf_entry_keep_files.grid(row=4, column=1, ipadx=240, pady=0, sticky='W')
             cf_entry_keep_formats.grid(row=5, column=1, ipadx=240, pady=0, sticky='W')
             cf_entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
@@ -732,6 +731,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_label_keep_formats.grid(row=5, column=0, sticky='E')
             cf_label_time.grid(row=6, column=0, sticky='E')
             cf_label_start_options.grid(row=7, column=0, sticky='E')
+            cf_option_folder_move.grid(row=7, column=1, padx=10, sticky='E')
 
         def sf_state():
             cf_entry_old_path.grid_forget()
@@ -769,7 +769,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_entry_path_2.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
             sf_option_mode_double.grid(row=4, column=1, padx=10, ipadx=0, sticky='W')
-            sf_option_mode_single.grid(row=4, column=1, padx=165, ipadx=0, sticky='E')
+            sf_option_mode_single.grid(row=4, column=1, padx=200, ipadx=0, sticky='W')
             sf_label_mode.grid(row=4, column=0, pady=5, sticky='E')
             sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
             sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
@@ -1455,7 +1455,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         general_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
-        sf_change_place_mode(cf_or_sf.get())
+        sf_change_place_mode(sf_place_mode.get())
+        change_active_mode(cf_or_sf.get())
         judge_button_pix()
 
     def continue_going():
@@ -1483,6 +1484,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             save_button.grid(row=8, column=1, ipadx=95, pady=4, padx=10, sticky='W')
             continue_button.grid(row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
     # 创建按键
+    blank_pix = ttk.Label(root, text=' ')
+    blank_pix.grid(row=8, column=0, ipadx=67, pady=4, padx=0, sticky='E')
     save_button = ttk.Button(root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(root, textvariable=continue_button_text, command=lambda: continue_going())
     continue_button.config(state=tk.DISABLED)
