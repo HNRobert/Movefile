@@ -93,7 +93,7 @@ help_main_text = """软件名称： Movefile
 地址：https://github.com/HNRobert/Movefile
 """
 
-help_before_use_text = """使用前特别注意事项：
+help_before_use_text = ["""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
   后续将推出32位操作系统版本
 2.本exe文件的名称请不要改变："Movefile """ + vision + """.exe"
@@ -114,7 +114,30 @@ help_before_use_text = """使用前特别注意事项：
   可以尝试删除位于Roaming文件夹中的配置文件
 6.若有其他原因导致软件功能无法正常运行，
   且无法按上面的解释修复，可以访问 Github 网站
-  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复"""
+  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use:
+1.This software must be run under a 64-bit operating system,
+   The 32-bit operating system version will be introduced later.
+2.Please do not change the name of this exe file："Movefile """ + vision + """.exe"
+   Otherwise, the startup function will be affected.
+3.Please open the option in the windows setting:
+   System/notification and operation/notification/
+   "Get notifications from apps and other senders",
+   Otherwise, the operation result notification function will be affected
+4.Please put the software into the
+   'Antivirus scanning exclusion item' of Windows Security Center,
+   Otherwise, it will be deleted directly at runtime
+   This is because this software involves changing the Startup item.
+   If this software is accidentally deleted in use,
+   Please retrieve this software in the "Protection History"
+   of virus threat and protection in Windows Security Center 
+   Or other security software
+5.If the software cannot run after the new version,
+   You can try to delete the profile located in the Roaming folder
+6.If the software fails to run normally due to other reasons, and
+   Also can't be repaired as explained above. 
+   You can visit Github website https://github.com/HNRobert/Movefile
+   Or contact the author directly (QQ: 2567466856), 
+   I will try to repair it for you as soon as possible"""]
 
 cf_help_text = """Cleanfile
 清理文件工具

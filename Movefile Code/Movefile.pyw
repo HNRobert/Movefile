@@ -1025,7 +1025,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     def help_before_use():
         from LT_Dic import help_before_use_text
         tkinter.messagebox.showinfo(title='Movefile',
-                                    message=help_before_use_text)
+                                    message=help_before_use_text[lang_num])
 
     def cf_help():
         from LT_Dic import cf_help_text
