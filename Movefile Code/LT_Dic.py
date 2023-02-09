@@ -63,6 +63,7 @@ r_label_text_dic = {
                       'Warning: Please fill all the blanks not optional'],
     'path_warning': ['警告：请填输入有效路径！（建议使用浏览）',
                      'Warning: Please input a path that exists (Browse suggested)'],
+    'same_path_warning': ['警告：请输入两个不一样的路径！', 'Warning：Please input two different paths！'],
     'ini_error': ['''错误：配置信息无效
 请尽量不要手动更改ini配置文件''', """Error：Config File invalid, 
 please don't edit the config file directly"""],
@@ -75,6 +76,11 @@ cr_label_text_dic = {
     'c_label': ['Movefile 初始化中...', 'Movefile initializing...']}
 
 sf_label_text_dic = {
+    'main_progress_label': ['扫描文件中...  发现文件：', 'Scanning items...  Find item：'],
+    'main_progress_label1': [['总进度：', '已完成'], ['Progress：', 'Completed']],
+    'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
+    'current_file_label': ['等待中...', 'Waiting...'],
+    'current_file_label1': ['文件同步中：', 'File in process：'],
     'exit_sync': ['''文件正在同步中，
 确定中断同步进程并退出?''', '''Synchronization is in progress,
 Are you sure to interrupt the process and exit?'''],

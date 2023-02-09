@@ -42,23 +42,19 @@ def get_boot_time():
 
 
 def set_data_path():
-    try:
-        global mf_data_path, cf_data_path, sf_data_path
-    except:
-        pass
-    finally:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-        mf_data_path = roaming_path + '\\Movefile\\'
-        cf_data_path = mf_data_path + 'Cleanfile\\'
-        sf_data_path = mf_data_path + 'Syncfile\\'
-        if 'Movefile' not in os.listdir(roaming_path):
-            os.mkdir(mf_data_path)
-        if 'Cleanfile' not in os.listdir(mf_data_path):
-            os.mkdir(cf_data_path)
-        if 'Syncfile' not in os.listdir(mf_data_path):
-            os.mkdir(sf_data_path)
+    global mf_data_path, cf_data_path, sf_data_path
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+    mf_data_path = roaming_path + '\\Movefile\\'
+    cf_data_path = mf_data_path + 'Cleanfile\\'
+    sf_data_path = mf_data_path + 'Syncfile\\'
+    if 'Movefile' not in os.listdir(roaming_path):
+        os.mkdir(mf_data_path)
+    if 'Cleanfile' not in os.listdir(mf_data_path):
+        os.mkdir(cf_data_path)
+    if 'Syncfile' not in os.listdir(mf_data_path):
+        os.mkdir(sf_data_path)
 
 
 def asktime_plus():
@@ -501,28 +497,30 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None):
         sync_tasks = []
         task_number = 0
         for file1 in all_files_1:
+            filename = file1.split('\\')[-1]
             file1_path = path1 + file1
             for file2 in all_files_2:
                 file2_path = path2 + file2
                 match_possibility = sf_match_possibility(path1, path2, file1, file2)
                 if match_possibility > 50:
                     task_number += 1
-                    main_progress_label['text'] = f'扫描文件中...  发现新项目{task_number}个'
+                    main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
                     sync_tasks.append([file1_path, file2_path, False, single_sync])
                     break
                 elif match_possibility == 50:
                     sf_ask_operation()
             else:
                 task_number += 1
-                main_progress_label['text'] = f'扫描文件中...  发现新项目{task_number}个'
+                main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
                 sync_bar.update()
                 sync_tasks.append([file1_path, path2 + file1, True, single_sync])
         if not single_sync:
             for file2 in all_files_2:
+                filename = file2.split('\\')[-1]
                 file2_path = path2 + file2
                 if file2 not in all_files_1:
                     task_number += 1
-                    main_progress_label['text'] = f'扫描文件中...  发现新项目{task_number}个'
+                    main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
                     sync_bar.update()
                     sync_tasks.append([file2_path, path1 + file2, True, single_sync])
         return sync_tasks
@@ -533,12 +531,12 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None):
         sync_bar.update()
         tasks = get_task()
         main_progress_bar['maximum'] = len(tasks)
-        main_progress_label['text'] = f'总进度：{str(main_progress_bar["value"])}/{str(len(tasks))}  已完成'
+        main_progress_label['text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
         for task in tasks:
-            current_file_label['text'] = '文件同步中：' + task[0].split('\\')[-1]
+            current_file_label['text'] = sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1]
             out_data += sf_sync_file(task[0], task[1], task[2], task[3])
             main_progress_bar['value'] += 1
-            main_progress_label['text'] = f'总进度：{str(main_progress_bar["value"])}/{str(len(tasks))}  已完成'
+            main_progress_label['text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
             sync_bar.update()
         sync_bar.withdraw()
         path_name_1 = path1.split('\\')[-1]
@@ -563,11 +561,11 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None):
     sync_bar = tk.Tk()
     sync_bar.title('Movefile  -Syncfile Progress')
     sync_bar.geometry('420x115')
-    main_progress_label = ttk.Label(sync_bar, text='扫描文件中...')
+    main_progress_label = ttk.Label(sync_bar, text=sf_label_text_dic["main_progress_label2"][language_number])
     main_progress_label.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
     main_progress_bar = ttk.Progressbar(sync_bar)
     main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
-    current_file_label = ttk.Label(sync_bar, text='文件复制')
+    current_file_label = ttk.Label(sync_bar, text=sf_label_text_dic["current_file_label"][language_number])
     current_file_label.grid(row=2, column=0, padx=10, pady=5, sticky='SW')
     show_running_bar = ttk.Progressbar(sync_bar, mode='indeterminate')
     show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150)
@@ -599,7 +597,7 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data[2], 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync, saving_data[1], language_number=language_num(mf_file.get('General', 'language')))
+            sf_sync_dir(path1, path2, single_sync, language_num(mf_file.get('General', 'language')), saving_data[1])
 
     def autorun_local_sf(data_name):
         for saving_data in data_name:
@@ -697,12 +695,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][0])
             sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][0])
             sf_browse_path_1_button.grid_forget()
-            sf_entry_select_removable.grid(row=2, column=1, padx=10, pady=5, ipadx=231, sticky='W')
+            sf_entry_select_removable.grid(row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
         else:
             sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][1])
             sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][1])
             sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][1])
-            sf_browse_path_1_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
+            sf_browse_path_1_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
             sf_entry_select_removable.grid_forget()
 
     def change_active_mode(mode):
@@ -788,14 +786,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
             sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
             sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
-            sf_label_path_1.grid(row=2, column=0, pady=5, sticky='E')
-            sf_label_path_2.grid(row=3, column=0, pady=5, sticky='E')
-            sf_entry_path_1.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_entry_path_2.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_browse_path_2_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
-            sf_option_mode_double.grid(row=4, column=1, padx=10, ipadx=0, sticky='W')
-            sf_option_mode_single.grid(row=4, column=1, padx=200, ipadx=0, sticky='W')
-            sf_label_mode.grid(row=4, column=0, pady=5, sticky='E')
+            sf_option_mode_double.grid(row=2, column=1, padx=10, ipadx=0, sticky='W')
+            sf_option_mode_single.grid(row=2, column=1, padx=200, ipadx=0, sticky='W')
+            sf_label_mode.grid(row=2, column=0, pady=5, sticky='E')
+            sf_label_path_1.grid(row=3, column=0, pady=5, sticky='E')
+            sf_label_path_2.grid(row=4, column=0, pady=5, sticky='E')
+            sf_entry_path_1.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_entry_path_2.grid(row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_browse_path_2_button.grid(row=4, column=1, ipadx=3, sticky='E', padx=10)
             sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
             sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
             sf_label_match_directly.grid(row=6, column=0, pady=5, sticky='E')
@@ -867,6 +865,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     root.title('Movefile Setting')
     root.geometry("800x285")
+    root.resizable(False, False)
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
     root.update()
@@ -1007,11 +1006,11 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                             variable=sf_entry_mode,
                                             value='single')
 
-    sf_label_lock_folder = ttk.Label(root, text='锁定文件夹(开发中)：')
+    sf_label_lock_folder = ttk.Label(root, text='')
     sf_entry_lock_files = ttk.Entry(root)
     sf_entry_lock_files.config(state=tk.DISABLED)
 
-    sf_label_match_directly = ttk.Label(root, text='手动配对(开发中)：')
+    sf_label_match_directly = ttk.Label(root, text='')
     sf_entry_match_directly = ttk.Entry(root)
     sf_entry_match_directly.config(state=tk.DISABLED)
 
@@ -1073,6 +1072,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         try:
             os.listdir(cf_entry_old_path.get())
             os.listdir(cf_entry_new_path.get())
+            if cf_entry_old_path.get() == cf_entry_new_path.get():
+                return 'same_path_error'
         except:
             return True
         else:
@@ -1098,6 +1099,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             else:
                 os.listdir(sf_entry_path_1.get())
             os.listdir(sf_entry_path_2.get())
+            if sf_entry_path_1.get() == sf_entry_path_2.get():
+                return 'same_path_error'
         except:
             return True
         else:
@@ -1110,6 +1113,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         elif cf_has_blank():
             tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
             return True
+        elif cf_path_error() == 'same_path_error':
+            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['same_path_warning'][lang_num])
+            return True
         elif cf_path_error():
             tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
             return True
@@ -1120,74 +1126,122 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if sf_has_blank():
             tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
             return True
+        elif sf_path_error() == 'same_path_error':
+            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['same_path_warning'][lang_num])
+            return True
         elif sf_path_error():
             tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
             return True
         else:
             return False
 
-    def savefile(mode, save_name='New_Setting'):  # 保存文件
-        cf_data.read(cf_data_path + r'Cleanfile_data.ini')
-        sf_data.read(sf_data_path + r'Syncfile_data.ini')
+    def ask_save_name():
+        global ask_name_window
         list_saving_data()
 
-        if len(cf_save_names) != 0:  # 更改上次修改项
-            for cf_save in cf_save_names:
-                try:
-                    cf_data.set(cf_save, '_last_edit_', 'False')
-                    cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
-                except:
-                    pass
-        if len(sf_save_names) != 0:
-            for sf_save in sf_save_names:
-                try:
-                    sf_data.set(sf_save, '_last_edit_', 'False')
-                    sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
-                except:
-                    pass
-
-        if mode == 'cf':  # 如果当前界面为cf
-            if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
-                file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
-                file.close()
+        def savefile(function, save_name='New_Setting'):  # 保存文件
             cf_data.read(cf_data_path + r'Cleanfile_data.ini')
-            if not cf_data.has_section(str(save_name)):
-                cf_data.add_section(str(save_name))
-            cf_data.set(save_name, '_last_edit_', 'True')
-            cf_data.set(save_name, "old_path", cf_entry_old_path.get())
-            cf_data.set(save_name, "new_path", cf_entry_new_path.get())
-            cf_data.set(save_name, "pass_filename", cf_entry_keep_files.get())
-            cf_data.set(save_name, "pass_format", cf_entry_keep_formats.get())
-            cf_data.set(save_name, "set_hour", cf_entry_time.get())
-            cf_data.set(save_name, "mode", str(cf_entry_mode.get()))
-            cf_data.set(save_name, "autorun", str(cf_is_autorun.get()))
-            cf_data.set(save_name, "move_folder", str(cf_is_folder_move.get()))
-            cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
-
-        if mode == 'sf':  # 如果当前界面为sf
-            if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
-                file = open(sf_data_path + r'Syncfile_data.ini', 'w', encoding='ANSI')
-                file.close()
             sf_data.read(sf_data_path + r'Syncfile_data.ini')
-            if not sf_data.has_section(str(save_name)):
-                sf_data.add_section(str(save_name))
-            sf_data.set(save_name, '_last_edit_', 'True')
-            sf_data.set(save_name, 'place_mode', sf_place_mode.get())
-            if sf_place_mode.get() == 'local':
-                sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
-            else:
-                disk_data = sf_entry_select_removable.get()
-                sf_data.set(save_name, 'disk_number',
-                            str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
-            sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
-            sf_data.set(save_name, 'mode', sf_entry_mode.get())
-            sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
-            sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
-            sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+            list_saving_data()
 
-        tkinter.messagebox.showinfo(title=r_label_text_dic['succ_save'][lang_num][0],
-                                    message=r_label_text_dic['succ_save'][lang_num][1])
-        continue_button.config(state=tk.NORMAL)
+            if len(cf_save_names) != 0:  # 更改上次修改项
+                for cf_save in cf_save_names:
+                    try:
+                        cf_data.set(cf_save, '_last_edit_', 'False')
+                        cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                    except:
+                        pass
+            if len(sf_save_names) != 0:
+                for sf_save in sf_save_names:
+                    try:
+                        sf_data.set(sf_save, '_last_edit_', 'False')
+                        sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                    except:
+                        pass
+
+            if function == 'cf':  # 如果当前界面为cf
+                if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
+                    file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
+                    file.close()
+                cf_data.read(cf_data_path + r'Cleanfile_data.ini')
+                if not cf_data.has_section(str(save_name)):
+                    cf_data.add_section(str(save_name))
+                cf_data.set(save_name, '_last_edit_', 'True')
+                cf_data.set(save_name, "old_path", cf_entry_old_path.get())
+                cf_data.set(save_name, "new_path", cf_entry_new_path.get())
+                cf_data.set(save_name, "pass_filename", cf_entry_keep_files.get())
+                cf_data.set(save_name, "pass_format", cf_entry_keep_formats.get())
+                cf_data.set(save_name, "set_hour", cf_entry_time.get())
+                cf_data.set(save_name, "mode", str(cf_entry_mode.get()))
+                cf_data.set(save_name, "autorun", str(cf_is_autorun.get()))
+                cf_data.set(save_name, "move_folder", str(cf_is_folder_move.get()))
+                cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
+
+            if function == 'sf':  # 如果当前界面为sf
+                if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
+                    file = open(sf_data_path + r'Syncfile_data.ini', 'w', encoding='ANSI')
+                    file.close()
+                sf_data.read(sf_data_path + r'Syncfile_data.ini')
+                if not sf_data.has_section(str(save_name)):
+                    sf_data.add_section(str(save_name))
+                sf_data.set(save_name, '_last_edit_', 'True')
+                sf_data.set(save_name, 'place_mode', sf_place_mode.get())
+                if sf_place_mode.get() == 'local':
+                    sf_data.set(save_name, 'path_1', sf_entry_path_1.get())
+                else:
+                    disk_data = sf_entry_select_removable.get()
+                    sf_data.set(save_name, 'disk_number',
+                                str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
+                sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
+                sf_data.set(save_name, 'mode', sf_entry_mode.get())
+                sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
+                sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
+                sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+
+            tkinter.messagebox.showinfo(title=r_label_text_dic['succ_save'][lang_num][0],
+                                        message=r_label_text_dic['succ_save'][lang_num][1])
+            continue_button.config(state=tk.NORMAL)
+
+        def sure_save():
+            savefile(function=cf_or_sf.get(), save_name=name_entry.get())
+            exit_asn()
+
+        def exit_asn():
+            ask_name_window.quit()
+            ask_name_window.withdraw()
+
+        mode = cf_or_sf.get()
+        if mode == 'cf':
+            has_error = cf_has_error()
+            pri_save_names = cf_save_names
+        elif mode == 'sf':
+            has_error = sf_has_error()
+            pri_save_names = sf_save_names
+        else:
+            has_error = True
+            pri_save_names = []
+        if not has_error:
+            ask_name_window = tk.Tk()
+            ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
+            ask_name_window.geometry('400x35')
+            ask_name_window.title(r_label_text_dic['ask_name_window'][lang_num])
+            last_edit_name = 'New_Setting'
+            if last_saving_data:
+                if last_saving_data[0] == mode:
+                    last_edit_name = last_saving_data[1]
+                else:
+                    last_edit_name = last_saving_data[2]
+            name_label = ttk.Label(ask_name_window, text=r_label_text_dic['name_label'][lang_num])
+            name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
+
+            name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
+            name_entry.insert(0, last_edit_name)
+            name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
+            sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num],
+                                          command=lambda: sure_save())
+            sure_name_button.grid(row=0, column=2, sticky='W')
+            ask_name_window.protocol('WM_DELETE_WINDOW', exit_asn)
+            ask_name_window.mainloop()
 
     def read_saving(ask_path=False):
         global ask_saving_root
@@ -1301,8 +1355,11 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
                 open_sf_saving(saving_name)
             root.title('Movefile   --> ' + saving_name)
-            ask_saving_root.quit()
+            exit_asr()
+
+        def exit_asr():
             ask_saving_root.withdraw()
+            ask_saving_root.quit()
 
         if ask_path:
             ask_saving_root = tk.Tk()
@@ -1319,7 +1376,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             read_name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
             read_mode_entry = ttk.Combobox(ask_saving_root, values=r_label_text_dic['read_mode_entry'][lang_num],
                                            state='readonly')
-            read_mode_entry.grid(row=0, column=1, pady=5, padx=5, )
+            read_mode_entry.grid(row=0, column=1, pady=5, padx=5)
             if last_edit_mode == 'sf':
                 read_mode_entry.current(1)
             elif last_edit_mode == 'cf':
@@ -1337,7 +1394,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                           command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
             read_name_entry.bind('<Button-1>', lambda event: refresh_saving())
-            ask_saving_root.protocol('WM_DELETE_WINDOW', ask_saving_root.withdraw)
+            ask_saving_root.protocol('WM_DELETE_WINDOW', exit_asr)
             ask_saving_root.mainloop()
         elif mode == 'cf':
             open_cf_saving(save_name)
@@ -1345,48 +1402,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         elif mode == 'sf':
             open_sf_saving(save_name)
             root.title('Movefile   --> ' + save_name)
-
-    def ask_save_name():
-        global ask_name_window
-        list_saving_data()
-
-        def sure_save():
-            savefile(mode=cf_or_sf.get(), save_name=name_entry.get())
-            ask_name_window.quit()
-            ask_name_window.withdraw()
-
-        mode = cf_or_sf.get()
-        if mode == 'cf':
-            has_error = cf_has_error()
-            pri_save_names = cf_save_names
-        elif mode == 'sf':
-            has_error = sf_has_error()
-            pri_save_names = sf_save_names
-        else:
-            has_error = True
-            pri_save_names = []
-        if not has_error:
-            ask_name_window = tk.Tk()
-            ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
-            ask_name_window.geometry('400x35')
-            ask_name_window.title(r_label_text_dic['ask_name_window'][lang_num])
-            last_edit_name = 'New_Setting'
-            if last_saving_data:
-                if last_saving_data[0] == mode:
-                    last_edit_name = last_saving_data[1]
-                else:
-                    last_edit_name = last_saving_data[2]
-            name_label = ttk.Label(ask_name_window, text=r_label_text_dic['name_label'][lang_num])
-            name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
-
-            name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
-            name_entry.insert(0, last_edit_name)
-            name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
-            sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num],
-                                          command=lambda: sure_save())
-            sure_name_button.grid(row=0, column=2, sticky='W')
-            ask_name_window.protocol('WM_DELETE_WINDOW', ask_name_window.withdraw)
-            ask_name_window.mainloop()
 
     def cf_operate_from_root():
         old_path = cf_entry_old_path.get()  # 旧文件夹
@@ -1438,14 +1453,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             root.withdraw()
 
     def exit_program():
-        try:
+        if 'ask_saving_root' in globals().keys():
             ask_saving_root.quit()
             ask_saving_root.destroy()
-        except: pass
-        try:
+        if 'ask_name_window' in globals().keys():
             ask_name_window.quit()
             ask_name_window.destroy()
-        except: pass
         root.quit()
         root.destroy()
         ask_permit.join()
@@ -1563,8 +1576,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def mainprocess():
-    set_data_path()
     global startup_root
+    set_data_path()
     startup_root = threading.Thread(target=check_window, daemon=True)
     startup_root.start()
     load_icon()
