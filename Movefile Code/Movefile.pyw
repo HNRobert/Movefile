@@ -476,7 +476,9 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sf_sync_dir(path1, path2, single_sync, area_name=None):
+def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None):
+    from LT_Dic import sf_label_text_dic
+
     def sf_show_notice(path_1, path_2, sf_errorname):
         toaster.show_toast('Sync Successfully',
                            'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
@@ -485,8 +487,7 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
                            threaded=False)
         if len(sf_errorname) > 0:
             toaster.show_toast("Couldn't sync files",
-                               sf_errorname + """
-        无法被移动，请在关闭文件或移除重名文件后重试""",
+                               sf_errorname + sf_label_text_dic['can_not_move_notice'][language_number],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
@@ -581,6 +582,8 @@ def sf_sync_dir(path1, path2, single_sync, area_name=None):
 def sf_autorun_operation(place, saving_datas=None):
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_data_path + 'Syncfile_data.ini')
+    mf_file = configparser.ConfigParser()
+    mf_file.read(mf_data_path + 'Movefile_data.ini')
 
     def get_sf_startup_savings():
         sf_startup_settings = []
@@ -596,7 +599,7 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data[2], 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync, saving_data[1])
+            sf_sync_dir(path1, path2, single_sync, saving_data[1], language_number=language_num(mf_file.get('General', 'language')))
 
     def autorun_local_sf(data_name):
         for saving_data in data_name:
@@ -605,7 +608,7 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data, 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync)
+            sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')))
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
@@ -1412,7 +1415,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             single_sync = True
         else:
             single_sync = False
-        sf_sync_dir(path1, path2, single_sync, area_name)
+        sf_sync_dir(path1, path2, single_sync, lang_num, area_name)
 
     def change_language(language):
         nonlocal lang_num

@@ -74,6 +74,17 @@ to make the language of some labels changed''']
 cr_label_text_dic = {
     'c_label': ['Movefile 初始化中...', 'Movefile initializing...']}
 
+sf_label_text_dic = {
+    'exit_sync': ['''文件正在同步中，
+确定中断同步进程并退出?''', '''Synchronization is in progress,
+Are you sure to interrupt the process and exit?'''],
+    'can_not_move_notice': ["""
+无法被移动，请在关闭文件或移除重名文件后重试""", """
+Couldn't be moved, Please try again after closing the file
+or removing the duplicate file """]
+
+    }
+
 help_main_text = """软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
