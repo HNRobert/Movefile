@@ -1,21 +1,21 @@
 # Movefile
-#### 中文版说明位于下方
+#### （中文版说明位于下方）
 This is a program for organizing files, including two main functions of Cleanfile and Syncfile.
 
-The. exe file only provides packaged files released by the distribution. If the semantics of the code are not changed or the function is unstable, the latest packaged file will not be provided;
+The .exe file only provides packaged files released by the distribution. If the semantics of the code are not changed or the function is unstable, the latest packaged file will not be provided;
 
 Beta programs will not be packaged. If you want to have a better use experience, please download the latest release version.
 
 If you have any doubts about the function of this software during use, you can check the "Help" option in the menu bar.
 
-Due to its many functions and lengthy main program code, if you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
+Due to its aplenty functions, the main program code is quite lengthy. If you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
 
 Please read the following precautions before use
 
 ### About Compatibility
-The .exe files provided only support Windows 64-bit operating system, and Win10 works best
+The .exe files provided here only support 64-bit Windows operating system, and Win10 works best
 
-If the operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
+If your operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
 
 ##### This software only supports Windows operating system!
 
@@ -56,7 +56,7 @@ After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the 
 
 ## Cleanfile
 This is a program used to organize folders (especially the desktop), and the first program block launched by Movefile
-!!!pic
+![屏幕截图 2023-02-11 144857](https://user-images.githubusercontent.com/120773486/218244939-669a39a0-265f-4242-9ec2-56f22cc044e2.png)
 
 ### Function overview
 This program can transfer files in a folder that have not been modified or accessed for a certain period of time and meet other setting requirements to another folder, so that you can easily organize files
@@ -93,7 +93,7 @@ If you do not want to use this method, set the expiration time to "0"
 ## Syncfile
 This is a program used to synchronize files in two paths,
 You can also synchronize USB flash disk data with the computer
-!!!
+![屏幕截图 2023-02-11 145240](https://user-images.githubusercontent.com/120773486/218245067-74255275-aa50-474c-b721-1b15f8f4c2c7.png)
 
 ### Function overview
 You can compare the files in the two folders, find the same files, and keep the latest version,
