@@ -151,7 +151,7 @@ help_before_use_text = ["""使用前特别注意事项：
 5.If the software cannot run after the new version,
    You can try to delete the profile located in the Roaming folder
 6.If the software fails to run normally due to other reasons, and
-   Also can't be repaired as explained above. 
+   Also can't be repaired as explained above,
    You can visit Github website https://github.com/HNRobert/Movefile
    Or contact the author directly (QQ: 2567466856), 
    I will try to repair it for you as soon as possible"""]

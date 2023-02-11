@@ -1,4 +1,5 @@
 # Movefile
+#### 中文版说明位于下方
 This is a program for organizing files, including two main functions of Cleanfile and Syncfile.
 
 The. exe file only provides packaged files released by the distribution. If the semantics of the code are not changed or the function is unstable, the latest packaged file will not be provided;
@@ -16,12 +17,111 @@ The .exe files provided only support Windows 64-bit operating system, and Win10 
 
 If the operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
 
+##### This software only supports Windows operating system!
+
+#### pyinstaller packaging method:
+
+First install the python environment. After the installation of python, open cmd to install pyinstaller (pip install pyinstaller)
+
+If you want to package it as 32-bit exe, you should package it in 32-bit Python
+
+After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the path box of the folder, and then enter 【pyinstaller - i Movefile.ico - noupx Movefile.pyw -- onefile】 in the pop-up command prompt window ,then get the packed file in the output 【dist】 folder.
+
+### Precautions before use:
+
+1.Please do not change the name of this exe file："Movefile vX.X.X.exe"
+   Otherwise, the startup function will be affected.
+
+2.Please open the option in the windows setting:
+   System/notification and operation/notification/
+   "Get notifications from apps and other senders",
+   Otherwise, the operation result notification function will be affected
+
+3.Please put the software into the
+   'Antivirus scanning exclusion item' of Windows Security Center,
+   Otherwise, it will be deleted directly at runtime
+   This is because this software involves changing the Startup item.
+   If this software is accidentally deleted in use,
+   Please retrieve this software in the "Protection History"
+   of virus threat and protection in Windows Security Center 
+   Or other security software
+
+4.If the software cannot run after the new version,
+   You can try to delete the profile located in the Roaming folder
+
+5.If the software fails to run normally due to other reasons, and
+   Also can't be repaired as explained above,
+   You can contact the author directly, 
+   I will try to repair it for you as soon as possible
+
+## Cleanfile
+This is a program used to organize folders (especially the desktop), and the first program block launched by Movefile
+!!!pic
+
+### Function overview
+This program can transfer files in a folder that have not been modified or accessed for a certain period of time and meet other setting requirements to another folder, so that you can easily organize files
+
+#### Including functions: 
+select the original folder (default desktop), 
+select the new folder to place files, 
+set the expiration time, 
+set the judgment basis for the expiration time (according to the latest ask/edit time),
+select whether to move the folder (currently only the entire folder is supported),
+Select the reserved file (list the files/folders in the original folder), 
+select the reserved file format (list after scanning the filenames' suffix in the original folder), 
+start cleaning automatically after startup
+
+### Function explanation
+
+#### Preserve project/file format selection function:
+##### Keep item selection:
+The selected items will not be transferred
+##### Keep file format selection:
+Files of a certain format type will not be transferred
+For example, selecting '. lnk' means that all shortcuts in the original folder will not be transferred
+
+#### Expiration time setting:
+The software can obtain the latest modification and access time of the file
+
+Files that have been modified/accessed for a certain period of time can be retained
+
+For example, if the expiration time is set to "48", the judgment method is set to "Use Items' latest edit time"
+The files modified within two days before the operation date will not be deleted
+
+If you do not want to use this method, set the expiration time to "0"
+
+## Syncfile
+This is a program used to synchronize files in two paths,
+You can also synchronize USB flash disk data with the computer
+!!!
+
+### Function overview
+You can compare the files in the two folders, find the same files, and keep the latest version,
+Then copy the files that the other party does not have to the other party to realize the synchronization function
+
+#### Including functions: 
+two modes of synchronization between removable disk and local disk and local disk,
+Select one-way and two-way synchronization mode,
+keep the latest changed files, and automatically run the archive after startup,
+Automatically detect the selected removable disk access and automatically synchronize
+
+### Function explanation
+
+#### Mode selection between Removable Volume and Local path:
+If you select the removable disk mode and save the configuration, you can select a connected removable disk to synchronize with a local location
+
+In addition, if the software is open, every time the removable disk recorded in the configuration is accessed, a prompt box will pop up automatically. You can directly start synchronization according to the settings.
+
+The way to determine whether the accessed disk is the disk saved in the configuration is to compare the volume serial number.
+
+If you select synchronization between local disks, you can select two local disks for synchronization
+
 # Movefile 中文说明
 这是一个用于整理文件的程序，包括了 Cleanfile 和 Syncfile 两个主要功能
 
 exe文件只提供发行版发布的打包的文件，若代码的语义未改变，或者功能不稳定，则不会提供最新的打包文件；
 
-Beta 版程序不会打包，如果想要有更加好的使用体验，请下载最新的发布版本
+Beta 版程序不会打包，如果想要有更加好的使用体验，请下载最新发布版本
 
 如果使用过程中对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
 
@@ -32,7 +132,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 ### 兼容性说明
 代码中的exe文件仅支持windows64位操作系统，Win10效果最佳
 
-如果操作系统是32位Windows，可以下载pyw文件，解码base64编码过的图标文件，然后自行打包为32位操作系统的exe文件
+如果操作系统是32位Windows，可以下载pyw文件，然后自行打包为32位操作系统的exe文件
 
 ##### 本软件仅支持Windows操作系统下使用！
 
@@ -42,7 +142,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 如果想打包为32为的exe，那就要在32位的Python下打包
 
-安装完成后，现将【Movefile vX.X.X.pyw】改名为【Movefile.pyw】，接着在文件夹内放入ico文件与其他配置文件，然后在【Movefile vX.X.X.pyw】所在文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.pyw --onefile】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
+安装完成后，打开【Movefile Code】文件夹，文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.pyw --onefile】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
 
 ### 使用前特别注意事项：
 *1.本exe文件的名称请不要改变："Movefile vX.X.X.exe"，否则会影响开机自启功能
