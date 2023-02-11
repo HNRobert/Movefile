@@ -1,15 +1,31 @@
 # Movefile
+This is a program for organizing files, including two main functions of Cleanfile and Syncfile.
+
+The. exe file only provides packaged files released by the distribution. If the semantics of the code are not changed or the function is unstable, the latest packaged file will not be provided;
+
+Beta programs will not be packaged. If you want to have a better use experience, please download the latest release version.
+
+If you have any doubts about the function of this software during use, you can check the "Help" option in the menu bar.
+
+Due to its many functions and lengthy main program code, if you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
+
+Please read the following precautions before use
+
+### About Compatibility
+The .exe files provided only support Windows 64-bit operating system, and Win10 works best
+
+If the operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
+
+# Movefile 中文说明
 这是一个用于整理文件的程序，包括了 Cleanfile 和 Syncfile 两个主要功能
 
-文件夹中exe文件是已经打包好的程序，可以直接在电脑任意位置使用；
-pyw文件是代码源文件，py文件是图标的Base64编码，ico文件是图标文件，供打包时使用，ComBoPicker.py 是多选下拉列表框模块；
+exe文件只提供发行版发布的打包的文件，若代码的语义未改变，或者功能不稳定，则不会提供最新的打包文件；
 
-exe文件只提供发行版发布的打包的文件，若代码的语义未改变则不会提供最新的打包文件；
-Beta 版程序也不会打包。
+Beta 版程序不会打包，如果想要有更加好的使用体验，请下载最新的发布版本
 
 如果使用过程中对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
 
-由于功能比较多，代码比较冗长（主程序1450行，自建模块200+行），如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
+由于功能比较多，主程序代码比较冗长，如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
 
 使用前请务必阅读下面的使用注意事项
 
