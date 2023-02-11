@@ -23,36 +23,36 @@ If your operating system is 32-bit Windows, you can download the code file, and 
 
 First install the python environment. After the installation of python, open cmd to install pyinstaller (pip install pyinstaller)
 
-If you want to package it as 32-bit exe, you should package it in 32-bit Python
+If you want to package it as 32-bit exe, you should package it in 32-bit Python.
 
 After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the path box of the folder, and then enter 【pyinstaller - i Movefile.ico - noupx Movefile.pyw -- onefile】 in the pop-up command prompt window ,then get the packed file in the output 【dist】 folder.
 
 ### Precautions before use:
 
-1.Please do not change the name of this exe file："Movefile vX.X.X.exe"
-   Otherwise, the startup function will be affected.
+1.Please do not change the name of this exe file："Movefile vX.X.X.exe",
+   or the startup function will be affected.
 
 2.Please open the option in the windows setting:
    System/notification and operation/notification/
    "Get notifications from apps and other senders",
-   Otherwise, the operation result notification function will be affected
+   otherwise the notification function will be affected.
 
 3.Please put the software into the
-   'Antivirus scanning exclusion item' of Windows Security Center,
-   Otherwise, it will be deleted directly at runtime
-   This is because this software involves changing the Startup item.
+   'Antivirus scanning exclusion item' of Windows Security Center.
+   otherwise, it might be deleted directly at runtime.
+   That is because this software involves changing the Startup item.
    If this software is accidentally deleted in use,
-   Please retrieve this software in the "Protection History"
-   of virus threat and protection in Windows Security Center 
+   please retrieve this software in the "Protection History"
+   of virus threat and protection in Windows Security Center, 
    Or other security software
 
 4.If the software cannot run after the new version,
-   You can try to delete the profile located in the Roaming folder
+   you can try to delete the profile located in the Roaming folder.
 
 5.If the software fails to run normally due to other reasons, and
-   Also can't be repaired as explained above,
-   You can contact the author directly, 
-   I will try to repair it for you as soon as possible
+   also can't be repaired as explained above,
+   you can contact the author directly, 
+   I will try to repair it for you as soon as possible.
 
 ## Cleanfile
 This is a program used to organize folders (especially the desktop), and the first program block launched by Movefile
@@ -62,15 +62,16 @@ This is a program used to organize folders (especially the desktop), and the fir
 This program can transfer files in a folder that have not been modified or accessed for a certain period of time and meet other setting requirements to another folder, so that you can easily organize files
 
 #### Including functions: 
-select the original folder (default desktop), 
-select the new folder to place files, 
-set the expiration time, 
-set the judgment basis for the expiration time (according to the latest ask/edit time),
-select whether to move the folder (currently only the entire folder is supported),
-Select the reserved file (list the files/folders in the original folder), 
-select the reserved file format (list after scanning the filenames' suffix in the original folder), 
+```
+select the original folder (default desktop)
+select the new folder to place files
+set the expiration time
+set the judgment basis for the expiration time (according to the latest ask/edit time)
+select whether to move the folder (currently only the entire folder is supported)
+Select the reserved file (list the files/folders in the original folder)
+select the reserved file format (list after scanning the filenames' suffix in the original folder) 
 start cleaning automatically after startup
-
+```
 ### Function explanation
 
 #### Preserve project/file format selection function:
@@ -100,11 +101,13 @@ You can compare the files in the two folders, find the same files, and keep the 
 Then copy the files that the other party does not have to the other party to realize the synchronization function
 
 #### Including functions: 
-two modes of synchronization between removable disk and local disk and local disk,
-Select one-way and two-way synchronization mode,
-keep the latest changed files, and automatically run the archive after startup,
-Automatically detect the selected removable disk access and automatically synchronize
-
+```
+two modes of synchronization between removable disk and local disk and local disk
+Select one-way or two-way synchronization mode
+Keep the latest changed files
+Automatically run the archive after startup
+Automatically detect the archived removable disk access and automatically synchronize
+```
 ### Function explanation
 
 #### Mode selection between Removable Volume and Local path:
@@ -176,9 +179,17 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 ### 功能概述
 本程序可将某个文件夹中一定时间未修改或者未访问，且满足其他一些设定要求的文件，转移到另一个文件夹，使你可以方便地整理文件
 
-包含功能：选择原文件夹（默认桌面），选择放置文件的新文件夹，设置过期时间，设置过期时间判断依据（按最后修改/访问时间），选择是否移动文件夹（目前只支持整个文件夹移动），
-选择保留文件（列出原文件夹内文件/文件夹），选择保留文件格式（扫描原文件夹内文件后缀后列出），开机自动启动
-
+#### 包含功能：
+```
+选择原文件夹（默认桌面）
+选择放置文件的新文件夹
+设置过期时间
+设置过期时间判断依据（按最后修改/访问时间）
+选择是否移动文件夹（目前只支持整个文件夹移动）
+选择保留文件（列出原文件夹内文件/文件夹）
+选择保留文件格式（扫描原文件夹内文件后缀后列出）
+可选开机自动按配置存档运行任务
+```
 ### 功能详解
 
 #### 保留项目/文件格式选择功能：
@@ -209,10 +220,14 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 可以将两个文件夹中的文件进行比较，找到相同的文件，保留最新版，
 然后将对方没有的文件复制给对方，来实现同步的功能
 
-包括功能：可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择，
-选择单向与双向同步模式，保留最新更改文件，开机自动运行存档，
+#### 包括功能：
+```
+可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择
+选择单向与双向同步模式
+保留最新更改文件
+开机自动运行存档
 自动检测选定的可移动磁盘接入并自动同步
-
+```
 ### 功能详解
 
 #### 可移动磁盘模式与本地磁盘间模式选择：
@@ -228,7 +243,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 （ https://blog.csdn.net/weixin_45774074/article/details/123293411 ）
 
-# 更新日志
+# Update log - 更新日志
 ```
 0:19 2022/12/30
 Movefile v1.2.2
