@@ -472,7 +472,7 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None):
+def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_item=None):
     from LT_Dic import sf_label_text_dic
 
     def sf_show_notice(path_1, path_2, sf_errorname):
