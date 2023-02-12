@@ -1022,7 +1022,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     def help_main():
         from LT_Dic import help_main_text
-        tkinter.messagebox.showinfo(title='Movefile', message=help_main_text)
+        tkinter.messagebox.showinfo(title='Movefile', message=help_main_text[lang_num])
 
     def help_before_use():
         from LT_Dic import help_before_use_text
@@ -1031,15 +1031,15 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     def cf_help():
         from LT_Dic import cf_help_text
-        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_text)
+        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_text[lang_num])
 
     def cf_help_keep():
         from LT_Dic import cf_help_keep_text
-        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_keep_text)
+        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_keep_text[lang_num])
 
     def cf_help_timeset():
         from LT_Dic import cf_help_timeset_text
-        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_timeset_text)
+        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_timeset_text[lang_num])
 
     def sf_help():
         from LT_Dic import sf_help_text

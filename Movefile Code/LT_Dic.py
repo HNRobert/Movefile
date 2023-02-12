@@ -91,7 +91,7 @@ or removing the duplicate file """]
 
     }
 
-help_main_text = """软件名称： Movefile
+help_main_text = ["""软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
 功能概述：
@@ -107,8 +107,26 @@ help_main_text = """软件名称： Movefile
 
 如有功能异常请先访问 Github 查看有无新版本，
 或者阅读 Github 中的其他注意事项和运行机制说明
-地址：https://github.com/HNRobert/Movefile
-"""
+地址：https://github.com/HNRobert/Movefile""", """Software name： Movefile
+Vision： """ + vision + """               Update time： """ + update_time + """
+
+Function overview:
+This program can make files in a folder that meet the given requirements
+Transfer to another folder or synchronize with another folder,
+Enabling you to organize documents easily
+
+If you have any doubts about the function of this software,
+you can check the "Help" option in the menu bar
+
+Author: Robert He
+If you have any suggestions for improvement of this software, 
+please contact the author
+If the comments are adopted, changes will be made in the new version.
+
+If there is any function abnormality,
+please visit Github first to check whether there is a new version,
+Or read other precautions and operating mechanism instructions in Github.
+Address: https://github.com/HNRobert/Movefile"""]
 
 help_before_use_text = ["""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
@@ -156,7 +174,7 @@ help_before_use_text = ["""使用前特别注意事项：
    Or contact the author directly (QQ: 2567466856), 
    I will try to repair it for you as soon as possible"""]
 
-cf_help_text = """Cleanfile
+cf_help_text = ["""Cleanfile
 清理文件工具
 
 这是一个用来整理文件夹（尤其是桌面）的程序，
@@ -164,24 +182,51 @@ cf_help_text = """Cleanfile
 包含选取保留文件，保留文件类型
 设定是否移动文件夹，
 设定过期时间以及判断方式
-开机自动运行存档等功能"""
+开机自动运行存档等功能""", """Cleanfile
+Clean up file tool
 
-cf_help_keep_text = """保留项目/文件格式选择功能详解：
+This is a program used to organize folders (especially the desktop),
+It is also the first program block launched by Movefile
+Include selecting reserved files and reserved files' format,
+Set whether to move the folder,
+Set expiration time and judgment method
+Start up and automatically run archiving and other functions
+"""]
+
+cf_help_keep_text = ["""保留项目/文件格式选择功能详解：
 
 保留项目选择：
 选中的项目不会被转移
 
 保留文件格式选择：
 某种格式类型的文件都不会被转移
-比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移"""
+比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""", """Preserve project/file format selection function:
 
-cf_help_timeset_text = """过期时间功能详解：
+Keep item selection:
+The selected items will not be transferred
+
+Keep file format selection:
+Files of a certain format type will not be transferred 
+For example, selecting '. lnk' means that
+all shortcuts in the original folder will not be transferred"""]
+
+cf_help_timeset_text = ["""过期时间功能详解：
 
 本软件可以获取文件的最后修改、访问时间
 可以保留一定时间内修改/访问过的文件
 例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
 则运行日期前两天内修改过的文件不会被删除
-如果不想用此方法，则过期时间设为"0"即可"""
+如果不想用此方法，则过期时间设为"0"即可""", '''Expiration time setting:
+The software can obtain the latest modification and access time of the file
+
+You can reserve files that have been modified/accessed for a certain period of time.
+
+For example, if the expiration time is set to "48", and
+the judgment method is set to "Use Items' latest edit time",
+the files modified within two days before the operation date will not be deleted
+
+If you do not want to use this method, 
+set the expiration time to "0" ''']
 
 sf_help_text = '''Syncfile
 同步文件工具
