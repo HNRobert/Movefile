@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 """
+Due to the limited ability of the author,
+nearly all the code is integrated in this main program.
+If you have any suggestion for optimizing structure of this program,
+it's welcomed to submit them to the author.
+
 Created on Wed Dec 21 17:07:30 2022
 
 @author: Robert He
+QQ: 2567466856
+GitHub address: https://github.com/HNRobert/Movefile
 """
 import base64
 import configparser
@@ -32,102 +39,107 @@ from ComBoPicker import Combopicker
 from LT_Dic import vision
 
 
-def get_boot_time():
-    boot_time = psutil.boot_time()  # 返回一个时间戳
-    boot_time_obj = datetime.fromtimestamp(boot_time)
-    now_time = datetime.now()
-    delta_time = now_time - boot_time_obj
-    boot_time_s = delta_time.days * 3600 * 24 + delta_time.seconds
-    return boot_time_s
+class Initialization:
+    def __init__(self):
+        global startup_root, first_visit, boot_time, ask_time_today
+        self.set_data_path()
+        startup_root = threading.Thread(target=self.check_window, daemon=True)
+        startup_root.start()
+        self.load_icon()
+        self.asktime_plus()
 
+        first_visit = False
+        if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
+            first_visit = True
 
-def set_data_path():
-    global mf_data_path, cf_data_path, sf_data_path
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    mf_data_path = roaming_path + '\\Movefile\\'
-    cf_data_path = mf_data_path + 'Cleanfile\\'
-    sf_data_path = mf_data_path + 'Syncfile\\'
-    if 'Movefile' not in os.listdir(roaming_path):
-        os.mkdir(mf_data_path)
-    if 'Cleanfile' not in os.listdir(mf_data_path):
-        os.mkdir(cf_data_path)
-    if 'Syncfile' not in os.listdir(mf_data_path):
-        os.mkdir(sf_data_path)
+        mf = configparser.ConfigParser()
+        mf.read(mf_data_path + r"Movefile_data.ini")
 
+        boot_time = self.get_boot_time()
+        ask_time_today = mf.getint("General", "asktime_today")
 
-def asktime_plus():
-    global toaster
-    toaster = ToastNotifier()
-    gencf = configparser.ConfigParser()
-    time_now = datetime.today()
-    date = str(time_now.date())
-    if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
-        file = open(mf_data_path + r'Movefile_data.ini', 'w', encoding="ANSI")
-        file.close()
-    gencf.read(mf_data_path + r'Movefile_data.ini')
-    if not gencf.has_section("General"):
-        gencf.add_section("General")
-        gencf.set("General", "date", date)
-        gencf.set("General", "asktime_today", '0')
-    if gencf.get("General", "date") != str(date):
-        gencf.set("General", "asktime_today", '0')
-        gencf.set("General", "date", date)
-    asktime_pre = gencf.getint("General", "asktime_today") + 1
-    gencf.set("General", "asktime_today", str(asktime_pre))
+    @staticmethod
+    def get_boot_time():
+        boot_t = psutil.boot_time()
+        boot_time_obj = datetime.fromtimestamp(boot_t)
+        now_time = datetime.now()
+        delta_time = now_time - boot_time_obj
+        boot_time_s = delta_time.days * 3600 * 24 + delta_time.seconds
+        return boot_time_s
 
-    if not gencf.has_option('General', 'language'):
-        gencf.set('General', 'language', 'English')
-    if not gencf.has_option('General', 'autorun'):
-        gencf.set('General', 'autorun', 'False')
-    gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+    @staticmethod
+    def set_data_path():
+        global mf_data_path, cf_data_path, sf_data_path
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        mf_data_path = roaming_path + '\\Movefile\\'
+        cf_data_path = mf_data_path + 'Cleanfile\\'
+        sf_data_path = mf_data_path + 'Syncfile\\'
+        if 'Movefile' not in os.listdir(roaming_path):
+            os.mkdir(mf_data_path)
+        if 'Cleanfile' not in os.listdir(mf_data_path):
+            os.mkdir(cf_data_path)
+        if 'Syncfile' not in os.listdir(mf_data_path):
+            os.mkdir(sf_data_path)
 
+    @staticmethod
+    def asktime_plus():
+        global toaster
+        toaster = ToastNotifier()
+        gencf = configparser.ConfigParser()
+        time_now = datetime.today()
+        date = str(time_now.date())
+        if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
+            file = open(mf_data_path + r'Movefile_data.ini', 'w', encoding="ANSI")
+            file.close()
+        gencf.read(mf_data_path + r'Movefile_data.ini')
+        if not gencf.has_section("General"):
+            gencf.add_section("General")
+            gencf.set("General", "date", date)
+            gencf.set("General", "asktime_today", '0')
+        if gencf.get("General", "date") != str(date):
+            gencf.set("General", "asktime_today", '0')
+            gencf.set("General", "date", date)
+        asktime_pre = gencf.getint("General", "asktime_today") + 1
+        gencf.set("General", "asktime_today", str(asktime_pre))
 
-def list_saving_data():
-    global last_saving_data, all_save_names, cf_save_names, sf_save_names
-    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-    sf_store_path = sf_data_path + r'Syncfile_data.ini'
-    cf_file = configparser.ConfigParser()
-    cf_file.read(cf_store_path)
-    cf_save_names = cf_file.sections()
-    sf_file = configparser.ConfigParser()
-    sf_file.read(sf_store_path)
-    sf_save_names = sf_file.sections()
-    all_save_names = cf_save_names + sf_save_names
-    for cf_save_name in cf_save_names:
-        if cf_file.get(cf_save_name, '_last_edit_') == 'True':
-            last_saving_data = ['cf', cf_save_name, '']
-            if sf_save_names:
-                last_saving_data[2] = sf_save_names[0]
-            break
-    else:
-        for sf_save_name in sf_save_names:
-            if sf_file.get(sf_save_name, '_last_edit_') == 'True':
-                last_saving_data = ['sf', sf_save_name, '']
-                if cf_save_names:
-                    last_saving_data[2] = cf_save_names[0]
-                break
-        else:
-            if cf_save_names:
-                last_saving_data = ['cf', cf_save_names[0], '']
-            elif sf_save_names:
-                last_saving_data = ['sf', sf_save_names[0], '']
-            else:
-                last_saving_data = ['', '', '']
-    return last_saving_data
+        if not gencf.has_option('General', 'language'):
+            gencf.set('General', 'language', 'English')
+        if not gencf.has_option('General', 'autorun'):
+            gencf.set('General', 'autorun', 'False')
+        gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
+    @staticmethod
+    def get_desktop():
+        global desktop_path
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        desktop_path = winreg.QueryValueEx(key, "Desktop")[0]
 
-def get_desktop():
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-    return winreg.QueryValueEx(key, "Desktop")[0]
+    @staticmethod
+    def load_icon():
+        image = open(mf_data_path + r'Movefile.ico', 'wb')
+        image.write(base64.b64decode(icon.Movefile_ico))
+        image.close()
 
-
-def load_icon():
-    image = open(mf_data_path + r'Movefile.ico', 'wb')
-    image.write(base64.b64decode(icon.Movefile_ico))
-    image.close()
+    @staticmethod
+    def check_window():
+        from LT_Dic import cr_label_text_dic
+        global c_root
+        mf_file = configparser.ConfigParser()
+        mf_file.read(mf_data_path + 'Movefile_data.ini')
+        l_n = language_num(mf_file.get('General', 'language'))
+        c_root = tk.Tk()
+        c_root.geometry('420x60')
+        c_root.iconbitmap(mf_data_path + r'Movefile.ico')
+        c_root.title('Movefile')
+        c_label = tk.Label(c_root, text=cr_label_text_dic['c_label'][l_n])
+        c_label.grid(row=0, column=0, padx=10, pady=5)
+        c_bar = ttk.Progressbar(c_root, mode='indeterminate')
+        c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
+        c_bar.start(10)
+        c_bar.mainloop()
 
 
 def set_startup(state=True):
@@ -167,30 +179,46 @@ def language_num(language_name):
     return l_num
 
 
-def check_window():
-    from LT_Dic import cr_label_text_dic
-    global c_root
-    mf_file = configparser.ConfigParser()
-    mf_file.read(mf_data_path + 'Movefile_data.ini')
-    l_n = language_num(mf_file.get('General', 'language'))
-    c_root = tk.Tk()
-    c_root.geometry('420x60')
-    c_root.iconbitmap(mf_data_path + r'Movefile.ico')
-    c_root.title('Movefile')
-    c_label = tk.Label(c_root, text=cr_label_text_dic['c_label'][l_n])
-    c_label.grid(row=0, column=0, padx=10, pady=5)
-    c_bar = ttk.Progressbar(c_root, mode='indeterminate')
-    c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
-    c_bar.start(10)
-    c_bar.mainloop()
-
-
 def filehash(filepath):
     md5_hash = hashlib.md5()
     with open(filepath, "rb") as f:
         for byte_block in iter(lambda: f.read(4096), b""):
             md5_hash.update(byte_block)
     return md5_hash.hexdigest()
+
+
+def list_saving_data():
+    global last_saving_data, all_save_names, cf_save_names, sf_save_names
+    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
+    sf_store_path = sf_data_path + r'Syncfile_data.ini'
+    cf_file = configparser.ConfigParser()
+    cf_file.read(cf_store_path)
+    cf_save_names = cf_file.sections()
+    sf_file = configparser.ConfigParser()
+    sf_file.read(sf_store_path)
+    sf_save_names = sf_file.sections()
+    all_save_names = cf_save_names + sf_save_names
+    for cf_save_name in cf_save_names:
+        if cf_file.get(cf_save_name, '_last_edit_') == 'True':
+            last_saving_data = ['cf', cf_save_name, '']
+            if sf_save_names:
+                last_saving_data[2] = sf_save_names[0]
+            break
+    else:
+        for sf_save_name in sf_save_names:
+            if sf_file.get(sf_save_name, '_last_edit_') == 'True':
+                last_saving_data = ['sf', sf_save_name, '']
+                if cf_save_names:
+                    last_saving_data[2] = cf_save_names[0]
+                break
+        else:
+            if cf_save_names:
+                last_saving_data = ['cf', cf_save_names[0], '']
+            elif sf_save_names:
+                last_saving_data = ['sf', sf_save_names[0], '']
+            else:
+                last_saving_data = ['', '', '']
+    return last_saving_data
 
 
 def data_error(mode_, name_):
@@ -360,32 +388,23 @@ def cf_autorun_operation():
     cf_file = configparser.ConfigParser()
     cf_file.read(cf_store_path)
 
-    def get_cf_autorun_savings():
-        autorun_savings = []
-        for cf_name in cf_save_names:
-            if cf_file.get(cf_name, 'autorun') == 'True':
-                autorun_savings.append(cf_name)
-        return autorun_savings
+    autorun_savings = []
+    for cf_name in cf_save_names:
+        if cf_file.get(cf_name, 'autorun') == 'True':
+            autorun_savings.append(cf_name)
 
-    def autorun_cf(name):
-        old_path = cf_file.get(name, 'old_path')  # 旧文件夹
-        new_path = cf_file.get(name, 'new_path')  # 新文件夹
-        pass_file = cf_file.get(name, 'pass_filename').split(',')  # 设置跳过白名单
-        pass_format = cf_file.get(name, 'pass_format').split(',')  # 设置跳过格式
-        time_ = cf_file.getint(name, 'set_hour') * 3600  # 设置过期时间(hour)
-        mode = cf_file.getint(name, 'mode')  # 设置判断模式
-        is_move_folder = cf_file.get(name, 'move_folder')  # 设置是否移动文件夹
-        cf_move_dir(old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
-                    overdue_time=time_,
-                    check__mode=mode, is__move__folder=is_move_folder)
-
-    run_saves = get_cf_autorun_savings()
-    for save_name in run_saves:
-        autorun_cf(save_name)
+    for save_name in autorun_savings:
+        cf_move_dir(old__path=cf_file.get(save_name, 'old_path'),
+                    new__path=cf_file.get(save_name, 'new_path'),
+                    pass__file=cf_file.get(save_name, 'pass_filename').split(','),
+                    pass__format=cf_file.get(save_name, 'pass_format').split(','),
+                    overdue_time=cf_file.getint(save_name, 'set_hour') * 3600,
+                    check__mode=cf_file.getint(save_name, 'mode'),
+                    is__move__folder=cf_file.get(save_name, 'move_folder'))
 
 
 def sf_ask_operation():
-    pass
+    pass  # planning
 
 
 def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
@@ -472,7 +491,7 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_item=None):
+def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_item_rpath='', pass_folder_rpath=''):
     from LT_Dic import sf_label_text_dic
 
     def sf_show_notice(path_1, path_2, sf_errorname):
@@ -497,6 +516,9 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         sync_tasks = []
         task_number = 0
         for file1 in all_files_1:
+            if any((r_folder in file1) for r_folder in pass_folder_rpath.split(',')) or any(
+                    file1 == r_file for r_file in pass_item_rpath.split(',')):
+                continue
             filename = file1.split('\\')[-1]
             file1_path = path1 + file1
             for file2 in all_files_2:
@@ -516,6 +538,9 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 sync_tasks.append([file1_path, path2 + file1, True, single_sync])
         if not single_sync:
             for file2 in all_files_2:
+                if any((r_folder in file2) for r_folder in pass_folder_rpath.split(',')) or any(
+                        file2 == r_file for r_file in pass_item_rpath.split(',')):
+                    continue
                 filename = file2.split('\\')[-1]
                 file2_path = path2 + file2
                 if file2 not in all_files_1:
@@ -1020,120 +1045,136 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                         textvariable=sf_option_autorun_text,
                                         variable=sf_entry_is_autorun)
 
-    def help_main():
-        from LT_Dic import help_main_text
-        tkinter.messagebox.showinfo(title='Movefile', message=help_main_text[lang_num])
+    class ZFunc:
+        @staticmethod
+        def help_main():
+            from LT_Dic import help_main_text
+            tkinter.messagebox.showinfo(title='Movefile', message=help_main_text[lang_num])
 
-    def help_before_use():
-        from LT_Dic import help_before_use_text
-        tkinter.messagebox.showinfo(title='Movefile',
-                                    message=help_before_use_text[lang_num])
+        @staticmethod
+        def help_before_use():
+            from LT_Dic import help_before_use_text
+            tkinter.messagebox.showinfo(title='Movefile',
+                                        message=help_before_use_text[lang_num])
 
-    def cf_help():
-        from LT_Dic import cf_help_text
-        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_text[lang_num])
+        @staticmethod
+        def cf_help():
+            from LT_Dic import cf_help_text
+            tkinter.messagebox.showinfo(title='Movefile', message=cf_help_text[lang_num])
 
-    def cf_help_keep():
-        from LT_Dic import cf_help_keep_text
-        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_keep_text[lang_num])
+        @staticmethod
+        def cf_help_keep():
+            from LT_Dic import cf_help_keep_text
+            tkinter.messagebox.showinfo(title='Movefile', message=cf_help_keep_text[lang_num])
 
-    def cf_help_timeset():
-        from LT_Dic import cf_help_timeset_text
-        tkinter.messagebox.showinfo(title='Movefile', message=cf_help_timeset_text[lang_num])
+        @staticmethod
+        def cf_help_timeset():
+            from LT_Dic import cf_help_timeset_text
+            tkinter.messagebox.showinfo(title='Movefile', message=cf_help_timeset_text[lang_num])
 
-    def sf_help():
-        from LT_Dic import sf_help_text
-        tkinter.messagebox.showinfo(title='Movefile', message=sf_help_text)
+        @staticmethod
+        def sf_help():
+            from LT_Dic import sf_help_text
+            tkinter.messagebox.showinfo(title='Movefile', message=sf_help_text[lang_num])
 
-    def cf_is_num():
-        try:
-            float(cf_entry_time.get())
-        except:
-            return False
-        else:
-            return True
-
-    def cf_has_blank():
-        blank = 0
-        if len(cf_entry_old_path.get()) == 0:
-            blank += 1
-        elif len(cf_entry_new_path.get()) == 0:
-            blank += 1
-        elif len(cf_entry_time.get()) == 0:
-            blank += 1
-        elif cf_entry_mode.get() == 0:
-            blank += 1
-        if blank == 0:
-            return False
-        else:
-            return True
-
-    def cf_path_error():
-        try:
-            os.listdir(cf_entry_old_path.get())
-            os.listdir(cf_entry_new_path.get())
-            if cf_entry_old_path.get() == cf_entry_new_path.get():
-                return 'same_path_error'
-        except:
-            return True
-        else:
-            return False
-
-    def sf_has_blank():
-        blank = 0
-        if sf_place_mode.get() == 'movable' and len(sf_entry_select_removable.get()) == 0:
-            blank += 1
-        elif sf_place_mode.get() == 'local' and len(sf_entry_path_1.get()) == 0:
-            blank += 1
-        elif len(sf_entry_path_2.get()) == 0:
-            blank += 1
-        if blank == 0:
-            return False
-        else:
-            return True
-
-    def sf_path_error():
-        try:
-            if sf_place_mode.get() == 'movable':
-                os.listdir(sf_entry_select_removable.get().split(':')[0][-1] + ':')
+        @staticmethod
+        def cf_is_num():
+            try:
+                float(cf_entry_time.get())
+            except:
+                return False
             else:
-                os.listdir(sf_entry_path_1.get())
-            os.listdir(sf_entry_path_2.get())
-            if sf_entry_path_1.get() == sf_entry_path_2.get():
-                return 'same_path_error'
-        except:
-            return True
-        else:
-            return False
+                return True
 
-    def cf_has_error():
-        if not cf_is_num():
-            tkinter.messagebox.showwarning('Movefile', r_label_text_dic['num_warning'][lang_num])
-            return True
-        elif cf_has_blank():
-            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
-            return True
-        elif cf_path_error() == 'same_path_error':
-            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['same_path_warning'][lang_num])
-            return True
-        elif cf_path_error():
-            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
-            return True
-        else:
-            return False
+        @staticmethod
+        def cf_has_blank():
+            blank = 0
+            if len(cf_entry_old_path.get()) == 0:
+                blank += 1
+            elif len(cf_entry_new_path.get()) == 0:
+                blank += 1
+            elif len(cf_entry_time.get()) == 0:
+                blank += 1
+            elif cf_entry_mode.get() == 0:
+                blank += 1
+            if blank == 0:
+                return False
+            else:
+                return True
 
-    def sf_has_error():
-        if sf_has_blank():
-            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
-            return True
-        elif sf_path_error() == 'same_path_error':
-            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['same_path_warning'][lang_num])
-            return True
-        elif sf_path_error():
-            tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
-            return True
-        else:
-            return False
+        @staticmethod
+        def cf_path_error():
+            try:
+                os.listdir(cf_entry_old_path.get())
+                os.listdir(cf_entry_new_path.get())
+                if cf_entry_old_path.get() == cf_entry_new_path.get():
+                    return 'same_path_error'
+            except:
+                return True
+            else:
+                return False
+
+        @staticmethod
+        def sf_has_blank():
+            blank = 0
+            if sf_place_mode.get() == 'movable' and len(sf_entry_select_removable.get()) == 0:
+                blank += 1
+            elif sf_place_mode.get() == 'local' and len(sf_entry_path_1.get()) == 0:
+                blank += 1
+            elif len(sf_entry_path_2.get()) == 0:
+                blank += 1
+            if blank == 0:
+                return False
+            else:
+                return True
+
+        @staticmethod
+        def sf_path_error():
+            try:
+                if sf_place_mode.get() == 'movable':
+                    os.listdir(sf_entry_select_removable.get().split(':')[0][-1] + ':')
+                else:
+                    os.listdir(sf_entry_path_1.get())
+                os.listdir(sf_entry_path_2.get())
+                if sf_entry_path_1.get() == sf_entry_path_2.get():
+                    return 'same_path_error'
+            except:
+                return True
+            else:
+                return False
+
+        @staticmethod
+        def cf_has_error():
+            if not ZFunc.cf_is_num():
+                tkinter.messagebox.showwarning('Movefile', r_label_text_dic['num_warning'][lang_num])
+                return True
+            elif ZFunc.cf_has_blank():
+                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
+                return True
+            elif ZFunc.cf_path_error() == 'same_path_error':
+                tkinter.messagebox.showwarning(title='Movefile',
+                                               message=r_label_text_dic['same_path_warning'][lang_num])
+                return True
+            elif ZFunc.cf_path_error():
+                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
+                return True
+            else:
+                return False
+
+        @staticmethod
+        def sf_has_error():
+            if ZFunc.sf_has_blank():
+                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
+                return True
+            elif ZFunc.sf_path_error() == 'same_path_error':
+                tkinter.messagebox.showwarning(title='Movefile',
+                                               message=r_label_text_dic['same_path_warning'][lang_num])
+                return True
+            elif ZFunc.sf_path_error():
+                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
+                return True
+            else:
+                return False
 
     def ask_save_name():
         global ask_name_window
@@ -1212,10 +1253,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
         mode = cf_or_sf.get()
         if mode == 'cf':
-            has_error = cf_has_error()
+            has_error = ZFunc.cf_has_error()
             pri_save_names = cf_save_names
         elif mode == 'sf':
-            has_error = sf_has_error()
+            has_error = ZFunc.sf_has_error()
             pri_save_names = sf_save_names
         else:
             has_error = True
@@ -1295,7 +1336,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_place_mode.set(place_mode)
             sf_change_place_mode(place_mode)
             if not cf_entry_old_path.get():
-                cf_entry_old_path.insert(0, get_desktop())
+                cf_entry_old_path.insert(0, desktop_path)
             cf_refresh_whitelist_entry()
             if place_mode == 'local':
                 sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
@@ -1443,11 +1484,11 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         tkinter.messagebox.showinfo(title='Movefile', message=r_label_text_dic['change_language'][lang_num])
 
     def continue_going():
-        if cf_or_sf.get() == 'cf' and not cf_has_error():
+        if cf_or_sf.get() == 'cf' and not ZFunc.cf_has_error():
             cf_operator = threading.Thread(target=lambda: cf_operate_from_root(), daemon=True)
             cf_operator.start()
             root.withdraw()
-        elif cf_or_sf.get() == 'sf' and not sf_has_error():
+        elif cf_or_sf.get() == 'sf' and not ZFunc.sf_has_error():
             sf_operator = threading.Thread(target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
             root.withdraw()
@@ -1492,14 +1533,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                   command=lambda: change_language('English'))
 
     help_menu = tk.Menu(main_menu, tearoff=False)
-    help_menu.add_command(label=about_menu_text.get(), command=help_main)
-    help_menu.add_command(label=precautions_menu_text.get(), command=help_before_use)
+    help_menu.add_command(label=about_menu_text.get(), command=ZFunc.help_main)
+    help_menu.add_command(label=precautions_menu_text.get(), command=ZFunc.help_before_use)
     help_menu.add_separator()
-    help_menu.add_command(label='Cleanfile', command=cf_help)
-    help_menu.add_command(label=cf_keep_menu_text.get(), command=cf_help_keep)
-    help_menu.add_command(label=cf_expire_menu_text.get(), command=cf_help_timeset)
+    help_menu.add_command(label='Cleanfile', command=ZFunc.cf_help)
+    help_menu.add_command(label=cf_keep_menu_text.get(), command=ZFunc.cf_help_keep)
+    help_menu.add_command(label=cf_expire_menu_text.get(), command=ZFunc.cf_help_timeset)
     help_menu.add_separator()
-    help_menu.add_command(label='Syncfile', command=sf_help)
+    help_menu.add_command(label='Syncfile', command=ZFunc.sf_help)
 
     main_menu.add_cascade(label=file_menu_text.get(), menu=file_menu)
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
@@ -1547,14 +1588,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             time.sleep(1)
 
     if first_ask:
-        cf_entry_old_path.insert(0, get_desktop())
+        cf_entry_old_path.insert(0, desktop_path)
         cf_entry_time.insert(0, '0')
         cf_entry_mode.set(1)
         cf_refresh_whitelist_entry()
         cf_or_sf.set('cf')
         change_active_mode('cf')
-        help_main()
-        help_before_use()
+        ZFunc.help_main()
+        ZFunc.help_before_use()
     elif muti_ask:
         read_saving(ask_path=False)
         cf_refresh_whitelist_entry()
@@ -1576,22 +1617,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def mainprocess():
-    global startup_root
-    set_data_path()
-    startup_root = threading.Thread(target=check_window, daemon=True)
-    startup_root.start()
-    load_icon()
-    asktime_plus()
-
-    first_visit = False
-    if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
-        first_visit = True
-
-    mf = configparser.ConfigParser()
-    mf.read(mf_data_path + r"Movefile_data.ini")
-
-    boot_time = get_boot_time()
-    ask_time_today = mf.getint("General", "asktime_today")
+    Initialization()
     if first_visit:
         make_ui(first_ask=True)
     elif ask_time_today > 1:

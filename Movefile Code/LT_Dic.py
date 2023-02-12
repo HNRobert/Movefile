@@ -228,13 +228,24 @@ the files modified within two days before the operation date will not be deleted
 If you do not want to use this method, 
 set the expiration time to "0" ''']
 
-sf_help_text = '''Syncfile
+sf_help_text = ['''Syncfile
 同步文件工具
 
 这是一个用来同步文件两个路径下文件的程序，
 也可以将U盘数据与电脑同步
 
-包括 可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择，
+包括 可移动磁盘与本地磁盘 和 本地磁盘间同步 两种模式选择，
 选择单向与双向同步模式，保留最新更改文件
 开机自动运行存档
-自动检测选定的可移动磁盘接入并自动同步等功能'''
+自动检测选定的可移动磁盘接入并自动同步等功能''', '''Syncfile
+Synchronize File Tool
+
+This is a program used to synchronize files in two paths,
+You can also synchronize USB flash disk data with the computer
+
+It includes two modes of synchronization: 
+sync between removable disk and local disk or between local disks,
+also select one-way or two-way synchronization mode, 
+auto run archive after startup, keep the latest changed files,
+Automatically detect the access of recorded removable disks and automatically synchronize them
+and so on''']
