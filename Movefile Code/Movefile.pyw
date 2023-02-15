@@ -45,6 +45,7 @@ class Initialization:
         self.set_data_path()
         startup_root = threading.Thread(target=self.check_window, daemon=True)
         startup_root.start()
+        self.get_desktop()
         self.load_icon()
         self.asktime_plus()
 
@@ -556,12 +557,15 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         sync_bar.update()
         tasks = get_task()
         main_progress_bar['maximum'] = len(tasks)
-        main_progress_label['text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
+        main_progress_label[
+            'text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
         for task in tasks:
-            current_file_label['text'] = sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1]
+            current_file_label['text'] = sf_label_text_dic["current_file_label1"][language_number] + \
+                                         task[0].split('\\')[-1]
             out_data += sf_sync_file(task[0], task[1], task[2], task[3])
             main_progress_bar['value'] += 1
-            main_progress_label['text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
+            main_progress_label[
+                'text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
             sync_bar.update()
         sync_bar.withdraw()
         path_name_1 = path1.split('\\')[-1]
@@ -696,7 +700,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if disk_list:
             sf_entry_select_removable['values'] = disk_list
         else:
-            sf_entry_select_removable['values'] = ['未检测到可移动磁盘']
+            sf_entry_select_removable['values'] = [sf_no_disk_text.get()]
             if none_disk:
                 sf_entry_select_removable.delete(0, 'end')
 
@@ -714,21 +718,34 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             elif place == '2':
                 path_2.set(path_)
 
-    def sf_change_place_mode(mode):
-        if mode == 'movable':
-            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][0])
-            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][0])
-            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][0])
-            sf_browse_path_1_button.grid_forget()
-            sf_entry_select_removable.grid(row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
-        else:
-            sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][1])
-            sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][1])
-            sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][1])
-            sf_browse_path_1_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
-            sf_entry_select_removable.grid_forget()
+    class Place:
+        def __init__(self, mode=None, sf_place=None):
+            label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
+            blank.grid(row=0, column=1, padx=321, pady=5, sticky='W')
+            option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
+            option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
+            if mode == 'cf':
+                self.cf_state()
+            elif mode == 'sf':
+                self.sf_state(sf_place)
+            self.judge_button_pix()
 
-    def change_active_mode(mode):
+        @staticmethod
+        def sf_change_place_mode(mode):
+            if mode == 'movable':
+                sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][0])
+                sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][0])
+                sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][0])
+                sf_browse_path_1_button.grid_forget()
+                sf_entry_select_removable.grid(row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
+            else:
+                sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][1])
+                sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][1])
+                sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][1])
+                sf_browse_path_1_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
+                sf_entry_select_removable.grid_forget()
+
+        @staticmethod
         def judge_button_pix():
             if lang_num == 0:
                 save_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
@@ -739,6 +756,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 continue_button.grid(row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
                 cf_option_mode_2.grid(row=3, column=1, padx=210, ipadx=0, sticky='W')
 
+        @staticmethod
         def cf_state():
             sf_label_place_mode.grid_forget()
             sf_option_mode_usb.grid_forget()
@@ -754,9 +772,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_option_mode_single.grid_forget()
             sf_label_mode.grid_forget()
             sf_label_lock_folder.grid_forget()
-            sf_entry_lock_files.grid_forget()
-            sf_label_match_directly.grid_forget()
-            sf_entry_match_directly.grid_forget()
+            sf_entry_lock_folder.grid_forget()
+            sf_label_lock_file.grid_forget()
+            sf_entry_lock_file.grid_forget()
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
 
@@ -781,7 +799,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_label_time.grid(row=6, column=0, sticky='E')
             cf_label_start_options.grid(row=7, column=0, sticky='E')
 
-        def sf_state():
+        @staticmethod
+        def sf_state(placemode=None):
             cf_entry_old_path.grid_forget()
             cf_browse_old_path_button.grid_forget()
             cf_entry_new_path.grid_forget()
@@ -803,10 +822,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_label_time.grid_forget()
             cf_label_start_options.grid_forget()
 
-            if sf_place_mode.get() == 'movable':
-                sf_change_place_mode('movable')
+            if placemode:
+                Place.sf_change_place_mode(placemode)
+            elif sf_place_mode.get() == 'movable':
+                Place.sf_change_place_mode('movable')
             else:
-                sf_change_place_mode('local')
+                Place.sf_change_place_mode('local')
 
             sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
             sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
@@ -820,20 +841,11 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_entry_path_2.grid(row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             sf_browse_path_2_button.grid(row=4, column=1, ipadx=3, sticky='E', padx=10)
             sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
-            sf_entry_lock_files.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-            sf_label_match_directly.grid(row=6, column=0, pady=5, sticky='E')
-            sf_entry_match_directly.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            sf_entry_lock_folder.grid(row=5, column=1, padx=10, pady=5, ipadx=140, sticky='W')
+            sf_label_lock_file.grid(row=6, column=0, pady=5, sticky='E')
+            sf_entry_lock_file.grid(row=6, column=1, padx=10, pady=5, ipadx=140, sticky='W')
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
-
-        label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
-        option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
-        option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
-        if mode == 'cf':
-            cf_state()
-        else:
-            sf_state()
-        judge_button_pix()
 
     def set_language(lang_number):
         label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
@@ -859,9 +871,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_number][0])
         sf_browse_path_1_button_text.set(r_label_text_dic['sf_browse_path_1_button'][lang_number])
         sf_browse_path_2_button_text.set(r_label_text_dic['sf_browse_path_2_button'][lang_number])
+        sf_no_disk_text.set(r_label_text_dic['sf_no_disk'][lang_number])
         sf_label_mode_text.set(r_label_text_dic['sf_label_mode'][lang_number])
         sf_option_mode_double_text.set(r_label_text_dic['sf_option_mode_double'][lang_number])
         sf_option_mode_single_text.set(r_label_text_dic['sf_option_mode_single'][lang_number])
+        sf_label_lock_folder_text.set(r_label_text_dic['sf_label_lock_folder'][lang_number])
+        sf_label_lock_file_text.set(r_label_text_dic['sf_label_lock_file'][lang_number])
         sf_label_autorun_text.set(r_label_text_dic['sf_label_autorun'][lang_number])
         sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_number])
         save_button_text.set(r_label_text_dic['save_button'][lang_number])
@@ -922,9 +937,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     sf_label_path_2_text = tk.StringVar()
     sf_browse_path_1_button_text = tk.StringVar()
     sf_browse_path_2_button_text = tk.StringVar()
+    sf_no_disk_text = tk.StringVar()
     sf_label_mode_text = tk.StringVar()
     sf_option_mode_double_text = tk.StringVar()
     sf_option_mode_single_text = tk.StringVar()
+    sf_label_lock_folder_text = tk.StringVar()
+    sf_label_lock_file_text = tk.StringVar()
     sf_label_autorun_text = tk.StringVar()
     sf_option_autorun_text = tk.StringVar()
 
@@ -953,10 +971,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     cf_or_sf = tk.StringVar()
     option_is_cleanfile = ttk.Radiobutton(root, textvariable=option_is_cleanfile_text, variable=cf_or_sf,
                                           value='cf',
-                                          command=lambda: change_active_mode(cf_or_sf.get()))
+                                          command=lambda: Place(cf_or_sf.get()))
     option_is_syncfile = ttk.Radiobutton(root, textvariable=option_is_syncfile_text, variable=cf_or_sf,
                                          value='sf',
-                                         command=lambda: change_active_mode(cf_or_sf.get()))
+                                         command=lambda: Place(cf_or_sf.get()))
+
+    blank = ttk.Label(root, text='')
 
     cf_label_old_path = ttk.Label(root, textvariable=cf_label_old_path_text)
     cf_entry_old_path = ttk.Entry(root, textvariable=oldpath)
@@ -1002,11 +1022,11 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     sf_option_mode_usb = ttk.Radiobutton(root, textvariable=sf_option_mode_usb_text,
                                          variable=sf_place_mode,
                                          value='movable',
-                                         command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
+                                         command=lambda: Place('sf', sf_place=sf_place_mode.get()))
     sf_option_mode_local = ttk.Radiobutton(root, textvariable=sf_option_mode_local_text,
                                            variable=sf_place_mode,
                                            value='local',
-                                           command=lambda: sf_change_place_mode(mode=sf_place_mode.get()))
+                                           command=lambda: Place('sf', sf_place=sf_place_mode.get()))
     sf_place_mode.set('movable')
 
     sf_label_path_1 = ttk.Label(root, textvariable=sf_label_path_1_text)
@@ -1031,13 +1051,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                             variable=sf_entry_mode,
                                             value='single')
 
-    sf_label_lock_folder = ttk.Label(root, text='')
-    sf_entry_lock_files = ttk.Entry(root)
-    sf_entry_lock_files.config(state=tk.DISABLED)
+    sf_label_lock_folder = ttk.Label(root, textvariable=sf_label_lock_folder_text)
+    sf_entry_lock_folder = ttk.Entry(root)
+    sf_entry_lock_folder.config(state=tk.DISABLED)
 
-    sf_label_match_directly = ttk.Label(root, text='')
-    sf_entry_match_directly = ttk.Entry(root)
-    sf_entry_match_directly.config(state=tk.DISABLED)
+    sf_label_lock_file = ttk.Label(root, textvariable=sf_label_lock_file_text)
+    sf_entry_lock_file = ttk.Entry(root)
+    sf_entry_lock_file.config(state=tk.DISABLED)
 
     sf_label_autorun = ttk.Label(root, textvariable=sf_label_autorun_text)
     sf_entry_is_autorun = tk.BooleanVar()
@@ -1088,16 +1108,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
         @staticmethod
         def cf_has_blank():
-            blank = 0
+            blank_num = 0
             if len(cf_entry_old_path.get()) == 0:
-                blank += 1
+                blank_num += 1
             elif len(cf_entry_new_path.get()) == 0:
-                blank += 1
+                blank_num += 1
             elif len(cf_entry_time.get()) == 0:
-                blank += 1
+                blank_num += 1
             elif cf_entry_mode.get() == 0:
-                blank += 1
-            if blank == 0:
+                blank_num += 1
+            if blank_num == 0:
                 return False
             else:
                 return True
@@ -1116,14 +1136,14 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
         @staticmethod
         def sf_has_blank():
-            blank = 0
+            blank_entry_num = 0
             if sf_place_mode.get() == 'movable' and len(sf_entry_select_removable.get()) == 0:
-                blank += 1
+                blank_entry_num += 1
             elif sf_place_mode.get() == 'local' and len(sf_entry_path_1.get()) == 0:
-                blank += 1
+                blank_entry_num += 1
             elif len(sf_entry_path_2.get()) == 0:
-                blank += 1
-            if blank == 0:
+                blank_entry_num += 1
+            if blank_entry_num == 0:
                 return False
             else:
                 return True
@@ -1235,7 +1255,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                 str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
                 sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
                 sf_data.set(save_name, 'mode', sf_entry_mode.get())
-                sf_data.set(save_name, 'lock_path', sf_entry_lock_files.get())
+                sf_data.set(save_name, 'lock_path', sf_entry_lock_folder.get())
                 sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
                 sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
@@ -1322,7 +1342,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # 设置判断模式
             cf_is_autorun.set(cf_file.get(setting_name, 'autorun'))
             cf_is_folder_move.set(cf_file.get(setting_name, 'move_folder'))
-            change_active_mode('cf')
+            Place('cf')
             cf_or_sf.set('cf')
             if data_error('cf', setting_name):
                 tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
@@ -1334,7 +1354,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 sf_entry_path_2.delete(0, 'end')
             place_mode = sf_file.get(setting_name, 'place_mode')
             sf_place_mode.set(place_mode)
-            sf_change_place_mode(place_mode)
             if not cf_entry_old_path.get():
                 cf_entry_old_path.insert(0, desktop_path)
             cf_refresh_whitelist_entry()
@@ -1353,7 +1372,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
             sf_entry_is_autorun.set(sf_file.get(setting_name, 'autorun'))
-            change_active_mode('sf')
+            Place('sf', place_mode)
             cf_or_sf.set('sf')
             if data_error('sf', setting_name):
                 tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
@@ -1371,7 +1390,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 else:
                     new_values = []
                 if read_name_entry.get() not in new_values:
-                    read_name_entry.delete(0, 'end')
+                    read_name_entry.current(0)
             except:
                 pass
 
@@ -1405,7 +1424,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if ask_path:
             ask_saving_root = tk.Tk()
             ask_saving_root.iconbitmap(mf_data_path + r'Movefile.ico')
-            ask_saving_root.geometry('675x35')
+            if lang_num == 0:
+                ask_saving_root.geometry('680x35')
+            elif lang_num == 1:
+                ask_saving_root.geometry('700x35')
             ask_saving_root.title(r_label_text_dic['readfile_menu'][lang_num])
             last_edit_mode = ''
             last_edit_name = ''
@@ -1434,7 +1456,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sure_name_bottom = ttk.Button(ask_saving_root, text=r_label_text_dic['sure_name_bottom'][lang_num],
                                           command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
-            read_name_entry.bind('<Button-1>', lambda event: refresh_saving())
+            ask_saving_root.bind('<Enter>', lambda event: refresh_saving())
             ask_saving_root.protocol('WM_DELETE_WINDOW', exit_asr)
             ask_saving_root.mainloop()
         elif mode == 'cf':
@@ -1479,8 +1501,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         general_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
-        sf_change_place_mode(sf_place_mode.get())
-        change_active_mode(cf_or_sf.get())
+        Place(cf_or_sf.get(), sf_place_mode.get())
         tkinter.messagebox.showinfo(title='Movefile', message=r_label_text_dic['change_language'][lang_num])
 
     def continue_going():
@@ -1593,7 +1614,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         cf_entry_mode.set(1)
         cf_refresh_whitelist_entry()
         cf_or_sf.set('cf')
-        change_active_mode('cf')
+        Place('cf')
         ZFunc.help_main()
         ZFunc.help_before_use()
     elif muti_ask:
@@ -1602,7 +1623,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         continue_button.config(state=tk.NORMAL)
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
-            change_active_mode('cf')
+            Place('cf')
         if startup_ask:
             root.withdraw()
 
