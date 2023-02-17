@@ -718,13 +718,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             elif place == '2':
                 path_2.set(path_)
 
-    def choose_lockitems(mode, ori_contents):
-        folder_path_ = tkinter.filedialog.askdirectory()
-        if folder_path_ != '' and folder_path_ not in ori_contents:
-            if mode == 'lockfolder':
-                lockfolder_path.set(lockfolder_path.get() + ',' + folder_path_)
-            elif mode == 'lockfile':
-                lockfile_path.set(lockfile_path.get() + ',' + folder_path_)
+    def choose_lockitems(mode):
+        if mode == 'lockfolder':
+            folder_path_ = tkinter.filedialog.askdirectory()
+            if folder_path_ != '':
+                sf_entry_lock_folder.values.append(folder_path_)
+        elif mode == 'lockfile':
+            folder_path_ = tkinter.filedialog.askopenfilenames()
+            if folder_path_ != '':
+                for file in folder_path_:
+                    sf_entry_lock_file.values.append(file)
 
     def set_language(lang_number):
         label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
@@ -755,7 +758,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         sf_option_mode_double_text.set(r_label_text_dic['sf_option_mode_double'][lang_number])
         sf_option_mode_single_text.set(r_label_text_dic['sf_option_mode_single'][lang_number])
         sf_label_lock_folder_text.set(r_label_text_dic['sf_label_lock_folder'][lang_number])
+        sf_browse_lockfolder_button_text.set(r_label_text_dic['sf_browse_lockfolder_button'][lang_number])
         sf_label_lock_file_text.set(r_label_text_dic['sf_label_lock_file'][lang_number])
+        sf_browse_lockfile_button_text.set(r_label_text_dic['sf_browse_lockfile_button'][lang_number])
         sf_label_autorun_text.set(r_label_text_dic['sf_label_autorun'][lang_number])
         sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_number])
         save_button_text.set(r_label_text_dic['save_button'][lang_number])
@@ -830,9 +835,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_option_mode_single.grid_forget()
             sf_label_mode.grid_forget()
             sf_label_lock_folder.grid_forget()
+            sf_entry_frame_lock_folder.grid_forget()
             sf_entry_lock_folder.grid_forget()
+            sf_browse_lockfolder_button.grid_forget()
             sf_label_lock_file.grid_forget()
+            sf_entry_frame_lock_file.grid_forget()
             sf_entry_lock_file.grid_forget()
+            sf_browse_lockfile_button.grid_forget()
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
 
@@ -843,10 +852,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             cf_option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
             cf_option_mode_2.grid(row=3, column=1, padx=180, ipadx=0, sticky='W')
             cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
-            cf_entry_keep_files.grid(row=4, column=1, ipadx=240, pady=0, sticky='W')
-            cf_entry_keep_formats.grid(row=5, column=1, ipadx=240, pady=0, sticky='W')
-            cf_entry_frame_keep_files.grid(row=4, column=1, ipadx=5, sticky='E')
-            cf_entry_frame_keep_formats.grid(row=5, column=1, pady=5, ipadx=5, sticky='E')
+            cf_entry_keep_files.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            cf_entry_keep_formats.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            cf_entry_frame_keep_files.grid(row=4, column=1, sticky='W')
+            cf_entry_frame_keep_formats.grid(row=5, column=1, sticky='W')
             cf_entry_time.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
             cf_option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
             cf_label_old_path.grid(row=1, column=0, pady=5, sticky='E')
@@ -888,7 +897,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 Place.sf_change_place_mode('local')
 
             sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
-            sf_option_mode_usb.grid(row=1, column=1, padx=10, sticky='W')
+            sf_option_mode_usb.grid(row=1, column=1, padx=10, pady=5, sticky='W')
             sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
             sf_option_mode_double.grid(row=2, column=1, padx=10, ipadx=0, sticky='W')
             sf_option_mode_single.grid(row=2, column=1, padx=200, ipadx=0, sticky='W')
@@ -899,9 +908,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_entry_path_2.grid(row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             sf_browse_path_2_button.grid(row=4, column=1, ipadx=3, sticky='E', padx=10)
             sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
-            sf_entry_lock_folder.grid(row=5, column=1, padx=10, pady=5, ipadx=140, sticky='W')
+            sf_entry_frame_lock_folder.grid(row=5, column=1, sticky='W')
+            sf_entry_lock_folder.grid(row=5, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_browse_lockfolder_button.grid(row=5, column=1, padx=10, sticky='E', ipadx=3)
             sf_label_lock_file.grid(row=6, column=0, pady=5, sticky='E')
-            sf_entry_lock_file.grid(row=6, column=1, padx=10, pady=5, ipadx=140, sticky='W')
+            sf_entry_frame_lock_file.grid(row=6, column=1, sticky='W')
+            sf_entry_lock_file.grid(row=6, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_browse_lockfile_button.grid(row=6, column=1, padx=10, sticky='E', ipadx=3)
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
@@ -912,7 +925,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     root.title('Movefile Setting')
-    root.geometry("800x285")
+    root.geometry("800x287")
     root.resizable(False, False)
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
@@ -922,8 +935,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     newpath = tk.StringVar()
     path_1 = tk.StringVar()
     path_2 = tk.StringVar()
-    lockfolder_path = tk.StringVar()
-    lockfile_path = tk.StringVar()
     label_choose_state_text = tk.StringVar()
     option_is_cleanfile_text = tk.StringVar()
     option_is_syncfile_text = tk.StringVar()
@@ -1065,14 +1076,15 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     sf_label_lock_folder = ttk.Label(root, textvariable=sf_label_lock_folder_text)
     sf_entry_frame_lock_folder = tk.Frame(root)
-    sf_entry_lock_folder = Combopicker(sf_entry_frame_lock_folder, values='', )
-    sf_entry_lock_folder.config(state=tk.DISABLED)
+    sf_entry_lock_folder = Combopicker(master=sf_entry_frame_lock_folder, values=['全选'], frameheight=90)
     sf_browse_lockfolder_button = ttk.Button(root, textvariable=sf_browse_lockfolder_button_text,
-                                             command=lambda: choose_lockitems('lockfolder', sf_entry_lock_folder.get()))
+                                             command=lambda: choose_lockitems('lockfolder'))
 
     sf_label_lock_file = ttk.Label(root, textvariable=sf_label_lock_file_text)
-    sf_entry_lock_file = ttk.Entry(root)
-    sf_entry_lock_file.config(state=tk.DISABLED)
+    sf_entry_frame_lock_file = tk.Frame(root)
+    sf_entry_lock_file = Combopicker(master=sf_entry_frame_lock_file, values=['全选'], frameheight=50)
+    sf_browse_lockfile_button = ttk.Button(root, textvariable=sf_browse_lockfile_button_text,
+                                             command=lambda: choose_lockitems('lockfile'))
 
     sf_label_autorun = ttk.Label(root, textvariable=sf_label_autorun_text)
     sf_entry_is_autorun = tk.BooleanVar()

@@ -1,6 +1,5 @@
 vision = 'v2.1.0'
 update_time = '2023/1/30'
-
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取配置文件', 'Read config'],
@@ -45,7 +44,9 @@ r_label_text_dic = {
     'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Two-way Sync'],
     'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'One-way Sync'],
     'sf_label_lock_folder': ['锁定文件夹：', 'Reserved Folders：'],
+    'sf_browse_lockfolder_button': ['添加文件夹', 'Add Folder'],
     'sf_label_lock_file': ['锁定文件：', 'Reserved Files：'],
+    'sf_browse_lockfile_button': ['添加文件', 'Add Files'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
     'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动运行本存档(若保存)'], ['Automatically run when this Removable Volume inserted', 'Automatically run this config after Startup(if saved)']],
     'save_button': ['保存', 'Save'],
