@@ -48,7 +48,9 @@ r_label_text_dic = {
     'sf_label_lock_file': ['锁定文件：', 'Reserved Files：'],
     'sf_browse_lockfile_button': ['添加文件', 'Add Files'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
-    'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动运行本存档(若保存)'], ['Automatically run when this Removable Volume inserted', 'Automatically run this config after Startup(if saved)']],
+    'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动运行本存档(若保存)'],
+                          ['Automatically run when this Removable Volume inserted',
+                           'Automatically run this config after Startup(if saved)']],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行当前配置', 'Run current configuration'],
 
