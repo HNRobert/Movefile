@@ -519,12 +519,12 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         task_number = 0
         for pass_folder in pass_folder_paths.split(','):
             if pass_folder[:len(path1)] == path1:
-                pass_folder_rpaths.append(pass_folder[len(path1)::].replace('/', '\\'))
+                pass_folder_rpaths.append(pass_folder[len(path1)::])
             else:
-                pass_folder_rpaths.append(pass_folder[len(path2)::].replace('/', '\\'))
+                pass_folder_rpaths.append(pass_folder[len(path2)::])
         for file1 in all_files_1:
             if any(pfolder == file1[1:len(pfolder)+1] for pfolder in pass_folder_rpaths)\
-                    or any(file1 == pfile.replace('/', '\\')[-len(file1):] for pfile in pass_item_rpath.split(',')):
+                    or any(file1 == pfile[-len(file1):] for pfile in pass_item_rpath.split(',')):
                 continue
             filename = file1.split('\\')[-1]
             file1_path = path1 + file1
@@ -541,26 +541,26 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             else:
                 task_number += 1
                 main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
-                sync_bar.update()
+                sync_bar.update_idletasks()
                 sync_tasks.append([file1_path, path2 + file1, True, single_sync])
         if not single_sync:
             for file2 in all_files_2:
                 if any(pfolder == file2[1:len(pfolder)+1] for pfolder in pass_folder_rpaths)\
-                        or any(file2 == pfile.replace('/', '\\')[-len(file2):] for pfile in pass_item_rpath.split(',')):
+                        or any(file2 == pfile[-len(file2):] for pfile in pass_item_rpath.split(',')):
                     continue
                 filename = file2.split('\\')[-1]
                 file2_path = path2 + file2
                 if file2 not in all_files_1:
                     task_number += 1
                     main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
-                    sync_bar.update()
+                    sync_bar.update_idletasks()
                     sync_tasks.append([file2_path, path1 + file2, True, single_sync])
         return sync_tasks
 
     def run_sync_tasks():
         out_data = ''
         main_progress_bar['value'] = 0
-        sync_bar.update()
+        sync_bar.update_idletasks()
         tasks = get_task()
         main_progress_bar['maximum'] = len(tasks)
         main_progress_label[
@@ -572,7 +572,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             main_progress_bar['value'] += 1
             main_progress_label[
                 'text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
-            sync_bar.update()
+            sync_bar.update_idletasks()
         sync_bar.withdraw()
         path_name_1 = path1.split('\\')[-1]
         if area_name:
@@ -731,12 +731,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if mode == 'lockfolder':
             folder_path_ = tkinter.filedialog.askdirectory()
             if folder_path_ != '':
-                sf_entry_lock_folder.values.append(folder_path_)
+                sf_entry_lock_folder.values.append(folder_path_.replace('/', '\\'))
         elif mode == 'lockfile':
-            folder_path_ = tkinter.filedialog.askopenfilenames()
-            if folder_path_ != '':
-                for file in folder_path_:
-                    sf_entry_lock_file.values.append(file)
+            file_path_ = tkinter.filedialog.askopenfilenames()
+            if file_path_ != '':
+                for file in file_path_:
+                    sf_entry_lock_file.values.append(file.replace('/', '\\'))
 
     def set_language(lang_number):
         label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
@@ -938,7 +938,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.resizable(False, False)
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
-    root.update()
+    root.update_idletasks()
 
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
@@ -1349,6 +1349,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num],
                                           command=lambda: sure_save())
             sure_name_button.grid(row=0, column=2, sticky='W')
+            ask_name_window.bind('<Return>', lambda event: sure_save())
             ask_name_window.protocol('WM_DELETE_WINDOW', exit_asn)
             ask_name_window.mainloop()
 
@@ -1504,6 +1505,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                           command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
             ask_saving_root.bind('<Enter>', lambda event: refresh_saving())
+            ask_saving_root.bind('<Return>', lambda event: sure_open())
             ask_saving_root.protocol('WM_DELETE_WINDOW', exit_asr)
             ask_saving_root.mainloop()
         elif mode == 'cf':
@@ -1621,11 +1623,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     # 托盘菜单
     menu = (
-        MenuItem(taskbar_setting_text.get(), lambda: root.deiconify(), default=True), Menu.SEPARATOR,
-        MenuItem(taskbar_exit_text.get(), lambda: exit_program()))
+        MenuItem(taskbar_setting_text.get(), lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
+        MenuItem(taskbar_exit_text.get(), lambda event: exit_program()))
     image = Image.open(mf_data_path + 'Movefile.ico')
     task_menu = pystray.Icon("icon", image, "Movefile", menu)
-    # 重新定义点击关闭按钮的处理
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
     root.bind("<Control-O>", lambda event: read_saving(ask_path=True))
@@ -1633,6 +1634,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.bind("<Control-S>", lambda event: ask_save_name())
     root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
     root.protocol('WM_DELETE_WINDOW', root.withdraw)
+    # 重新定义点击关闭按钮的处理
 
     def get_movable_autorun_ids():
         sf_dat = configparser.ConfigParser()
