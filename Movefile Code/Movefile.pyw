@@ -363,7 +363,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             file_end = '.' + file.split('.')[-1]
             if m == file_end:
                 pf = True
-        if file == ('Movefile ' + vision + '.exe' or new__path.split('\\')[-1]):
+        if file == 'Movefile ' + vision + '.exe' or file == new__path.split('\\')[-1]:
             continue
         is_folder = os.path.isdir(file)
         now = int(time.time())  # 当前时间
@@ -492,7 +492,7 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_item_rpath='', pass_folder_rpath=''):
+def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_item_rpath='', pass_folder_paths=''):
     from LT_Dic import sf_label_text_dic
 
     def sf_show_notice(path_1, path_2, sf_errorname):
@@ -515,10 +515,16 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         all_files_1 = sf_scan_files(path1)
         all_files_2 = sf_scan_files(path2)
         sync_tasks = []
+        pass_folder_rpaths = []
         task_number = 0
+        for pass_folder in pass_folder_paths.split(','):
+            if pass_folder[:len(path1)] == path1:
+                pass_folder_rpaths.append(pass_folder[len(path1)::].replace('/', '\\'))
+            else:
+                pass_folder_rpaths.append(pass_folder[len(path2)::].replace('/', '\\'))
         for file1 in all_files_1:
-            if any((r_folder in file1) for r_folder in pass_folder_rpath.split(',')) or any(
-                    file1 == r_file for r_file in pass_item_rpath.split(',')):
+            if any(pfolder == file1[1:len(pfolder)+1] for pfolder in pass_folder_rpaths)\
+                    or any(file1 == pfile.replace('/', '\\')[-len(file1):] for pfile in pass_item_rpath.split(',')):
                 continue
             filename = file1.split('\\')[-1]
             file1_path = path1 + file1
@@ -539,8 +545,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 sync_tasks.append([file1_path, path2 + file1, True, single_sync])
         if not single_sync:
             for file2 in all_files_2:
-                if any((r_folder in file2) for r_folder in pass_folder_rpath.split(',')) or any(
-                        file2 == r_file for r_file in pass_item_rpath.split(',')):
+                if any(pfolder == file2[1:len(pfolder)+1] for pfolder in pass_folder_rpaths)\
+                        or any(file2 == pfile.replace('/', '\\')[-len(file2):] for pfile in pass_item_rpath.split(',')):
                     continue
                 filename = file2.split('\\')[-1]
                 file2_path = path2 + file2
@@ -593,11 +599,11 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
     main_progress_label = ttk.Label(sync_bar, text=sf_label_text_dic["main_progress_label2"][language_number])
     main_progress_label.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
     main_progress_bar = ttk.Progressbar(sync_bar)
-    main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
+    main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150, sticky='W')
     current_file_label = ttk.Label(sync_bar, text=sf_label_text_dic["current_file_label"][language_number])
     current_file_label.grid(row=2, column=0, padx=10, pady=5, sticky='SW')
     show_running_bar = ttk.Progressbar(sync_bar, mode='indeterminate')
-    show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150)
+    show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
     sync_bar.protocol('WM_DELETE_WINDOW', lambda: sync_bar_on_exit())
     roll_bar = threading.Thread(target=show_running, daemon=True)
     roll_bar.start()
@@ -623,25 +629,28 @@ def sf_autorun_operation(place, saving_datas=None):
         for saving_data in data:
             path1 = saving_data[0]
             path2 = sf_file.get(saving_data[2], 'path_2')
+            lockfolder = sf_file.get(saving_data[2], 'lock_folder')
+            lockfile = sf_file.get(saving_data[2], 'lock_file')
             single_sync = True
             if sf_file.get(saving_data[2], 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync, language_num(mf_file.get('General', 'language')), saving_data[1])
+            sf_sync_dir(path1, path2, single_sync, language_num(mf_file.get('General', 'language')), saving_data[1], lockfile, lockfolder)
 
     def autorun_local_sf(data_name):
         for saving_data in data_name:
             path1 = sf_file.get(saving_data, 'path_1')
             path2 = sf_file.get(saving_data, 'path_2')
+            lockfolder = sf_file.get(saving_data, 'lock_folder')
+            lockfile = sf_file.get(saving_data, 'lock_file')
             single_sync = True
             if sf_file.get(saving_data, 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')))
+            sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')), pass_folder_paths=lockfolder, pass_item_rpath=lockfile)
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
     elif place == 'local':
-        autorun_savings = get_sf_startup_savings()
-        autorun_local_sf(autorun_savings)
+        autorun_local_sf(get_sf_startup_savings())
 
 
 def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
@@ -1084,7 +1093,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     sf_entry_frame_lock_file = tk.Frame(root)
     sf_entry_lock_file = Combopicker(master=sf_entry_frame_lock_file, values=['全选'], frameheight=50)
     sf_browse_lockfile_button = ttk.Button(root, textvariable=sf_browse_lockfile_button_text,
-                                             command=lambda: choose_lockitems('lockfile'))
+                                           command=lambda: choose_lockitems('lockfile'))
 
     sf_label_autorun = ttk.Label(root, textvariable=sf_label_autorun_text)
     sf_entry_is_autorun = tk.BooleanVar()
@@ -1183,7 +1192,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 else:
                     os.listdir(sf_entry_path_1.get())
                 os.listdir(sf_entry_path_2.get())
-                if sf_entry_path_1.get() == sf_entry_path_2.get():
+                if sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get():
                     return 'same_path_error'
             except:
                 return True
@@ -1293,7 +1302,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                 str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
                 sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
                 sf_data.set(save_name, 'mode', sf_entry_mode.get())
-                sf_data.set(save_name, 'lock_path', sf_entry_lock_folder.get())
+                sf_data.set(save_name, 'lock_folder', sf_entry_lock_folder.get())
+                sf_data.set(save_name, 'lock_file', sf_entry_lock_file.get())
                 sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
                 sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
@@ -1406,6 +1416,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                     count_i += 1
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
+            sf_entry_lock_folder.insert(0, sf_file.get(setting_name, 'lock_folder'))
+            sf_entry_lock_file.insert(0, sf_file.get(setting_name, 'lock_file'))
             sf_entry_is_autorun.set(sf_file.get(setting_name, 'autorun'))
             Place('sf', place_mode)
             cf_or_sf.set('sf')
@@ -1523,13 +1535,15 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         path2 = sf_entry_path_2.get()
         mode = sf_entry_mode.get()
         area_name = None
+        lockfolder = sf_entry_lock_folder.get()
+        lockfile = sf_entry_lock_file.get()
         if len(path1) == 2:
             area_name = win32api.GetVolumeInformation(path1)[0]
         if mode == 'single':
             single_sync = True
         else:
             single_sync = False
-        sf_sync_dir(path1, path2, single_sync, lang_num, area_name)
+        sf_sync_dir(path1, path2, single_sync, lang_num, area_name, lockfile, lockfolder)
 
     def change_language(language):
         nonlocal lang_num
@@ -1670,7 +1684,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.mainloop()
 
 
-def mainprocess():
+def main():
     Initialization()
     if first_visit:
         make_ui(first_ask=True)
@@ -1683,4 +1697,4 @@ def mainprocess():
 
 
 if __name__ == '__main__':
-    mainprocess()
+    main()
