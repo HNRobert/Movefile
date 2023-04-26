@@ -523,7 +523,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             else:
                 pass_folder_rpaths.append(pass_folder[len(path2)::])
         for file1 in all_files_1:
-            if any(pfolder == file1[1:len(pfolder)+1] for pfolder in pass_folder_rpaths)\
+            if any(pfolder == file1[:len(pfolder)] for pfolder in pass_folder_rpaths)\
                     or any(file1 == pfile[-len(file1):] for pfile in pass_item_rpath.split(',')):
                 continue
             filename = file1.split('\\')[-1]
@@ -545,7 +545,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 sync_tasks.append([file1_path, path2 + file1, True, single_sync])
         if not single_sync:
             for file2 in all_files_2:
-                if any(pfolder == file2[1:len(pfolder)+1] for pfolder in pass_folder_rpaths)\
+                if any(pfolder == file2[:len(pfolder)] for pfolder in pass_folder_rpaths)\
                         or any(file2 == pfile[-len(file2):] for pfile in pass_item_rpath.split(',')):
                     continue
                 filename = file2.split('\\')[-1]
@@ -582,8 +582,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         except:
             pass
         finally:
-            sync_bar.quit()
-            sync_bar.destroy()
+            sync_bar.withdraw()
             roll_bar.join()
 
     def sync_bar_on_exit():
@@ -592,7 +591,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             sync_bar.withdraw()
             run_tasks.join()
             roll_bar.join()
-
+    global sync_bar
     sync_bar = tk.Tk()
     sync_bar.title('Movefile  -Syncfile Progress')
     sync_bar.geometry('420x115')
@@ -1567,6 +1566,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             root.withdraw()
 
     def exit_program():
+        if 'sync_bar' in globals().keys():
+            sync_bar.quit()
+            sync_bar.destroy()
         if 'ask_saving_root' in globals().keys():
             ask_saving_root.quit()
             ask_saving_root.destroy()
