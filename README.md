@@ -107,6 +107,7 @@ Select one-way or two-way synchronization mode
 Keep the latest changed files
 Automatically run the archive after startup
 Automatically detect the archived removable disk access and automatically synchronize
+Lock folders and files to keep them from being synchronized 
 ```
 ### Function explanation
 
@@ -118,6 +119,18 @@ In addition, if the software is open, every time the removable disk recorded in 
 The way to determine whether the accessed disk is the disk saved in the configuration is to compare the volume serial number.
 
 If you select synchronization between local disks, you can select two local disks for synchronization
+
+#### Lock folder/file function:
+
+##### Lock folder:
+When you add a folder, it will be displayed in the waiting list.
+
+Check this folder in the list to be selected, and the contents of this folder will not be modified or deleted.
+
+##### Lock file:
+The principle of adding is the same as locking a folder.
+
+If a file is checked, it will not be modified.
 
 # Movefile 中文说明
 这是一个用于整理文件的程序，包括了 Cleanfile 和 Syncfile 两个主要功能
@@ -227,6 +240,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 保留最新更改文件
 开机自动运行存档
 自动检测选定的可移动磁盘接入并自动同步
+锁定文件/文件夹功能
 ```
 ### 功能详解
 
@@ -237,6 +251,17 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 判断接入的磁盘是否为配置中保存的磁盘的方式为比较卷序列号。
 
 如果选择本地磁盘间同步，则可以选择两个本地磁盘进行同步
+
+#### 锁定文件夹/文件功能：
+
+##### 锁定文件夹：
+当你添加了一个文件夹，这个文件夹将会被显示在待选列表中。
+
+在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改或删除。
+
+##### 锁定文件：
+添加原理与锁定文件夹相同，
+如果勾选一个文件，那么这个文件不会被修改。
 
 ## 特别鸣谢
 本程序中的多选下拉列表框组件代码改编自CSDN博主【只为你开心】的【Python tkinter自定义多选下拉列表框(带滚动条、全选)】，微调数据并添加了改变选择框高度的功能
@@ -305,4 +330,10 @@ Movefile v2.1.0
 优化代码结构和多线程
 优化文件同步进度条
 修复了一些Bug
+
+23:58 2023/4/27
+Movefile v2.2.0
+更新内容：
+修复了闪退的bug
+优化逻辑，添加锁定文件夹/文件功能
 ```
