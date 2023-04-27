@@ -438,41 +438,6 @@ def sf_creat_folder(target_path):
             os.mkdir(try_des)
 
 
-def sf_sync_file(file1_path, file2_path, no_judge=False, single_way=False):
-    sf_errorname = ''
-    last_edit_time_1 = int(os.stat(file1_path).st_mtime)
-    if os.path.exists(file2_path):
-        last_edit_time_2 = int(os.stat(file2_path).st_mtime)
-    else:
-        last_edit_time_2 = 0
-    new_file, prior_file = '', ''
-    pas = False
-    if no_judge:
-        sf_creat_folder(file2_path)
-        try:
-            shutil.copyfile(file1_path, file2_path)
-        except:
-            sf_errorname += file1_path + ' , '
-        pas = True
-    elif filehash(file1_path) == filehash(file2_path):
-        pas = True
-    elif last_edit_time_1 > last_edit_time_2:
-        new_file = file1_path
-        prior_file = file2_path
-    elif last_edit_time_1 < last_edit_time_2 and not single_way:
-        new_file = file2_path
-        prior_file = file1_path
-    else:
-        pas = True
-
-    if not pas:
-        try:
-            shutil.copyfile(new_file, prior_file)
-        except:
-            sf_errorname += new_file + ' , '
-    return sf_errorname
-
-
 def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
     file1_name = file_1.split('\\')[-1]
     file2_name = file_2.split('\\')[-1]
@@ -519,46 +484,60 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         task_number = 0
         for pass_folder in pass_folder_paths.split(','):
             if pass_folder[:len(path1)] == path1:
-                pass_folder_rpaths.append(pass_folder[len(path1)::])
-            else:
-                pass_folder_rpaths.append(pass_folder[len(path2)::])
+                pass_folder_rpaths.append(path1.split('\\')[-1] + pass_folder[len(path1)::])
+            elif pass_folder != '':
+                pass_folder_rpaths.append(path2.split('\\')[-1] + pass_folder[len(path2)::])
         for file1 in all_files_1:
-            if any(pfolder == file1[:len(pfolder)] for pfolder in pass_folder_rpaths)\
-                    or any(file1 == pfile[-len(file1):] for pfile in pass_item_rpath.split(',')):
-                continue
             filename = file1.split('\\')[-1]
             file1_path = path1 + file1
             for file2 in all_files_2:
                 file2_path = path2 + file2
                 match_possibility = sf_match_possibility(path1, path2, file1, file2)
                 if match_possibility > 50:
+                    new_file, old_file = file1, file2
+                    new_file_path, old_file_path = file1_path, file2_path
+                    new_file_rpath = path1.split('\\')[-1] + file1
+                    old_file_rpath = path2.split('\\')[-1] + file2
+                    if int(os.stat(new_file_path).st_mtime) < int(os.stat(old_file_path).st_mtime):
+                        if single_sync:
+                            break
+                        old_file, new_file = new_file, old_file
+                        new_file_path, old_file_path = old_file_path, new_file_path
+                        new_file_rpath, old_file_rpath = old_file_path, new_file_rpath
+                    if any(pfolder == old_file_rpath[:len(pfolder)] for pfolder in pass_folder_rpaths) and pass_folder_rpaths != []\
+                            or any(old_file == pfile[-len(old_file):] for pfile in pass_item_rpath.split(',')) and pass_item_rpath != []\
+                            or filehash(new_file_path) == filehash(old_file_path):
+                        break
                     task_number += 1
                     main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
-                    sync_tasks.append([file1_path, file2_path, False, single_sync])
+                    sync_tasks.append([new_file_path, old_file_path, False])
                     break
                 elif match_possibility == 50:
                     sf_ask_operation()
             else:
+                newfile1_rpath = path2.split('\\')[-1] + file1
+                if any(pfolder == newfile1_rpath[:len(pfolder)] for pfolder in pass_folder_rpaths) and pass_folder_rpaths != []:
+                    continue
                 task_number += 1
                 main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
                 sync_bar.update_idletasks()
-                sync_tasks.append([file1_path, path2 + file1, True, single_sync])
+                sync_tasks.append([file1_path, path2 + file1, True])
         if not single_sync:
             for file2 in all_files_2:
-                if any(pfolder == file2[:len(pfolder)] for pfolder in pass_folder_rpaths)\
-                        or any(file2 == pfile[-len(file2):] for pfile in pass_item_rpath.split(',')):
-                    continue
                 filename = file2.split('\\')[-1]
                 file2_path = path2 + file2
+                newfile2_rpath = path1.split('\\')[-1] + file2
                 if file2 not in all_files_1:
+                    if any(pfolder == newfile2_rpath[:len(pfolder)] for pfolder in pass_folder_rpaths) and pass_folder_rpaths != []:
+                        continue
                     task_number += 1
                     main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
                     sync_bar.update_idletasks()
-                    sync_tasks.append([file2_path, path1 + file2, True, single_sync])
+                    sync_tasks.append([file2_path, path1 + file2, True])
         return sync_tasks
 
     def run_sync_tasks():
-        out_data = ''
+        sf_errorname = ''
         main_progress_bar['value'] = 0
         sync_bar.update_idletasks()
         tasks = get_task()
@@ -568,7 +547,12 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         for task in tasks:
             current_file_label['text'] = sf_label_text_dic["current_file_label1"][language_number] + \
                                          task[0].split('\\')[-1]
-            out_data += sf_sync_file(task[0], task[1], task[2], task[3])
+            if task[2]:
+                sf_creat_folder(task[1])
+            try:
+                shutil.copyfile(task[0], task[1])
+            except:
+                sf_errorname += task[0] + ' , '
             main_progress_bar['value'] += 1
             main_progress_label[
                 'text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
@@ -578,7 +562,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         if area_name:
             path_name_1 = area_name
         try:
-            sf_show_notice(path_name_1, path2.split('\\')[-1], out_data)
+            sf_show_notice(path_name_1, path2.split('\\')[-1], sf_errorname)
         except:
             pass
         finally:
@@ -785,6 +769,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         precautions_menu_text.set(r_label_text_dic['precautions_menu'][lang_number])
         cf_keep_menu_text.set(r_label_text_dic['cf_keep_menu'][lang_number])
         cf_expire_menu_text.set(r_label_text_dic['cf_expire_menu'][lang_number])
+        sf_removable_menu_text.set(r_label_text_dic['sf_removable_menu'][lang_number])
+        sf_lock_menu_text.set(r_label_text_dic['sf_lock_menu'][lang_number])
 
         taskbar_setting_text.set(r_label_text_dic['taskbar_setting'][lang_number])
         taskbar_exit_text.set(r_label_text_dic['taskbar_exit'][lang_number])
@@ -926,9 +912,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
-    c_root.quit()
-    c_root.destroy()
-    startup_root.join()
+    try:
+        c_root.quit()
+        c_root.destroy()
+        startup_root.join()
+    except:
+        pass
 
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
@@ -990,6 +979,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     precautions_menu_text = tk.StringVar()
     cf_keep_menu_text = tk.StringVar()
     cf_expire_menu_text = tk.StringVar()
+    sf_removable_menu_text = tk.StringVar()
+    sf_lock_menu_text = tk.StringVar()
     taskbar_setting_text = tk.StringVar()
     taskbar_exit_text = tk.StringVar()
 
@@ -1131,6 +1122,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         def sf_help():
             from LT_Dic import sf_help_text
             tkinter.messagebox.showinfo(title='Movefile', message=sf_help_text[lang_num])
+
+        @staticmethod
+        def sf_removable_help():
+            from LT_Dic import sf_removable_help_text
+            tkinter.messagebox.showinfo(title='Movefile', message=sf_removable_help_text[lang_num])
+
+        @staticmethod
+        def sf_lock_help():
+            from LT_Dic import sf_lock_help_text
+            tkinter.messagebox.showinfo(title='Movefile', message=sf_lock_help_text[lang_num])
 
         @staticmethod
         def cf_is_num():
@@ -1333,6 +1334,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
             ask_name_window.geometry('400x35')
             ask_name_window.title(r_label_text_dic['ask_name_window'][lang_num])
+            ask_name_window.focus_force()
             last_edit_name = 'New_Setting'
             if last_saving_data:
                 if last_saving_data[0] == mode:
@@ -1400,6 +1402,11 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 sf_entry_path_1.delete(0, 'end')
             if sf_entry_path_2.get() != '':
                 sf_entry_path_2.delete(0, 'end')
+            if sf_entry_lock_folder.get() != '':
+                sf_entry_lock_folder.delete(0, 'end')
+            if sf_entry_lock_file.get() != '':
+                sf_entry_lock_file.delete(0, 'end')
+
             place_mode = sf_file.get(setting_name, 'place_mode')
             sf_place_mode.set(place_mode)
             if place_mode == 'local':
@@ -1476,6 +1483,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             elif lang_num == 1:
                 ask_saving_root.geometry('700x35')
             ask_saving_root.title(r_label_text_dic['readfile_menu'][lang_num])
+            ask_saving_root.focus_force()
             last_edit_mode = ''
             last_edit_name = ''
             save_names = []
@@ -1566,6 +1574,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             root.withdraw()
 
     def exit_program():
+        task_menu.stop()
         if 'sync_bar' in globals().keys():
             sync_bar.quit()
             sync_bar.destroy()
@@ -1616,6 +1625,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     help_menu.add_command(label=cf_expire_menu_text.get(), command=ZFunc.cf_help_timeset)
     help_menu.add_separator()
     help_menu.add_command(label='Syncfile', command=ZFunc.sf_help)
+    help_menu.add_command(label=sf_removable_menu_text.get(), command=ZFunc.sf_removable_help)
+    help_menu.add_command(label=sf_lock_menu_text.get(), command=ZFunc.sf_lock_help)
 
     main_menu.add_cascade(label=file_menu_text.get(), menu=file_menu)
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)

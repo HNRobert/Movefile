@@ -1,5 +1,5 @@
-vision = 'v2.1.0'
-update_time = '2023/1/30'
+vision = 'v2.2.0'
+update_time = '2023/4/27'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取配置文件', 'Read config'],
@@ -12,6 +12,8 @@ r_label_text_dic = {
     'precautions_menu': ['使用前注意事项', 'Precautions before use'],
     'cf_keep_menu': ['保留文件/文件格式选择', 'Keep file/format setting'],
     'cf_expire_menu': ['过期时间设定', 'Expire time setting'],
+    'sf_removable_menu': ['可移动磁盘同步', 'Removable Volume mode'],
+    'sf_lock_menu': ['锁定文件/文件夹选择', 'Lock folder/sile setting'],
 
     'taskbar_setting': ['设置界面', 'Setting Window'],
     'taskbar_exit': ['退出', 'Exit'],
@@ -250,8 +252,56 @@ This is a program used to synchronize files in two paths,
 You can also synchronize USB flash disk data with the computer
 
 It includes two modes of synchronization: 
-sync between removable disk and local disk or between local disks,
+sync between a removable disk and a local disk, or between local disks,
 also select one-way or two-way synchronization mode, 
 auto run archive after startup, keep the latest changed files,
-Automatically detect the access of recorded removable disks and automatically synchronize them
+Automatically detect the access of recorded removable disks 
+and automatically synchronize them
 and so on''']
+
+sf_removable_help_text = ['''可移动磁盘同步功能详解：
+
+工作原理：
+读取所有 属于当前接入的可移动磁盘设备 的卷，加入待选列表中
+为了防止同一个卷在不同时间接入设备时被分配了不同的卷标，
+判断前后接入的是否为同一个卷的方式为 获取卷的ID并与保存的信息比对。
+
+打开软件后，会实时获取当前设备上可移动卷的接入情况
+如果发现新接入的卷在存档中，且选中了自动运行选项，
+那会弹窗提示进行同步。
+''', '''Removable Disk Synchronization:
+
+Working principle:
+Read all volumes belonging to the connected removable disk devices 
+and add them to the list of candidates
+To prevent the same volume from being assigned different volume labels when accessing devices at different times,
+the way to determine whether it is the same volume 
+is to obtain the volume IDs and compare them with saved data.
+
+After opening the software, it will obtain the access status 
+of removable volumes on the current device in real-time
+If a newly accessed volume is found in the archive 
+and the automatic run option is selected,
+a pop-up prompt will ask you whether to synchronize or not.
+''']
+
+sf_lock_help_text = ['''锁定文件夹/文件功能：
+
+锁定文件夹：
+当你添加了一个文件夹，这个文件夹将会被显示在待选列表中。
+在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改或删除。
+
+锁定文件：
+添加原理与锁定文件夹相同，
+如果勾选一个文件，那么这个文件不会被修改。
+''', '''Lock folder/file function:
+
+Lock folder:
+When you add a folder, it will be displayed in the waiting list.
+Check this folder in the list to be selected, 
+and the contents of this folder will not be modified or deleted.
+
+Lock file:
+The principle of adding is the same as locking a folder,
+If a file is checked, it will not be modified.
+''']
