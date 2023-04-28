@@ -1,5 +1,5 @@
-vision = 'v2.2.0'
-update_time = '2023/4/27'
+vision = 'v2.2.1'
+update_time = '2023/4/28'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取配置文件', 'Read config'],
