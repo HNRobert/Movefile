@@ -72,6 +72,10 @@ r_label_text_dic = {
     'path_warning': ['警告：请填输入有效路径！（建议使用浏览）',
                      'Warning: Please input a path that exists (Browse suggested)'],
     'same_path_warning': ['警告：请输入两个不一样的路径！', 'Warning：Please input two different paths！'],
+    'in_path_warning': ['警告：两个待同步的文件夹不能为包含关系！', '''Warning：Two folders to be synchronized 
+cannot have a containing relationship！'''],
+    'in_disk_path_warning': ['警告：不能将一个分区与位于该分区内的文件夹同步！', '''Warning：Cannot synchronize a partition 
+with a folder located within that partition！'''],
     'ini_error': ['''错误：配置信息无效
 请尽量不要手动更改ini配置文件''', """Error：Config File invalid, 
 please don't edit the config file directly"""],
@@ -280,7 +284,7 @@ is to obtain the volume IDs and compare them with saved data.
 
 After opening the software, it will obtain the access status 
 of removable volumes on the current device in real-time
-If a newly accessed volume is found in the archive 
+If a newly accessed volume is found in the archive
 and the automatic run option is selected,
 a pop-up prompt will ask you whether to synchronize or not.
 ''']

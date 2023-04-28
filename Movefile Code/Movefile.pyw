@@ -1192,8 +1192,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 else:
                     os.listdir(sf_entry_path_1.get())
                 os.listdir(sf_entry_path_2.get())
-                if sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get():
+                if sf_entry_path_1.get() == sf_entry_path_2.get() and sf_place_mode.get() != 'movable':
                     return 'same_path_error'
+                elif (sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get())\
+                        and sf_place_mode.get() != 'movable':
+                    return 'in_path_error'
+                elif (sf_entry_select_removable.get().split(':')[0][-1] + ':') in sf_entry_path_2.get():
+                    return 'in_disk_path_error'
             except:
                 return True
             else:
@@ -1219,14 +1224,23 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
         @staticmethod
         def sf_has_error():
+            path_error_data = ZFunc.sf_path_error()
             if ZFunc.sf_has_blank():
                 tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
                 return True
-            elif ZFunc.sf_path_error() == 'same_path_error':
+            elif path_error_data == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=r_label_text_dic['same_path_warning'][lang_num])
                 return True
-            elif ZFunc.sf_path_error():
+            elif path_error_data == 'in_path_error':
+                tkinter.messagebox.showwarning(title='Movefile',
+                                               message=r_label_text_dic['in_path_warning'][lang_num])
+                return True
+            elif path_error_data == 'in_disk_path_error':
+                tkinter.messagebox.showwarning(title='Movefile',
+                                               message=r_label_text_dic['in_disk_path_warning'][lang_num])
+                return True
+            elif path_error_data:
                 tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
                 return True
             else:
@@ -1461,6 +1475,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 ini_file.read(sf_data_path + 'Syncfile_data.ini')
                 ini_file.remove_section(del_name)
                 ini_file.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+            exit_asr()
 
         def sure_open():
             saving_name = read_name_entry.get()
