@@ -233,15 +233,12 @@ def data_error(mode_, name_):
             autorun_ = cf.get(name_, 'autorun')
             cf.getint(name_, 'set_hour')  # 过期时间
             cf.getint(name_, 'mode')
-            if os.path.exists(old_path_) and os.path.exists(new_path_):
+            right_path = False
+            if os.path.exists(old_path_) and os.path.exists(new_path_) or new_path_ == '':
                 right_path = True
-            else:
-                right_path = False
+            right_option = False
             if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
                 right_option = True
-            else:
-                right_option = False
-
             if right_path and right_option:
                 return False
             else:
@@ -334,8 +331,10 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         new_folder = new_path.split('\\')[-1]
         old_folder = old_path.split('\\')[-1]
         if len(movename) > 0:
-            toaster.show_toast('These Files from ' + old_folder + ' are moved to ' + new_folder + ':',
-                               movename,
+            notice_title = 'These Files from ' + old_folder + ' are moved to ' + new_folder + ':'
+            if new_path == '':
+                notice_title = 'These Files from ' + old_folder + ' are removed:'
+            toaster.show_toast(notice_title, movename,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
@@ -377,10 +376,22 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                 raise
             if (now - last >= overdue_time) and not test:  # 移动过期文件
                 try:
-                    shutil.move(file_path, new__path)
+                    if new__path != '':
+                        shutil.move(file_path, new__path)
+                    elif is_folder:
+                        shutil.rmtree(file_path)
+                    else:
+                        os.remove(file_path)
                     cf_movename += (file + ',  ')
                 except:
-                    cf_errorname += (file + ',  ')
+                    if is_folder:
+                        try:
+                            shutil.rmtree(file_path)
+                        except:
+                            cf_errorname += (file + ',  ')
+                    else:
+                        cf_errorname += (file + ',  ')
+                        
     cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
 
 
@@ -1147,8 +1158,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             blank_num = 0
             if len(cf_entry_old_path.get()) == 0:
                 blank_num += 1
-            elif len(cf_entry_new_path.get()) == 0:
-                blank_num += 1
             elif len(cf_entry_time.get()) == 0:
                 blank_num += 1
             elif cf_entry_mode.get() == 0:
@@ -1162,7 +1171,8 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         def cf_path_error():
             try:
                 os.listdir(cf_entry_old_path.get())
-                os.listdir(cf_entry_new_path.get())
+                if cf_entry_new_path.get() != '':
+                    os.listdir(cf_entry_new_path.get())
                 if cf_entry_old_path.get() == cf_entry_new_path.get():
                     return 'same_path_error'
             except:
