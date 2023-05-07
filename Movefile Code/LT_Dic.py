@@ -85,10 +85,26 @@ to make the language of some labels changed''']
     }
 
 cr_label_text_dic = {
-    'c_label': ['Movefile 初始化中...', 'Movefile initializing...']}
+    'c_label': ['Movefile 初始化中...', 'Movefile initializing...']
+}
+
+cf_label_text_dic = {
+    'title_p1': ['这些文件已从 ', 'These Files from '],
+    'title_p2_1': [' 移动到 ', ' are moved to '],
+    'title_p2_2': [' 移除:', ' are removed:'],
+    'cltitle': [' 目前很干净', ' is pretty clean now'],
+    'clcontent': ['没有文件被移除', 'Nothing is moved away'],
+    'errtitle': ['无法移动一些文件', "Couldn't move several files"],
+    'errcontent': ['无法被移动，请在关闭正在运行的文件后重试', "Couldn't be moved, try again after closing the running file"],
+    'cptitle': ['检测到同名文件：', 'Detected two files with the same name：'],
+    'cpsize': ['大小：', 'Size：'],
+    'cpctime': ['创建时间：', 'Birth time：'],
+    'cpetime': ['最后修改时间：', 'Last changed time：'],
+    'cpprompt': ['请选择操作：', 'Please select an action：']
+}
 
 sf_label_text_dic = {
-    'main_progress_label': ['扫描文件中...  发现文件：', 'Scanning items...  Find item：'],
+    'main_progress_label': ['扫描文件中...  发现文件：', 'Scanning items...  Found item：'],
     'main_progress_label1': [['总进度：', '已完成'], ['Progress：', 'Completed']],
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
@@ -100,7 +116,6 @@ Are you sure to interrupt the process and exit?'''],
 无法被移动，请在关闭文件或移除重名文件后重试""", """
 Couldn't be moved, Please try again after closing the file
 or removing the duplicate file """]
-
     }
 
 help_main_text = ["""软件名称： Movefile

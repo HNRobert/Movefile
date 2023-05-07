@@ -106,7 +106,12 @@ class Initialization:
         gencf.set("General", "asktime_today", str(asktime_pre))
 
         if not gencf.has_option('General', 'language'):
-            gencf.set('General', 'language', 'English')
+            import ctypes
+            dll_handle = ctypes.windll.kernel32
+            if hex(dll_handle.GetSystemDefaultUILanguage()) == '0x804':
+                gencf.set('General', 'language', 'Chinese')
+            else:
+                gencf.set('General', 'language', 'English')
         if not gencf.has_option('General', 'autorun'):
             gencf.set('General', 'autorun', 'False')
         gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
@@ -130,12 +135,12 @@ class Initialization:
         global c_root
         mf_file = configparser.ConfigParser()
         mf_file.read(mf_data_path + 'Movefile_data.ini')
-        l_n = language_num(mf_file.get('General', 'language'))
+        # l_n = language_num(mf_file.get('General', 'language'))
         c_root = tk.Tk()
         c_root.geometry('420x60')
         c_root.iconbitmap(mf_data_path + r'Movefile.ico')
         c_root.title('Movefile')
-        c_label = tk.Label(c_root, text=cr_label_text_dic['c_label'][l_n])
+        c_label = tk.Label(c_root, text=cr_label_text_dic['c_label'][1])
         c_label.grid(row=0, column=0, padx=10, pady=5)
         c_bar = ttk.Progressbar(c_root, mode='indeterminate')
         c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
@@ -325,49 +330,113 @@ def detect_removable_disks_thread():
         time.sleep(2)
 
 
+def scan_items(folder_path):  # 扫描路径下所有文件夹
+    def scan_folders_in(f_path):  # 扫描目录下所有的文件夹，并返回路径列表
+        surf_items = os.listdir(f_path)
+        folders = [f_path]
+        for item in surf_items:
+            item_path = f_path + '\\' + item
+            if os.path.isdir(item_path):
+                folders.extend(scan_folders_in(item_path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
+        folders = sorted(set(folders))  # 排序 + 排除重复项
+        return folders
+
+    file_store = []
+    folder_store = scan_folders_in(folder_path)
+    for folder in folder_store:  # 遍历所有文件夹
+        files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
+        # 如上只生成本文件夹内 文件的路径
+        file_store.extend(files)  # 存储上面文件路径
+    for i in range(len(file_store)):
+        file_store[i] = file_store[i][len(folder_path)::]  # 返回相对位置
+    result = [folder_store, file_store]
+    return result
+
+
 def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder,
                 test=False):
+    from LT_Dic import cf_label_text_dic as cfdic
+    mf_file = configparser.ConfigParser()
+    mf_file.read(mf_data_path + 'Movefile_data.ini')
+    lang_num = language_num(mf_file.get('General', 'language'))
+
     def cf_show_notice(old_path, new_path, movename, errorname):
         new_folder = new_path.split('\\')[-1]
         old_folder = old_path.split('\\')[-1]
         if len(movename) > 0:
-            notice_title = 'These Files from ' + old_folder + ' are moved to ' + new_folder + ':'
+            notice_title = cfdic['title_p1'][lang_num] + old_folder + cfdic['title_p2_1'][lang_num] + new_folder + ':'
             if new_path == '':
-                notice_title = 'These Files from ' + old_folder + ' are removed:'
+                notice_title = cfdic['title_p1'][lang_num] + old_folder + cfdic['title_p2_2'][lang_num]
             toaster.show_toast(notice_title, movename,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
         else:
-            toaster.show_toast(old_folder + ' is pretty clean now',
-                               'Nothing is moved away',
+            notice_title = old_folder + cfdic['cltitle'][lang_num]
+            notice_content = cfdic['clcontent'][lang_num]
+            toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
         if len(errorname) > 0:
-            toaster.show_toast("Couldn't move files",
-                               errorname[:-1] + """
-    无法被移动，请在关闭文件或移除重名文件后重试""",
+            notice_title = cfdic['errtitle'][lang_num]
+            notice_content = errorname[:-1] + '\n' + cfdic['errcontent'][lang_num]
+            toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
 
+    def del_item(path):  # 快捷删除文件夹, 代替shutil.rmtree和os.remove  (os.rmtree会莫名报错)
+        error_files = ''
+        if os.path.isdir(path):
+            del_data = scan_items(path)  # 扫描文件夹里所有子文件夹和文件
+            for dfile in del_data[1]:
+                try:
+                    os.remove(path + dfile)
+                except:
+                    error_files += dfile + ',  '  # 这样还可以返回文件夹里无法移动的单个文件
+            for dfolder in del_data[0][::-1]:
+                try:
+                    os.rmdir(dfolder)
+                except:
+                    pass
+        else:
+            try:
+                os.remove(path)  # 若是文件直接处理
+            except:
+                error_files += path.split('\\')[-1] + ',  '
+        return error_files
+
+    def ask_operation(file1_path, file2_path):  # planning
+        text = f'''{cfdic['cptitle'][lang_num]}
+{file1_path}:
+{cfdic['cpsize'][lang_num]} {os.stat(file1_path).st_size}
+{cfdic['cpctime'][lang_num]} {os.stat(file1_path).st_ctime}
+{cfdic['cpetime'][lang_num]} {os.stat(file1_path).st_mtime}
+
+{file2_path}:
+{cfdic['cpsize'][lang_num]} {os.stat(file2_path).st_size}
+{cfdic['cpctime'][lang_num]} {os.stat(file2_path).st_ctime}
+{cfdic['cpetime'][lang_num]} {os.stat(file2_path).st_mtime}
+'''
+        return text
+
     cf_movename = ''
     cf_errorname = ''
-    files = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
-    for file in files:
-        file_path = old__path + "/" + file
+    items = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
+    for item in items:
+        file_path = old__path + "\\" + item
         pf = False
         for m in pass__format:
-            file_end = '.' + file.split('.')[-1]
+            file_end = '.' + item.split('.')[-1]
             if m == file_end:
                 pf = True
-        if file == 'Movefile ' + vision + '.exe' or file == new__path.split('\\')[-1]:
+        if item == 'Movefile ' + vision + '.exe' or item == new__path.split('\\')[-1]:
             continue
-        is_folder = os.path.isdir(file)
+        is_folder = os.path.isdir(item)
         now = int(time.time())  # 当前时间
-        if (not is_folder and ((file not in pass__file) and not pf)) or (
-                is_folder and file not in pass__file and is__move__folder):  # 判断移动条件
+        if (not is_folder and ((item not in pass__file) and not pf)) or (
+                is_folder and item not in pass__file and is__move__folder):  # 判断移动条件
             if check__mode == 1:
                 last = int(os.stat(file_path).st_mtime)  # 最后一次修改的时间 (Option 1)
             elif check__mode == 2:
@@ -375,22 +444,19 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             else:
                 raise
             if (now - last >= overdue_time) and not test:  # 移动过期文件
-                try:
-                    if new__path != '':
+                # attitude = False
+                if os.path.exists(new__path + '\\' + item):
+                    del_item(new__path + '\\' + item)
+                    # attitude = ask_operation(file_path, new__path + '\\' + item)  # 重名文件判断
+                if new__path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
+                    try:
                         shutil.move(file_path, new__path)
-                    elif is_folder:
-                        shutil.rmtree(file_path)
+                    except:
+                        cf_errorname += (item + ',  ')
                     else:
-                        os.remove(file_path)
-                    cf_movename += (file + ',  ')
-                except:
-                    if is_folder:
-                        try:
-                            shutil.rmtree(file_path)
-                        except:
-                            cf_errorname += (file + ',  ')
-                    else:
-                        cf_errorname += (file + ',  ')
+                        cf_movename += (item + ',  ')
+                else:
+                    cf_errorname += del_item(file_path)
                         
     cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
 
@@ -419,27 +485,6 @@ def sf_ask_operation():
     pass  # planning
 
 
-def sf_scan_files(folder_path):  # 扫描路径下所有文件夹
-    def scan_folders_in(f_path):  # 扫描目录下所有的文件夹，并返回路径列表
-        surf_items = os.listdir(f_path)
-        folder_store = [f_path]
-        for item in surf_items:
-            item_path = f_path + '\\' + item
-            if os.path.isdir(item_path):
-                folder_store.extend(scan_folders_in(item_path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
-        folder_store = sorted(set(folder_store))  # 排序 + 排除重复项
-        return folder_store
-
-    file_store = []
-    for folder in scan_folders_in(folder_path):  # 遍历所有文件夹
-        files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
-        # 如上只生成本文件夹内 文件的路径
-        file_store.extend(files)  # 存储上面文件路径
-    for i in range(len(file_store)):
-        file_store[i] = file_store[i][len(folder_path)::]  # 返回相对位置
-    return file_store
-
-
 def sf_creat_folder(target_path):
     target = target_path.split('\\')[:-1]
     try_des = ''
@@ -452,18 +497,18 @@ def sf_creat_folder(target_path):
 def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
     file1_name = file_1.split('\\')[-1]
     file2_name = file_2.split('\\')[-1]
-    file1_path = path_1 + file_1
-    file2_path = path_2 + file_2
-    creat_time_1 = int(os.stat(file1_path).st_ctime)
-    creat_time_2 = int(os.stat(file2_path).st_ctime)
+    # file1_path = path_1 + file_1
+    # file2_path = path_2 + file_2
+    # creat_time_1 = int(os.stat(file1_path).st_ctime)
+    # creat_time_2 = int(os.stat(file2_path).st_ctime)
 
     possibility = 0
     if file_2 == file_1:  # 比对相对路径
         possibility += 50
     if file2_name == file1_name:  # 比对文件名
         possibility += 30
-    if creat_time_1 == creat_time_2:
-        possibility += 20
+    # if creat_time_1 == creat_time_2:
+    #     possibility += 20
 
     return possibility
 
@@ -488,8 +533,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         show_running_bar.start(10)
 
     def get_task():
-        all_files_1 = sf_scan_files(path1)
-        all_files_2 = sf_scan_files(path2)
+        all_files_1 = scan_items(path1)[1]
+        all_files_2 = scan_items(path2)[1]
         sync_tasks = []
         pass_folder_rpaths = []
         task_number = 0
@@ -586,6 +631,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             sync_bar.withdraw()
             run_tasks.join()
             roll_bar.join()
+
     global sync_bar
     sync_bar = tk.Tk()
     sync_bar.title('Movefile  -Syncfile Progress')
