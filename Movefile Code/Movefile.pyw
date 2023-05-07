@@ -353,8 +353,7 @@ def scan_items(folder_path):  # 扫描路径下所有文件夹
     return result
 
 
-def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder,
-                test=False):
+def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
     from LT_Dic import cf_label_text_dic as cfdic
     mf_file = configparser.ConfigParser()
     mf_file.read(mf_data_path + 'Movefile_data.ini')
@@ -386,8 +385,9 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                                duration=10,
                                threaded=False)
 
-    def del_item(path):  # 快捷删除文件夹, 代替shutil.rmtree和os.remove  (os.rmtree会莫名报错)
+    def del_item(path):  # 递归删除文件夹或单个文件, 代替shutil.rmtree和os.remove  (shutil.rmtree会莫名报错)
         error_files = ''
+        moved_files = ''
         if os.path.isdir(path):
             del_data = scan_items(path)  # 扫描文件夹里所有子文件夹和文件
             for dfile in del_data[1]:
@@ -400,13 +400,18 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                     os.rmdir(dfolder)
                 except:
                     pass
+            if not os.path.exists(path):
+                moved_files += path.split('\\')[-1] + ',  '
         else:
             try:
                 os.remove(path)  # 若是文件直接处理
             except:
                 error_files += path.split('\\')[-1] + ',  '
-        return error_files
+            else:
+                moved_files += path.split('\\')[-1] + ',  '
+        return [moved_files, error_files]
 
+    """
     def ask_operation(file1_path, file2_path):  # planning
         text = f'''{cfdic['cptitle'][lang_num]}
 {file1_path}:
@@ -420,44 +425,42 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
 {cfdic['cpetime'][lang_num]} {os.stat(file2_path).st_mtime}
 '''
         return text
+    """
 
     cf_movename = ''
     cf_errorname = ''
     items = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
+    now = int(time.time())  # 当前时间
     for item in items:
-        file_path = old__path + "\\" + item
-        pf = False
-        for m in pass__format:
-            file_end = '.' + item.split('.')[-1]
-            if m == file_end:
-                pf = True
+        item_path = old__path + "\\" + item
+        is_folder = os.path.isdir(item_path)
+        if '.' + item.split('.')[-1] in pass__format and not is_folder or item in pass__file:
+            continue
         if item == 'Movefile ' + vision + '.exe' or item == new__path.split('\\')[-1]:
             continue
-        is_folder = os.path.isdir(item)
-        now = int(time.time())  # 当前时间
-        if (not is_folder and ((item not in pass__file) and not pf)) or (
-                is_folder and item not in pass__file and is__move__folder):  # 判断移动条件
-            if check__mode == 1:
-                last = int(os.stat(file_path).st_mtime)  # 最后一次修改的时间 (Option 1)
-            elif check__mode == 2:
-                last = int(os.stat(file_path).st_atime)  # 最后一次访问的时间 (Option 2)
-            else:
-                raise
-            if (now - last >= overdue_time) and not test:  # 移动过期文件
-                # attitude = False
-                if os.path.exists(new__path + '\\' + item):
-                    del_item(new__path + '\\' + item)
-                    # attitude = ask_operation(file_path, new__path + '\\' + item)  # 重名文件判断
-                if new__path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
-                    try:
-                        shutil.move(file_path, new__path)
-                    except:
-                        cf_errorname += (item + ',  ')
-                    else:
-                        cf_movename += (item + ',  ')
+        if check__mode == 1:
+            last = int(os.stat(item_path).st_mtime)  # 最后一次修改的时间 (Option 1)
+        elif check__mode == 2:
+            last = int(os.stat(item_path).st_atime)  # 最后一次访问的时间 (Option 2)
+        else:
+            raise
+        if (not is_folder or is_folder and is__move__folder) and (now - last >= overdue_time):  # 判断移动条件
+            # attitude = False
+            if os.path.exists(new__path + '\\' + item):
+                del_item(new__path + '\\' + item)
+                # attitude = ask_operation(item_path, new__path + '\\' + item)  # 重名文件判断
+            if new__path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
+                try:
+                    shutil.move(item_path, new__path)
+                except:
+                    cf_errorname += (item + ',  ')
                 else:
-                    cf_errorname += del_item(file_path)
-                        
+                    cf_movename += (item + ',  ')
+            else:
+                result = del_item(item_path)
+                cf_movename += result[0]
+                cf_errorname += result[1]
+
     cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
 
 
@@ -497,18 +500,18 @@ def sf_creat_folder(target_path):
 def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
     file1_name = file_1.split('\\')[-1]
     file2_name = file_2.split('\\')[-1]
-    # file1_path = path_1 + file_1
-    # file2_path = path_2 + file_2
-    # creat_time_1 = int(os.stat(file1_path).st_ctime)
-    # creat_time_2 = int(os.stat(file2_path).st_ctime)
+    file1_path = path_1 + file_1
+    file2_path = path_2 + file_2
+    creat_time_1 = int(os.stat(file1_path).st_ctime)
+    creat_time_2 = int(os.stat(file2_path).st_ctime)
 
     possibility = 0
     if file_2 == file_1:  # 比对相对路径
         possibility += 50
     if file2_name == file1_name:  # 比对文件名
         possibility += 30
-    # if creat_time_1 == creat_time_2:
-    #     possibility += 20
+    if creat_time_1 == creat_time_2:
+        possibility += 20
 
     return possibility
 
@@ -1774,12 +1777,12 @@ def main():
     Initialization()
     if first_visit:
         make_ui(first_ask=True)
-    elif ask_time_today > 1:
-        make_ui(muti_ask=True)
-    elif boot_time <= 60 and ask_time_today == 1:
+    elif boot_time <= 120 and ask_time_today == 1:
         cf_autorun_operation()
         sf_autorun_operation('local')
         make_ui(muti_ask=True, startup_ask=True)
+    else:
+        make_ui(muti_ask=True)
 
 
 if __name__ == '__main__':
