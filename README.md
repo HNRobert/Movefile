@@ -10,7 +10,7 @@ If you have any doubts about the function of this software during use, you can c
 
 Due to its aplenty functions, the main program code is quite lengthy. If you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
 
-Please read the following precautions before use
+#### Please read the following precautions before use
 
 ### About Compatibility
 The .exe files provided here only support 64-bit Windows operating system, and Win10 works best
@@ -64,7 +64,7 @@ This program can transfer files in a folder that have not been modified or acces
 #### Including functions: 
 ```
 select the original folder (default desktop)
-select the new folder to place files
+select the new folder to place files, or not do so in order to remove these files
 set the expiration time
 set the judgment basis for the expiration time (according to the latest ask/edit time)
 select whether to move the folder (currently only the entire folder is supported)
@@ -143,7 +143,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 由于功能比较多，主程序代码比较冗长，如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
 
-使用前请务必阅读下面的使用注意事项
+#### 使用前请务必阅读下面的使用注意事项
 
 ### 兼容性说明
 代码中的exe文件仅支持windows64位操作系统，Win10效果最佳
@@ -196,7 +196,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 #### 包含功能：
 ```
 选择原文件夹（默认桌面）
-选择放置文件的新文件夹
+选择放置文件的新文件夹，或者不填写新文件夹来直接删除这些文件
 设置过期时间
 设置过期时间判断依据（按最后修改/访问时间）
 选择是否移动文件夹（目前只支持整个文件夹移动）
@@ -344,4 +344,11 @@ Movefile v2.2.1
 更新内容：
 修复了删除存档后的闪退问题
 添加新文件夹选择限制，包括不能有包含关系等
+
+23:30 2023/5/7
+Movefile v2.3.1
+更新内容：
+改进Cleanfile逻辑，遇到重名文件将覆盖
+Cleanfile的新目录框若不填写可将文件删除
+添加一些标签的双语版本
 ```
