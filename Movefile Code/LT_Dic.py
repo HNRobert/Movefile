@@ -118,6 +118,12 @@ Couldn't be moved, Please try again after closing the file
 or removing the duplicate file """]
     }
 
+progress_root_label_dic = {
+    'confirm_exit_text': ['''文件正在复制中，
+确定中断进程并退出?''', '''The file is currently being copied,
+Are you sure to interrupt the process and exit?''']
+}
+
 help_main_text = ["""软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 

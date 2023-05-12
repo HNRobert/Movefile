@@ -148,6 +148,63 @@ class Initialization:
         c_bar.mainloop()
 
 
+class ProgressBar:
+    def __init__(self, title, label1, label2, lang_num):
+        self.initialization_done = False
+        from LT_Dic import progress_root_label_dic
+        self.title = title
+        self.label1 = label1
+        self.label2 = label2
+        self.label_dic = progress_root_label_dic
+        self.lang_num = lang_num
+        self.main_progress_label = None
+        self.main_progress_bar = None
+        self.current_file_label = None
+        self.show_running_bar = None
+        self.progress_root = None
+        self.roll_bar = None
+
+    def set_label1(self, content):
+        self.main_progress_label['text'] = content
+
+    def set_label2(self, content):
+        self.current_file_label['text'] = content
+
+    def launch(self):
+        self.progress_root = tk.Tk()
+        self.progress_root.title(self.title)
+        self.progress_root.geometry('420x115')
+        self.progress_root.iconbitmap(mf_data_path + r'Movefile.ico')
+        self.main_progress_label = ttk.Label(self.progress_root, text=self.label1)
+        self.main_progress_label.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
+        self.main_progress_bar = ttk.Progressbar(self.progress_root)
+        self.main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150, sticky='W')
+        self.current_file_label = ttk.Label(self.progress_root, text=self.label2)
+        self.current_file_label.grid(row=2, column=0, padx=10, pady=5, sticky='SW')
+        self.show_running_bar = ttk.Progressbar(self.progress_root, mode='indeterminate')
+        self.show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
+        self.progress_root.protocol('WM_DELETE_WINDOW', lambda: self.sync_bar_on_exit())
+        self.roll_bar = threading.Thread(target=self.show_running, daemon=True)
+        self.roll_bar.start()
+        self.initialization_done = True
+        self.progress_root.mainloop()
+
+    def show_running(self):
+        self.show_running_bar.start(10)
+
+    def sync_bar_on_exit(self):
+        if tkinter.messagebox.askyesno(title='Syncfile', message=self.label_dic['confirm_exit_text'][self.lang_num]):
+            self.progress_root.withdraw()
+            self.roll_bar.join()
+            return True
+        else:
+            return False
+
+    def progress_root_destruction(self):
+        self.progress_root.quit()
+        self.progress_root.destroy()
+
+
 def set_startup(state=True):
     # 将快捷方式添加到自启动目录
     # 获取用户名
@@ -532,16 +589,14 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                                duration=10,
                                threaded=False)
 
-    def show_running():
-        show_running_bar.start(10)
-
-    def get_task():
-        all_files_1 = scan_items(path1)[1]
-        all_files_2 = scan_items(path2)[1]
+    def get_task(barroot):
+        # barroot 是定义文件复制进度窗口的类，包含进度条等等
+        all_files_1 = scan_items(path1)[1]  # scan_items返回路径下所有文件与文件夹的相对路径
+        all_files_2 = scan_items(path2)[1]  # 返回列表[0]是文件夹相对路径,[1]是文件相对路径
         sync_tasks = []
         pass_folder_rpaths = []
         task_number = 0
-        for pass_folder in pass_folder_paths.split(','):
+        for pass_folder in pass_folder_paths.split(','):  # pass_folder_paths 包含一系列固定不动的文件夹的绝对路径
             if pass_folder[:len(path1)] == path1:
                 pass_folder_rpaths.append(path1.split('\\')[-1] + pass_folder[len(path1)::])
             elif pass_folder != '':
@@ -553,6 +608,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 file2_path = path2 + file2
                 match_possibility = sf_match_possibility(path1, path2, file1, file2)
                 if match_possibility > 50:
+                    if filehash(file1_path) == filehash(file2_path):
+                        break
                     new_file, old_file = file1, file2
                     new_file_path, old_file_path = file1_path, file2_path
                     new_file_rpath = path1.split('\\')[-1] + file1
@@ -563,60 +620,63 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                         old_file, new_file = new_file, old_file
                         new_file_path, old_file_path = old_file_path, new_file_path
                         new_file_rpath, old_file_rpath = old_file_path, new_file_rpath
-                    if any(pfolder == old_file_rpath[:len(pfolder)] for pfolder in pass_folder_rpaths) and pass_folder_rpaths != []\
-                            or any(old_file == pfile[-len(old_file):] for pfile in pass_item_rpath.split(',')) and pass_item_rpath != []\
-                            or filehash(new_file_path) == filehash(old_file_path):
+                    if any(pfolder == old_file_rpath[:len(pfolder)] for pfolder in
+                           pass_folder_rpaths) and pass_folder_rpaths != [] \
+                            or any(old_file == pfile[-len(old_file):] for pfile in
+                                   pass_item_rpath.split(',')) and pass_item_rpath != []:
                         break
                     task_number += 1
-                    main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
+                    barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filename)
                     sync_tasks.append([new_file_path, old_file_path, False])
                     break
                 elif match_possibility == 50:
                     sf_ask_operation()
             else:
                 newfile1_rpath = path2.split('\\')[-1] + file1
-                if any(pfolder == newfile1_rpath[:len(pfolder)] for pfolder in pass_folder_rpaths) and pass_folder_rpaths != []:
+                if any(pfolder == newfile1_rpath[:len(pfolder)] for pfolder in
+                       pass_folder_rpaths) and pass_folder_rpaths != []:
                     continue
                 task_number += 1
-                main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
-                sync_bar.update_idletasks()
+                barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filename)
+                barroot.progress_root.update_idletasks()
                 sync_tasks.append([file1_path, path2 + file1, True])
+
         if not single_sync:
             for file2 in all_files_2:
                 filename = file2.split('\\')[-1]
                 file2_path = path2 + file2
                 newfile2_rpath = path1.split('\\')[-1] + file2
                 if file2 not in all_files_1:
-                    if any(pfolder == newfile2_rpath[:len(pfolder)] for pfolder in pass_folder_rpaths) and pass_folder_rpaths != []:
+                    if any(pfolder == newfile2_rpath[:len(pfolder)] for pfolder in
+                           pass_folder_rpaths) and pass_folder_rpaths != []:
                         continue
                     task_number += 1
-                    main_progress_label['text'] = sf_label_text_dic['main_progress_label'][language_number] + filename
-                    sync_bar.update_idletasks()
+                    barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filename)
+                    barroot.progress_root.update_idletasks()
                     sync_tasks.append([file2_path, path1 + file2, True])
         return sync_tasks
 
-    def run_sync_tasks():
+    def run_sync_tasks(baroot):
         sf_errorname = ''
-        main_progress_bar['value'] = 0
-        sync_bar.update_idletasks()
-        tasks = get_task()
-        main_progress_bar['maximum'] = len(tasks)
-        main_progress_label[
-            'text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
+        baroot.main_progress_bar['value'] = 0
+        baroot.progress_root.update_idletasks()
+        tasks = get_task(baroot)
+        baroot.main_progress_bar['maximum'] = len(tasks)
+        baroot.set_label1(
+            f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
         for task in tasks:
-            current_file_label['text'] = sf_label_text_dic["current_file_label1"][language_number] + \
-                                         task[0].split('\\')[-1]
+            baroot.set_label2(sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
             if task[2]:
                 sf_creat_folder(task[1])
             try:
                 shutil.copyfile(task[0], task[1])
             except:
                 sf_errorname += task[0] + ' , '
-            main_progress_bar['value'] += 1
-            main_progress_label[
-                'text'] = f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}'
-            sync_bar.update_idletasks()
-        sync_bar.withdraw()
+            baroot.main_progress_bar['value'] += 1
+            baroot.set_label1(
+                f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
+            baroot.progress_root.update_idletasks()
+        baroot.progress_root.withdraw()
         path_name_1 = path1.split('\\')[-1]
         if area_name:
             path_name_1 = area_name
@@ -625,34 +685,19 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         except:
             pass
         finally:
-            sync_bar.withdraw()
-            roll_bar.join()
+            baroot.progress_root.withdraw()
 
-    def sync_bar_on_exit():
-        if tkinter.messagebox.askyesno(title='Syncfile', message='''文件正在同步中，
-确定中断同步进程并退出?'''):
-            sync_bar.withdraw()
-            run_tasks.join()
-            roll_bar.join()
-
-    global sync_bar
-    sync_bar = tk.Tk()
-    sync_bar.title('Movefile  -Syncfile Progress')
-    sync_bar.geometry('420x115')
-    main_progress_label = ttk.Label(sync_bar, text=sf_label_text_dic["main_progress_label2"][language_number])
-    main_progress_label.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
-    main_progress_bar = ttk.Progressbar(sync_bar)
-    main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150, sticky='W')
-    current_file_label = ttk.Label(sync_bar, text=sf_label_text_dic["current_file_label"][language_number])
-    current_file_label.grid(row=2, column=0, padx=10, pady=5, sticky='SW')
-    show_running_bar = ttk.Progressbar(sync_bar, mode='indeterminate')
-    show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
-    sync_bar.protocol('WM_DELETE_WINDOW', lambda: sync_bar_on_exit())
-    roll_bar = threading.Thread(target=show_running, daemon=True)
-    roll_bar.start()
-    run_tasks = threading.Thread(target=run_sync_tasks, daemon=True)
+    global sync_bar_root, sync_bar_root_task
+    sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
+                                sf_label_text_dic["main_progress_label2"][language_number],
+                                sf_label_text_dic["current_file_label"][language_number],
+                                language_number)
+    sync_bar_root_task = threading.Thread(target=lambda: sync_bar_root.launch(), daemon=True)
+    sync_bar_root_task.start()
+    while not sync_bar_root.initialization_done:
+        time.sleep(0.01)
+    run_tasks = threading.Thread(target=lambda: run_sync_tasks(sync_bar_root), daemon=True)
     run_tasks.start()
-    sync_bar.mainloop()
 
 
 def sf_autorun_operation(place, saving_datas=None):
@@ -677,7 +722,8 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data[2], 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync, language_num(mf_file.get('General', 'language')), saving_data[1], lockfile, lockfolder)
+            sf_sync_dir(path1, path2, single_sync, language_num(mf_file.get('General', 'language')), saving_data[1],
+                        lockfile, lockfolder)
 
     def autorun_local_sf(data_name):
         for saving_data in data_name:
@@ -688,7 +734,8 @@ def sf_autorun_operation(place, saving_datas=None):
             single_sync = True
             if sf_file.get(saving_data, 'mode') == 'double':
                 single_sync = False
-            sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')), pass_folder_paths=lockfolder, pass_item_rpath=lockfile)
+            sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')),
+                        pass_folder_paths=lockfolder, pass_item_rpath=lockfile)
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
@@ -1253,11 +1300,12 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 os.listdir(sf_entry_path_2.get())
                 if sf_entry_path_1.get() == sf_entry_path_2.get() and sf_place_mode.get() != 'movable':
                     return 'same_path_error'
-                elif (sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get())\
+                elif (sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get()) \
                         and sf_place_mode.get() != 'movable':
                     return 'in_path_error'
-                elif (sf_entry_select_removable.get().split(':')[0][-1] + ':') in sf_entry_path_2.get():
-                    return 'in_disk_path_error'
+                elif sf_place_mode.get() == 'movable':
+                    if (sf_entry_select_removable.get().split(':')[0][-1] + ':') in sf_entry_path_2.get():
+                        return 'in_disk_path_error'
             except:
                 return True
             else:
@@ -1649,9 +1697,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     def exit_program():
         task_menu.stop()
-        if 'sync_bar' in globals().keys():
-            sync_bar.quit()
-            sync_bar.destroy()
+        if 'sync_bar_root' in globals().keys():
+            sync_bar_root.progress_root_destruction()
+            sync_bar_root_task.join()
         if 'ask_saving_root' in globals().keys():
             ask_saving_root.quit()
             ask_saving_root.destroy()
@@ -1721,6 +1769,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.bind("<Control-S>", lambda event: ask_save_name())
     root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
     root.protocol('WM_DELETE_WINDOW', root.withdraw)
+
     # 重新定义点击关闭按钮的处理
 
     def get_movable_autorun_ids():
