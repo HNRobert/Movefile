@@ -100,7 +100,12 @@ cf_label_text_dic = {
     'cpsize': ['大小：', 'Size：'],
     'cpctime': ['创建时间：', 'Birth time：'],
     'cpetime': ['最后修改时间：', 'Last changed time：'],
-    'cpprompt': ['请选择操作：', 'Please select an action：']
+    'cpprompt': ['请选择操作：', 'Please select an action：'],
+    'main_progress_label': ['扫描文件中...  发现文件：', 'Scanning items...  Found item：'],
+    'main_progress_label1': [['总进度：', '已完成'], ['Progress：', 'Completed']],
+    'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
+    'current_file_label': ['等待中...', 'Waiting...'],
+    'current_file_label1': ['文件处理中：', 'File in process：'],
 }
 
 sf_label_text_dic = {
@@ -108,7 +113,7 @@ sf_label_text_dic = {
     'main_progress_label1': [['总进度：', '已完成'], ['Progress：', 'Completed']],
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
-    'current_file_label1': ['文件同步中：', 'File in process：'],
+    'current_file_label1': ['同步中文件：', 'File in process：'],
     'exit_sync': ['''文件正在同步中，
 确定中断同步进程并退出?''', '''Synchronization is in progress,
 Are you sure to interrupt the process and exit?'''],

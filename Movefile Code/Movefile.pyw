@@ -423,7 +423,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             notice_title = cfdic['title_p1'][lang_num] + old_folder + cfdic['title_p2_1'][lang_num] + new_folder + ':'
             if new_path == '':
                 notice_title = cfdic['title_p1'][lang_num] + old_folder + cfdic['title_p2_2'][lang_num]
-            toaster.show_toast(notice_title, movename,
+            toaster.show_toast(notice_title, movename[:-3],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
@@ -436,7 +436,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                                threaded=False)
         if len(errorname) > 0:
             notice_title = cfdic['errtitle'][lang_num]
-            notice_content = errorname[:-1] + '\n' + cfdic['errcontent'][lang_num]
+            notice_content = errorname[:-3] + '\n' + cfdic['errcontent'][lang_num]
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
@@ -468,6 +468,72 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                 moved_files += path.split('\\')[-1] + ',  '
         return [moved_files, error_files]
 
+    def get_cf_tasks(baroot):
+        tasks = []
+        items = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
+        now = int(time.time())  # 当前时间
+        for item in items:
+            item_path = old__path + "\\" + item
+            is_folder = os.path.isdir(item_path)
+            if '.' + item.split('.')[-1] in pass__format and not is_folder or item in pass__file:
+                continue
+            if item == 'Movefile ' + vision + '.exe' or item == new__path.split('\\')[-1]:
+                continue
+            if check__mode == 1:
+                last = int(os.stat(item_path).st_mtime)  # 最后一次修改的时间 (Option 1)
+            elif check__mode == 2:
+                last = int(os.stat(item_path).st_atime)  # 最后一次访问的时间 (Option 2)
+            else:
+                raise
+            # if not (not is_folder or is_folder and is__move__folder) or (now - last < overdue_time):  # 判断移动条件(狗屎）
+            if is_folder and not is__move__folder or now - last < overdue_time:  # 判断移动条件
+                continue
+            tasks.append([item, item_path, new__path])
+            baroot.set_label1(cfdic['main_progress_label'][lang_num] + item.split('\\')[-1])
+            baroot.progress_root.update_idletasks()
+        return tasks
+
+    def run_cleanfile(baroot):
+        cf_movename = ''
+        cf_errorname = ''
+        baroot.main_progress_bar['value'] = 0
+        baroot.progress_root.update_idletasks()
+        tasks = get_cf_tasks(baroot)
+        tasklen = str(len(tasks))
+        baroot.main_progress_bar['maximum'] = len(tasks)
+        baroot.set_label1(
+            f'{cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{tasklen}  {cfdic["main_progress_label1"][lang_num][1]}')
+        for task in tasks:
+            item = task[0]
+            item_path = task[1]
+            for_path = task[2]
+            baroot.set_label2(cfdic["current_file_label1"][lang_num] + item.split('\\')[-1])
+            if os.path.exists(for_path + '\\' + item):
+                del_item(for_path + '\\' + item)
+                # attitude = ask_operation(item_path, new__path + '\\' + item)  # 重名文件判断
+            if for_path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
+                try:
+                    shutil.move(item_path, for_path)
+                except:
+                    cf_errorname += (item + ',  ')
+                else:
+                    cf_movename += (item + ',  ')
+            else:
+                result = del_item(item_path)
+                cf_movename += result[0]
+                cf_errorname += result[1]
+            baroot.main_progress_bar['value'] += 1
+            baroot.set_label1(
+                f'{cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{tasklen}  {cfdic["main_progress_label1"][lang_num][1]}')
+            baroot.progress_root.update_idletasks()
+        baroot.progress_root.withdraw()
+        try:
+            cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
+        except:
+            pass
+        finally:
+            baroot.progress_root.withdraw()
+
     """
     def ask_operation(file1_path, file2_path):  # planning
         text = f'''{cfdic['cptitle'][lang_num]}
@@ -484,41 +550,17 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         return text
     """
 
-    cf_movename = ''
-    cf_errorname = ''
-    items = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
-    now = int(time.time())  # 当前时间
-    for item in items:
-        item_path = old__path + "\\" + item
-        is_folder = os.path.isdir(item_path)
-        if '.' + item.split('.')[-1] in pass__format and not is_folder or item in pass__file:
-            continue
-        if item == 'Movefile ' + vision + '.exe' or item == new__path.split('\\')[-1]:
-            continue
-        if check__mode == 1:
-            last = int(os.stat(item_path).st_mtime)  # 最后一次修改的时间 (Option 1)
-        elif check__mode == 2:
-            last = int(os.stat(item_path).st_atime)  # 最后一次访问的时间 (Option 2)
-        else:
-            raise
-        if (not is_folder or is_folder and is__move__folder) and (now - last >= overdue_time):  # 判断移动条件
-            # attitude = False
-            if os.path.exists(new__path + '\\' + item):
-                del_item(new__path + '\\' + item)
-                # attitude = ask_operation(item_path, new__path + '\\' + item)  # 重名文件判断
-            if new__path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
-                try:
-                    shutil.move(item_path, new__path)
-                except:
-                    cf_errorname += (item + ',  ')
-                else:
-                    cf_movename += (item + ',  ')
-            else:
-                result = del_item(item_path)
-                cf_movename += result[0]
-                cf_errorname += result[1]
-
-    cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
+    global clean_bar_root, clean_bar_root_task
+    clean_bar_root = ProgressBar('Movefile  -Syncfile Progress',
+                                 cfdic["main_progress_label2"][lang_num],
+                                 cfdic["current_file_label"][lang_num],
+                                 lang_num)
+    clean_bar_root_task = threading.Thread(target=lambda: clean_bar_root.launch(), daemon=True)
+    clean_bar_root_task.start()
+    while not clean_bar_root.initialization_done:
+        time.sleep(0.01)
+    run_tasks = threading.Thread(target=lambda: run_cleanfile(clean_bar_root), daemon=True)
+    run_tasks.start()
 
 
 def cf_autorun_operation():
@@ -1697,6 +1739,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     def exit_program():
         task_menu.stop()
+        if 'clean_bar_root' in globals().keys():
+            clean_bar_root.progress_root_destruction()
+            clean_bar_root_task.join()
         if 'sync_bar_root' in globals().keys():
             sync_bar_root.progress_root_destruction()
             sync_bar_root_task.join()
