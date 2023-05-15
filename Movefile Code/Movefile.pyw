@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Due to the limited ability of the author,
-nearly all the code is integrated in this main program.
-If you have any suggestion for optimizing structure of this program,
-it's welcomed to submit them to the author.
+this program is not so efficient.
+If you have any suggestion for optimizing this program,
+it's welcomed to submit that to the author.
 
 Created on Wed Dec 21 17:07:30 2022
 
@@ -11,6 +11,7 @@ Created on Wed Dec 21 17:07:30 2022
 QQ: 2567466856
 GitHub address: https://github.com/HNRobert/Movefile
 """
+
 import base64
 import configparser
 import hashlib
@@ -23,6 +24,7 @@ import tkinter.messagebox
 import tkinter.ttk as ttk
 import winreg
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import psutil
 import pystray
@@ -79,6 +81,7 @@ class Initialization:
         sf_data_path = mf_data_path + 'Syncfile\\'
         if 'Movefile' not in os.listdir(roaming_path):
             os.mkdir(mf_data_path)
+            time.sleep(0.5)
         if 'Cleanfile' not in os.listdir(mf_data_path):
             os.mkdir(cf_data_path)
         if 'Syncfile' not in os.listdir(mf_data_path):
@@ -389,13 +392,13 @@ def detect_removable_disks_thread():
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹
     def scan_folders_in(f_path):  # 扫描目录下所有的文件夹，并返回路径列表
-        surf_items = os.listdir(f_path)
+        surf_items = os.scandir(f_path)
         folders = [f_path]
-        for item in surf_items:
-            item_path = f_path + '\\' + item
-            if os.path.isdir(item_path):
-                folders.extend(scan_folders_in(item_path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
+        for item_data in surf_items:
+            if item_data.is_dir():
+                folders.extend(scan_folders_in(item_data.path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
         folders = sorted(set(folders))  # 排序 + 排除重复项
+        surf_items.close()
         return folders
 
     file_store = []
@@ -470,27 +473,26 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
 
     def get_cf_tasks(baroot):
         tasks = []
-        items = os.listdir(old__path)  # 获取文件夹下所有文件和文件夹
+        item_datas = os.scandir(old__path)  # 获取文件夹下所有文件和文件夹
         now = int(time.time())  # 当前时间
-        for item in items:
-            item_path = old__path + "\\" + item
-            is_folder = os.path.isdir(item_path)
-            if '.' + item.split('.')[-1] in pass__format and not is_folder or item in pass__file:
+        for item_data in item_datas:
+            if '.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir() or item_data.name in pass__file:
                 continue
-            if item == 'Movefile ' + vision + '.exe' or item == new__path.split('\\')[-1]:
+            if item_data.name == 'Movefile ' + vision + '.exe' or item_data.name == new__path.split('\\')[-1]:
                 continue
             if check__mode == 1:
-                last = int(os.stat(item_path).st_mtime)  # 最后一次修改的时间 (Option 1)
+                last = int(os.stat(item_data.path).st_mtime)  # 最后一次修改的时间 (Option 1)
             elif check__mode == 2:
-                last = int(os.stat(item_path).st_atime)  # 最后一次访问的时间 (Option 2)
+                last = int(os.stat(item_data.path).st_atime)  # 最后一次访问的时间 (Option 2)
             else:
                 raise
             # if not (not is_folder or is_folder and is__move__folder) or (now - last < overdue_time):  # 判断移动条件(狗屎）
-            if is_folder and not is__move__folder or now - last < overdue_time:  # 判断移动条件
+            if item_data.is_dir() and not is__move__folder or now - last < overdue_time:  # 判断移动条件
                 continue
-            tasks.append([item, item_path, new__path])
-            baroot.set_label1(cfdic['main_progress_label'][lang_num] + item.split('\\')[-1])
+            tasks.append([item_data.name, item_data.path, new__path])
+            baroot.set_label1(cfdic['main_progress_label'][lang_num] + item_data.name)
             baroot.progress_root.update_idletasks()
+        item_datas.close()
         return tasks
 
     def run_cleanfile(baroot):
@@ -619,6 +621,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
     from LT_Dic import sf_label_text_dic
 
     def sf_show_notice(path_1, path_2, sf_errorname):
+
         toaster.show_toast('Sync Successfully',
                            'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
                            icon_path=mf_data_path + r'Movefile.ico',
@@ -632,71 +635,99 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                                threaded=False)
 
     def get_task(barroot):
-        # barroot 是定义文件复制进度窗口的类，包含进度条等等
-        all_files_1 = scan_items(path1)[1]  # scan_items返回路径下所有文件与文件夹的相对路径
-        all_files_2 = scan_items(path2)[1]  # 返回列表[0]是文件夹相对路径,[1]是文件相对路径
+        all_files_1 = scan_items(path1)[1]
+        all_files_2 = scan_items(path2)[1]
         sync_tasks = []
         pass_folder_rpaths = []
         task_number = 0
-        for pass_folder in pass_folder_paths.split(','):  # pass_folder_paths 包含一系列固定不动的文件夹的绝对路径
-            if pass_folder[:len(path1)] == path1:
-                pass_folder_rpaths.append(path1.split('\\')[-1] + pass_folder[len(path1)::])
-            elif pass_folder != '':
-                pass_folder_rpaths.append(path2.split('\\')[-1] + pass_folder[len(path2)::])
+
+        for pass_folder in pass_folder_paths.split(','):
+            if pass_folder.startswith(path1):
+                pass_folder_rpaths.append(pass_folder.replace(path1, path1.split('\\')[-1]))
+            elif pass_folder:
+                pass_folder_rpaths.append(pass_folder.replace(path2, path2.split('\\')[-1]))
+
+        file_info_1 = {}  # 存储文件1的信息：(哈希值, 大小, 修改时间)
+
         for file1 in all_files_1:
-            filename = file1.split('\\')[-1]
             file1_path = path1 + file1
-            for file2 in all_files_2:
-                file2_path = path2 + file2
-                match_possibility = sf_match_possibility(path1, path2, file1, file2)
-                if match_possibility > 50:
-                    if filehash(file1_path) == filehash(file2_path):
-                        break
-                    new_file, old_file = file1, file2
-                    new_file_path, old_file_path = file1_path, file2_path
-                    new_file_rpath = path1.split('\\')[-1] + file1
-                    old_file_rpath = path2.split('\\')[-1] + file2
-                    if int(os.stat(new_file_path).st_mtime) < int(os.stat(old_file_path).st_mtime):
-                        if single_sync:
-                            break
-                        old_file, new_file = new_file, old_file
-                        new_file_path, old_file_path = old_file_path, new_file_path
-                        new_file_rpath, old_file_rpath = old_file_path, new_file_rpath
-                    if any(pfolder == old_file_rpath[:len(pfolder)] for pfolder in
-                           pass_folder_rpaths) and pass_folder_rpaths != [] \
-                            or any(old_file == pfile[-len(old_file):] for pfile in
-                                   pass_item_rpath.split(',')) and pass_item_rpath != []:
-                        break
-                    task_number += 1
-                    barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filename)
-                    sync_tasks.append([new_file_path, old_file_path, False])
-                    break
-                elif match_possibility == 50:
-                    sf_ask_operation()
-            else:
-                newfile1_rpath = path2.split('\\')[-1] + file1
-                if any(pfolder == newfile1_rpath[:len(pfolder)] for pfolder in
-                       pass_folder_rpaths) and pass_folder_rpaths != []:
+            file_info_1[file1] = (filehash(file1_path), os.path.getsize(file1_path), os.path.getmtime(file1_path))
+
+        for file2 in all_files_2:
+            file2_path = path2 + file2
+
+            if file2 in all_files_1:
+                file1 = file2
+                file1_path = path1 + file1
+                file_info = file_info_1[file1]
+                file2_info = (filehash(file2_path), os.path.getsize(file2_path), os.path.getmtime(file2_path))
+
+                if file_info == file2_info:
                     continue
+
+                if single_sync and file_info[0] == file2_info[0]:
+                    continue
+
+                new_file, old_file = file1, file2
+                new_file_path, old_file_path = file1_path, file2_path
+                new_file_rpath = path1.split('\\')[-1] + file1
+                old_file_rpath = path2.split('\\')[-1] + file2
+
+                if int(os.stat(new_file_path).st_mtime) < int(os.stat(old_file_path).st_mtime):
+                    if single_sync:
+                        continue
+                    old_file, new_file = new_file, old_file
+                    new_file_path, old_file_path = old_file_path, new_file_path
+                    new_file_rpath, old_file_rpath = old_file_path, new_file_rpath
+
+                if any(pfolder.startswith(old_file_rpath) for pfolder in pass_folder_rpaths) or any(
+                        old_file.endswith(pfile) for pfile in pass_item_rpath.split(',')):
+                    continue
+
                 task_number += 1
-                barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filename)
+                barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + file1.split('\\')[-1])
+                sync_tasks.append([new_file_path, old_file_path, False])
+            else:
+                new_file_rpath = path2.split('\\')[-1] + file2
+
+                if any(pfolder.startswith(new_file_rpath) for pfolder in pass_folder_rpaths):
+                    continue
+
+                task_number += 1
+                barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + file2.split('\\')[-1])
                 barroot.progress_root.update_idletasks()
-                sync_tasks.append([file1_path, path2 + file1, True])
+                sync_tasks.append([file2_path, path1 + file2, True])
 
         if not single_sync:
-            for file2 in all_files_2:
-                filename = file2.split('\\')[-1]
-                file2_path = path2 + file2
-                newfile2_rpath = path1.split('\\')[-1] + file2
-                if file2 not in all_files_1:
-                    if any(pfolder == newfile2_rpath[:len(pfolder)] for pfolder in
-                           pass_folder_rpaths) and pass_folder_rpaths != []:
+            for file1 in all_files_1:
+                if file1 not in all_files_2:
+                    file1_path = path1 + file1
+                    newfile1_rpath = path2.split('\\')[-1] + file1
+
+                    if any(pfolder.startswith(newfile1_rpath) for pfolder in pass_folder_rpaths):
                         continue
+
                     task_number += 1
-                    barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filename)
+                    barroot.set_label1(
+                        sf_label_text_dic['main_progress_label'][language_number] + file1.split('\\')[-1])
                     barroot.progress_root.update_idletasks()
-                    sync_tasks.append([file2_path, path1 + file2, True])
+                    sync_tasks.append([file1_path, path2 + file1, True])
+
         return sync_tasks
+
+    def synchronize_files(baroot, task):
+        baroot.set_label2(sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
+        new_file_path, old_file_path, create_folder = task
+        if create_folder:
+            try:
+                sf_creat_folder(old_file_path)
+            except:
+                pass
+        try:
+            shutil.copy2(new_file_path, old_file_path)
+        except:
+            return new_file_path
+        return None
 
     def run_sync_tasks(baroot):
         sf_errorname = ''
@@ -706,18 +737,20 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
             f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
-        for task in tasks:
-            baroot.set_label2(sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
-            if task[2]:
-                sf_creat_folder(task[1])
-            try:
-                shutil.copyfile(task[0], task[1])
-            except:
-                sf_errorname += task[0] + ' , '
-            baroot.main_progress_bar['value'] += 1
-            baroot.set_label1(
-                f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
-            baroot.progress_root.update_idletasks()
+
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(synchronize_files, baroot, task) for task in tasks]
+
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    sf_errorname += result + ' , '
+
+                baroot.main_progress_bar['value'] += 1
+                baroot.set_label1(
+                    f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
+                baroot.progress_root.update_idletasks()
+
         baroot.progress_root.withdraw()
         path_name_1 = path1.split('\\')[-1]
         if area_name:
@@ -798,18 +831,18 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         all_ends = []
         file_names = []
         folder_names = []
-        item_names = os.listdir(cf_entry_old_path.get())
+        item_names = os.scandir(cf_entry_old_path.get())
         if cf_ori_old_path != cf_entry_old_path.get():
             cf_entry_keep_files.delete(0, 'end')
             cf_entry_keep_formats.delete(0, 'end')
             cf_ori_old_path = cf_entry_old_path.get()
         for item in item_names:
-            if os.path.isfile(cf_entry_old_path.get() + '\\' + item):
-                file_end = '.' + item.split('.')[-1]
+            if item.is_file():
+                file_end = '.' + item.name.split('.')[-1]
                 all_ends.append(file_end)
-                file_names.append(item)
-            elif os.path.isdir(cf_entry_old_path.get() + '\\' + item) and cf_is_folder_move.get():
-                folder_names.append(item)
+                file_names.append(item.name)
+            elif item.is_dir() and cf_is_folder_move.get():
+                folder_names.append(item.name)
         exist_ends = sorted(set(all_ends))
 
         keep_file_values = ['全选'] + folder_names + file_names
@@ -835,6 +868,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             new_values = new_values[:-1]
         cf_entry_keep_formats.delete(0, 'end')
         cf_entry_keep_formats.insert(0, new_values)
+        item_names.close()
 
     def sf_refresh_disk_list(none_disk=False):
         disk_list = scan_removable_disks()
