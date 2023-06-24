@@ -10,7 +10,6 @@
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile Code/Movefile.pyw" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/Movefile.pyw" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,9 +25,6 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
-  </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$USER_HOME$/AppData/Local/Programs/Python/Python38/Lib/site-packages/win10toast/__init__.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -57,7 +53,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;settings.sync&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -72,7 +68,7 @@
       <recent name="C:\Users\25674\Desktop\Movefile" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.Movefile.pyw">
     <configuration name="未命名" type="PyRemoteDebugConfigurationType" factoryName="Python Remote Debug" nameIsGenerated="true">
       <module name="Movefile" />
       <option name="PORT" value="0" />
@@ -86,6 +82,28 @@
       <option name="SUSPEND_AFTER_CONNECT" value="true" />
       <method v="2" />
     </configuration>
+    <configuration name="Movefile.pyw" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Movefile" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Movefile Code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Movefile Code/Movefile.pyw" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="Movefile" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -94,7 +112,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Users\Robert He\AppData\Local\Programs\Python\Python38\python.exe" />
-      <option name="SDK_NAME" value="Python 3.8" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -270,6 +287,17 @@
       <workItem from="1684120183547" duration="2314000" />
       <workItem from="1684150765824" duration="5714000" />
       <workItem from="1684159892801" duration="3262000" />
+      <workItem from="1687423294241" duration="82000" />
+      <workItem from="1687423471017" duration="151000" />
+      <workItem from="1687423701470" duration="1272000" />
+      <workItem from="1687425020610" duration="530000" />
+      <workItem from="1687574716780" duration="66000" />
+      <workItem from="1687574843752" duration="26000" />
+      <workItem from="1687574880411" duration="74000" />
+      <workItem from="1687575049200" duration="232000" />
+      <workItem from="1687575352354" duration="658000" />
+      <workItem from="1687576036330" duration="2299000" />
+      <workItem from="1687580418638" duration="47000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -350,8 +378,8 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703826728" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
-    <SUITE FILE_PATH="coverage/LT_Dic_py$Movefile.coverage" NAME="Movefile 覆盖结果" MODIFIED="1682520281763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile_pyw$Movefile.coverage" NAME="Movefile 覆盖结果" MODIFIED="1684120547538" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
+    <SUITE FILE_PATH="coverage/LT_Dic_py$Movefile.coverage" NAME="Movefile 覆盖结果" MODIFIED="1682520281763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$scratch.coverage" NAME="scratch 覆盖结果" MODIFIED="1674649911278" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$scratch_3.coverage" NAME="scratch_3 覆盖结果" MODIFIED="1674656816966" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_pyw.coverage" NAME="Movefile v2.0.0.pyw 覆盖结果" MODIFIED="1674843562433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
@@ -379,10 +407,10 @@
     <SUITE FILE_PATH="coverage/workspace_xml$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1673752920805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1674841036282" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile_pyw$scratch_1.coverage" NAME="scratch_1 覆盖结果" MODIFIED="1684120969672" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
-    <SUITE FILE_PATH="coverage/Movefile$Movefile_pyw.coverage" NAME="Movefile.pyw 覆盖结果" MODIFIED="1682224587337" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
+    <SUITE FILE_PATH="coverage/Movefile$Movefile_pyw.coverage" NAME="Movefile.pyw 覆盖结果" MODIFIED="1687425207900" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$Movefile_v2_0_0_Beta_pyw.coverage" NAME="Movefile v2.0.0 Beta.pyw 覆盖结果" MODIFIED="1674757537872" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$test.coverage" NAME="test 覆盖结果" MODIFIED="1674219402199" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/Desktop" />
-    <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$main.coverage" NAME="main 覆盖结果" MODIFIED="1675083107639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../../_Robert's Softwares/_Working/_Programming/Z-Robert's Programmes/2048GameAutoMovePython-main/2048python" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile.coverage" NAME="Movefile 覆盖结果" MODIFIED="1682412064703" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
+    <SUITE FILE_PATH="coverage/Movefile_v2_0_1_pyw$main.coverage" NAME="main 覆盖结果" MODIFIED="1675083107639" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../../_Robert's Softwares/_Working/_Programming/Z-Robert's Programmes/2048GameAutoMovePython-main/2048python" />
   </component>
 </project>
