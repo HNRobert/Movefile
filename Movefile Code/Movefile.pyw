@@ -30,6 +30,7 @@ import psutil
 import pystray
 import win32api
 import win32com.client as com
+import win32gui
 import winshell
 from PIL import Image
 from mttkinter import mtTkinter as tk
@@ -206,6 +207,29 @@ class ProgressBar:
     def progress_root_destruction(self):
         self.progress_root.quit()
         self.progress_root.destroy()
+
+
+class CheckProgress:
+    def __init__(self):
+        global continue_this_progress
+        continue_this_progress = True
+        self.pl = psutil.pids()
+        self.classname = None
+        self.title = 'Movefile'
+        if self.proc_exist(self.title) and self.open_proc_root():
+            continue_this_progress = False
+
+    def proc_exist(self, process_name):
+        for pid in self.pl:
+            if process_name in psutil.Process(pid).name():
+                return True
+        else:
+            return False
+
+    def open_proc_root(self):
+        hwnd = win32gui.FindWindow(self.classname, self.title+' Setting')
+        win32gui.ShowWindow(hwnd, 5)
+        return True
 
 
 def set_startup(state=True):
@@ -1902,10 +1926,13 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def main():
+    CheckProgress()
+    if not continue_this_progress:
+        return
     Initialization()
     if first_visit:
         make_ui(first_ask=True)
-    elif boot_time <= 120 and ask_time_today == 1:
+    elif boot_time <= 120 or ask_time_today == 1:
         cf_autorun_operation()
         sf_autorun_operation('local')
         make_ui(muti_ask=True, startup_ask=True)
