@@ -2,7 +2,7 @@ vision = 'v2.3.0'
 update_time = '2023/5/7'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
-    'readfile_menu': ['读取配置文件', 'Read config'],
+    'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
     'savefile_menu': ['保存', 'Save config'],
     'option_menu': ['选项', 'Option'],
     'autorun_menu': ['开机自动启动本软件', 'Start automatically'],
@@ -21,6 +21,7 @@ r_label_text_dic = {
     'label_choose_state': ['功能选择：', 'Function：'],
     'option_is_cleanfile': ['清理文件', 'Cleanfile'],
     'option_is_syncfile': ['同步文件', 'Syncfile'],
+    'current_save_name': ['当前存档：', 'Current config：'],
     'cf_label_old_path': ['原文件夹路径：', 'original path：'],
     'cf_browse_old_path_button': ['浏览', 'Browse'],
     'cf_browse_new_path_button': ['浏览', 'Browse'],

@@ -14,7 +14,6 @@ GitHub address: https://github.com/HNRobert/Movefile
 
 import base64
 import configparser
-import hashlib
 import os
 import shutil
 import threading
@@ -26,6 +25,7 @@ import winreg
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import filecmp
 import psutil
 import pystray
 import win32api
@@ -227,7 +227,7 @@ class CheckProgress:
             return False
 
     def open_proc_root(self):
-        hwnd = win32gui.FindWindow(self.classname, self.title+' Setting')
+        hwnd = win32gui.FindWindow(self.classname, self.title + ' Setting')
         win32gui.ShowWindow(hwnd, 5)
         return True
 
@@ -267,14 +267,6 @@ def language_num(language_name):
     else:
         l_num = 2
     return l_num
-
-
-def filehash(filepath):
-    md5_hash = hashlib.md5()
-    with open(filepath, "rb") as f:
-        for byte_block in iter(lambda: f.read(4096), b""):
-            md5_hash.update(byte_block)
-    return md5_hash.hexdigest()
 
 
 def list_saving_data():
@@ -428,13 +420,12 @@ def scan_items(folder_path):  # 扫描路径下所有文件夹
     file_store = []
     folder_store = scan_folders_in(folder_path)
     for folder in folder_store:  # 遍历所有文件夹
-        files = [folder + '\\' + dI for dI in os.listdir(folder) if os.path.isfile(os.path.join(folder, dI))]
+        files = [dI.path for dI in os.scandir(folder) if dI.is_file()]
         # 如上只生成本文件夹内 文件的路径
         file_store.extend(files)  # 存储上面文件路径
     for i in range(len(file_store)):
-        file_store[i] = file_store[i][len(folder_path)::]  # 返回相对位置
-    result = [folder_store, file_store]
-    return result
+        file_store[i] = file_store[i][len(folder_path):]  # 返回相对位置
+    return folder_store, file_store
 
 
 def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
@@ -536,7 +527,6 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             baroot.set_label2(cfdic["current_file_label1"][lang_num] + item.split('\\')[-1])
             if os.path.exists(for_path + '\\' + item):
                 del_item(for_path + '\\' + item)
-                # attitude = ask_operation(item_path, new__path + '\\' + item)  # 重名文件判断
             if for_path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
                 try:
                     shutil.move(item_path, for_path)
@@ -553,28 +543,8 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                 f'{cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{tasklen}  {cfdic["main_progress_label1"][lang_num][1]}')
             baroot.progress_root.update_idletasks()
         baroot.progress_root.withdraw()
-        try:
-            cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
-        except:
-            pass
-        finally:
-            baroot.progress_root.withdraw()
-
-    """
-    def ask_operation(file1_path, file2_path):  # planning
-        text = f'''{cfdic['cptitle'][lang_num]}
-{file1_path}:
-{cfdic['cpsize'][lang_num]} {os.stat(file1_path).st_size}
-{cfdic['cpctime'][lang_num]} {os.stat(file1_path).st_ctime}
-{cfdic['cpetime'][lang_num]} {os.stat(file1_path).st_mtime}
-
-{file2_path}:
-{cfdic['cpsize'][lang_num]} {os.stat(file2_path).st_size}
-{cfdic['cpctime'][lang_num]} {os.stat(file2_path).st_ctime}
-{cfdic['cpetime'][lang_num]} {os.stat(file2_path).st_mtime}
-'''
-        return text
-    """
+        cf_show_notice(old__path, new__path, cf_movename, cf_errorname)
+        baroot.progress_root.withdraw()
 
     global clean_bar_root, clean_bar_root_task
     clean_bar_root = ProgressBar('Movefile  -Syncfile Progress',
@@ -609,10 +579,6 @@ def cf_autorun_operation():
                     is__move__folder=cf_file.get(save_name, 'move_folder'))
 
 
-def sf_ask_operation():
-    pass  # planning
-
-
 def sf_creat_folder(target_path):
     target = target_path.split('\\')[:-1]
     try_des = ''
@@ -641,7 +607,7 @@ def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较�
     return possibility
 
 
-def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_item_rpath='', pass_folder_paths=''):
+def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
     from LT_Dic import sf_label_text_dic
 
     def sf_show_notice(path_1, path_2, sf_errorname):
@@ -658,84 +624,66 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                                duration=10,
                                threaded=False)
 
+    def diff_files_in(foldera_path, folderb_path):
+
+        def all_files_in(item_dir: str, is_r: bool):
+            all_files = []
+            ort_path, opp_path = foldera_path, folderb_path
+            if is_r:
+                opp_path, ort_path = ort_path, opp_path
+            for itroot, itdirs, itfiles in os.walk(item_dir):
+                for itfile in itfiles:
+                    itfile_path = os.path.join(itroot, itfile)
+                    all_files.append([itfile_path, itfile_path.replace(ort_path, opp_path)])
+            return all_files
+
+        def add_diff_data(index, data_list, r_only=None):
+            for item in data_list:
+                if r_only and os.path.isdir(os.path.join(folderb_path, item)):
+                    diff_data[index].extend(all_files_in(os.path.join(folderb_path, item), True))
+                elif os.path.isdir(os.path.join(foldera_path, item)):
+                    diff_data[index].extend(all_files_in(os.path.join(foldera_path, item), False))
+                elif r_only:
+                    diff_data[index].append([os.path.join(folderb_path, item), os.path.join(foldera_path, item)])
+                else:
+                    diff_data[index].append([os.path.join(foldera_path, item), os.path.join(folderb_path, item)])
+
+        diff_data = [[], [], []]
+        cmp_data = filecmp.dircmp(foldera_path, folderb_path)
+        add_diff_data(0, cmp_data.diff_files)
+        add_diff_data(1, cmp_data.left_only)
+        add_diff_data(2, cmp_data.right_only, True)
+        for comdir in cmp_data.common_dirs:
+            dir_data = diff_files_in(os.path.join(foldera_path, comdir), os.path.join(folderb_path, comdir))
+            for i in range(3):
+                diff_data[i].extend(dir_data[i])
+        return diff_data
+
     def get_task(barroot):
-        all_files_1 = scan_items(path1)[1]
-        all_files_2 = scan_items(path2)[1]
+        def judge_and_append(filea: str, fileb: str, direct_apd: bool):
+            if int(os.stat(filea).st_mtime) < int(os.stat(fileb).st_mtime):
+                if single_sync:
+                    return
+                filea, fileb = fileb, filea
+            if any(fileb.startswith(pfolder) and pfolder for pfolder in pass_folder_paths.split(',')) or any(
+                    fileb == pfile for pfile in pass_file_paths.split(',')):
+                return
+            sync_tasks.append([filea, fileb, direct_apd])
+            barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + filea[0].split('\\')[-1])
+
         sync_tasks = []
-        pass_folder_rpaths = []
-        task_number = 0
-
-        for pass_folder in pass_folder_paths.split(','):
-            if pass_folder.startswith(path1):
-                pass_folder_rpaths.append(pass_folder.replace(path1, path1.split('\\')[-1]))
-            elif pass_folder:
-                pass_folder_rpaths.append(pass_folder.replace(path2, path2.split('\\')[-1]))
-
-        file_info_1 = {}  # 存储文件1的信息：(哈希值, 大小, 修改时间)
-
-        for file1 in all_files_1:
-            file1_path = path1 + file1
-            file_info_1[file1] = (filehash(file1_path), os.path.getsize(file1_path), os.path.getmtime(file1_path))
-
-        for file2 in all_files_2:
-            file2_path = path2 + file2
-
-            if file2 in all_files_1:
-                file1 = file2
-                file1_path = path1 + file1
-                file_info = file_info_1[file1]
-                file2_info = (filehash(file2_path), os.path.getsize(file2_path), os.path.getmtime(file2_path))
-
-                if file_info == file2_info:
-                    continue
-
-                if single_sync and file_info[0] == file2_info[0]:
-                    continue
-
-                new_file, old_file = file1, file2
-                new_file_path, old_file_path = file1_path, file2_path
-                new_file_rpath = path1.split('\\')[-1] + file1
-                old_file_rpath = path2.split('\\')[-1] + file2
-
-                if int(os.stat(new_file_path).st_mtime) < int(os.stat(old_file_path).st_mtime):
-                    if single_sync:
-                        continue
-                    old_file, new_file = new_file, old_file
-                    new_file_path, old_file_path = old_file_path, new_file_path
-                    new_file_rpath, old_file_rpath = old_file_path, new_file_rpath
-
-                if any(pfolder.startswith(old_file_rpath) for pfolder in pass_folder_rpaths) or any(
-                        old_file.endswith(pfile) for pfile in pass_item_rpath.split(',')):
-                    continue
-
-                task_number += 1
-                barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + file1.split('\\')[-1])
-                sync_tasks.append([new_file_path, old_file_path, False])
-            else:
-                new_file_rpath = path2.split('\\')[-1] + file2
-
-                if any(pfolder.startswith(new_file_rpath) for pfolder in pass_folder_rpaths):
-                    continue
-
-                task_number += 1
-                barroot.set_label1(sf_label_text_dic['main_progress_label'][language_number] + file2.split('\\')[-1])
-                barroot.progress_root.update_idletasks()
-                sync_tasks.append([file2_path, path1 + file2, True])
-
+        diff_item_data = diff_files_in(path1, path2)
+        for aonly_item in diff_item_data[1]:
+            sync_tasks.append([aonly_item[0], aonly_item[1], True])
+            barroot.set_label1(
+                sf_label_text_dic['main_progress_label'][language_number] + aonly_item[0].split('\\')[-1])
         if not single_sync:
-            for file1 in all_files_1:
-                if file1 not in all_files_2:
-                    file1_path = path1 + file1
-                    newfile1_rpath = path2.split('\\')[-1] + file1
-
-                    if any(pfolder.startswith(newfile1_rpath) for pfolder in pass_folder_rpaths):
-                        continue
-
-                    task_number += 1
-                    barroot.set_label1(
-                        sf_label_text_dic['main_progress_label'][language_number] + file1.split('\\')[-1])
-                    barroot.progress_root.update_idletasks()
-                    sync_tasks.append([file1_path, path2 + file1, True])
+            for bonly_item in diff_item_data[2]:
+                sync_tasks.append([bonly_item[0], bonly_item[1], True])
+                barroot.set_label1(
+                    sf_label_text_dic['main_progress_label'][language_number] + bonly_item[1].split('\\')[-1])
+        for diff_item in diff_item_data[0]:
+            judge_and_append(diff_item[0], diff_item[1], False)
 
         return sync_tasks
 
@@ -779,12 +727,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         path_name_1 = path1.split('\\')[-1]
         if area_name:
             path_name_1 = area_name
-        try:
-            sf_show_notice(path_name_1, path2.split('\\')[-1], sf_errorname)
-        except:
-            pass
-        finally:
-            baroot.progress_root.withdraw()
+        sf_show_notice(path_name_1, path2.split('\\')[-1], sf_errorname)
+        baroot.progress_root.withdraw()
 
     global sync_bar_root, sync_bar_root_task
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
@@ -834,7 +778,7 @@ def sf_autorun_operation(place, saving_datas=None):
             if sf_file.get(saving_data, 'mode') == 'double':
                 single_sync = False
             sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')),
-                        pass_folder_paths=lockfolder, pass_item_rpath=lockfile)
+                        pass_folder_paths=lockfolder, pass_file_paths=lockfile)
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
@@ -851,6 +795,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
+        def update_values(values_in: list, entry_in: Combopicker, ):
+            entry_in.values = values_in
+            previous_values = entry_in.get().split(',')
+            result = ''
+            for pre_value in previous_values:
+                if pre_value in values_in:
+                    result += pre_value + ','
+            entry_in.delete(0, 'end')
+            entry_in.insert(0, result)
+
         nonlocal cf_ori_old_path
         all_ends = []
         file_names = []
@@ -869,29 +823,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 folder_names.append(item.name)
         exist_ends = sorted(set(all_ends))
 
-        keep_file_values = ['全选'] + folder_names + file_names
-        cf_entry_keep_files.values = keep_file_values
-        past_values = cf_entry_keep_files.get().split(',')
-        new_values = ''
-        for past_value in past_values:
-            if past_value in keep_file_values:
-                new_values += past_value + ','
-        if new_values:
-            new_values = new_values[:-1]
-        cf_entry_keep_files.delete(0, 'end')
-        cf_entry_keep_files.insert(0, new_values)
+        update_values(['全选'] + folder_names + file_names, cf_entry_keep_files)
+        update_values(['全选'] + exist_ends, cf_entry_keep_formats)
 
-        keep_format_values = ['全选'] + exist_ends
-        cf_entry_keep_formats.values = keep_format_values
-        past_values = cf_entry_keep_formats.get().split(',')
-        new_values = ''
-        for past_value in past_values:
-            if past_value in keep_format_values:
-                new_values += past_value + ','
-        if new_values:
-            new_values = new_values[:-1]
-        cf_entry_keep_formats.delete(0, 'end')
-        cf_entry_keep_formats.insert(0, new_values)
         item_names.close()
 
     def sf_refresh_disk_list(none_disk=False):
@@ -932,6 +866,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
         option_is_cleanfile_text.set(r_label_text_dic['option_is_cleanfile'][lang_number])
         option_is_syncfile_text.set(r_label_text_dic['option_is_syncfile'][lang_number])
+        current_save_name.set(r_label_text_dic['current_save_name'][lang_number])
         cf_label_old_path_text.set(r_label_text_dic['cf_label_old_path'][lang_number])
         cf_browse_old_path_button_text.set(r_label_text_dic['cf_browse_old_path_button'][lang_number])
         cf_browse_new_path_button_text.set(r_label_text_dic['cf_browse_new_path_button'][lang_number])
@@ -985,9 +920,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     class Place:
         def __init__(self, mode=None, sf_place=None):
             label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
-            blank.grid(row=0, column=1, padx=321, pady=5, sticky='W')
+            blank.grid(row=3, column=1, padx=321, pady=5, sticky='W')
             option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
             option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
+            label_current_save_name.grid(row=0, column=1, padx=10, sticky='E')
             if mode == 'cf':
                 self.cf_state()
             elif mode == 'sf':
@@ -1135,6 +1071,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     root.attributes('-topmost', False)
     root.update_idletasks()
 
+    current_save_name = tk.StringVar()
     oldpath = tk.StringVar()
     newpath = tk.StringVar()
     path_1 = tk.StringVar()
@@ -1205,7 +1142,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                                          value='sf',
                                          command=lambda: Place(cf_or_sf.get()))
 
-    blank = ttk.Label(root, text='')
+    label_current_save_name = ttk.Label(root, text=current_save_name, textvariable=current_save_name)
+
+    blank = ttk.Label(root)
 
     cf_label_old_path = ttk.Label(root, textvariable=cf_label_old_path_text)
     cf_entry_old_path = ttk.Entry(root, textvariable=oldpath)
@@ -1534,6 +1473,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
         def sure_save():
             savefile(function=cf_or_sf.get(), save_name=name_entry.get())
+            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + name_entry.get())
             exit_asn()
 
         def exit_asn():
@@ -1690,7 +1630,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 open_cf_saving(saving_name)
             elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
                 open_sf_saving(saving_name)
-            root.title('Movefile   --> ' + saving_name)
+            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + saving_name)
             exit_asr()
 
         def exit_asr():
@@ -1739,10 +1679,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             ask_saving_root.mainloop()
         elif mode == 'cf':
             open_cf_saving(save_name)
-            root.title('Movefile   --> ' + save_name)
+            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + save_name)
         elif mode == 'sf':
             open_sf_saving(save_name)
-            root.title('Movefile   --> ' + save_name)
+            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + save_name)
         initial_entry()
 
     def cf_operate_from_root():
@@ -1930,11 +1870,12 @@ def main():
     if not continue_this_progress:
         return
     Initialization()
-    if first_visit:
-        make_ui(first_ask=True)
-    elif boot_time <= 120 or ask_time_today == 1:
+    if ask_time_today == 1:
         cf_autorun_operation()
         sf_autorun_operation('local')
+    if first_visit:
+        make_ui(first_ask=True)
+    elif boot_time <= 120:
         make_ui(muti_ask=True, startup_ask=True)
     else:
         make_ui(muti_ask=True)
