@@ -73,7 +73,8 @@ class Initialization:
 
     @staticmethod
     def set_data_path():
-        global mf_data_path, cf_data_path, sf_data_path
+        global mf_data_path, cf_data_path, sf_data_path, toaster
+        toaster = ToastNotifier()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
@@ -90,8 +91,6 @@ class Initialization:
 
     @staticmethod
     def asktime_plus():
-        global toaster
-        toaster = ToastNotifier()
         gencf = configparser.ConfigParser()
         time_now = datetime.today()
         date = str(time_now.date())
@@ -205,11 +204,10 @@ class ProgressBar:
             return False
 
     def progress_root_destruction(self):
-        self.progress_root.quit()
         self.progress_root.destroy()
 
 
-class CheckProgress:
+class CheckMFProgress:
     def __init__(self):
         global continue_this_progress
         continue_this_progress = True
@@ -444,21 +442,21 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             toaster.show_toast(notice_title, movename[:-3],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=False)
+                               threaded=True)
         else:
             notice_title = old_folder + cfdic['cltitle'][lang_num]
             notice_content = cfdic['clcontent'][lang_num]
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=False)
+                               threaded=True)
         if len(errorname) > 0:
             notice_title = cfdic['errtitle'][lang_num]
             notice_content = errorname[:-3] + '\n' + cfdic['errcontent'][lang_num]
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=False)
+                               threaded=True)
 
     def del_item(path):  # 递归删除文件夹或单个文件, 代替shutil.rmtree和os.remove  (shutil.rmtree会莫名报错)
         error_files = ''
@@ -588,25 +586,6 @@ def sf_creat_folder(target_path):
             os.mkdir(try_des)
 
 
-def sf_match_possibility(path_1, path_2, file_1, file_2):  # 更新时间比较函数
-    file1_name = file_1.split('\\')[-1]
-    file2_name = file_2.split('\\')[-1]
-    file1_path = path_1 + file_1
-    file2_path = path_2 + file_2
-    creat_time_1 = int(os.stat(file1_path).st_ctime)
-    creat_time_2 = int(os.stat(file2_path).st_ctime)
-
-    possibility = 0
-    if file_2 == file_1:  # 比对相对路径
-        possibility += 50
-    if file2_name == file1_name:  # 比对文件名
-        possibility += 30
-    if creat_time_1 == creat_time_2:
-        possibility += 20
-
-    return possibility
-
-
 def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
     from LT_Dic import sf_label_text_dic
 
@@ -616,13 +595,13 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                            'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
-                           threaded=False)
+                           threaded=True)
         if len(sf_errorname) > 0:
             toaster.show_toast("Couldn't sync files",
                                sf_errorname + sf_label_text_dic['can_not_move_notice'][language_number],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=False)
+                               threaded=True)
 
     def diff_files_in(foldera_path, folderb_path):
 
@@ -702,6 +681,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         return None
 
     def run_sync_tasks(baroot):
+        nonlocal sf_progress_done
         sf_errorname = ''
         baroot.main_progress_bar['value'] = 0
         baroot.progress_root.update_idletasks()
@@ -729,8 +709,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             path_name_1 = area_name
         sf_show_notice(path_name_1, path2.split('\\')[-1], sf_errorname)
         baroot.progress_root.withdraw()
+        sf_progress_done = True
 
-    global sync_bar_root, sync_bar_root_task
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
                                 sf_label_text_dic["main_progress_label2"][language_number],
                                 sf_label_text_dic["current_file_label"][language_number],
@@ -739,8 +719,14 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
     sync_bar_root_task.start()
     while not sync_bar_root.initialization_done:
         time.sleep(0.01)
+    sf_progress_done = False
     run_tasks = threading.Thread(target=lambda: run_sync_tasks(sync_bar_root), daemon=True)
     run_tasks.start()
+    while not sf_progress_done:
+        time.sleep(1.0)
+    sync_bar_root.progress_root_destruction()
+    sync_bar_root_task.join()
+    run_tasks.join()
 
 
 def sf_autorun_operation(place, saving_datas=None):
@@ -1740,9 +1726,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if 'clean_bar_root' in globals().keys():
             clean_bar_root.progress_root_destruction()
             clean_bar_root_task.join()
-        if 'sync_bar_root' in globals().keys():
-            sync_bar_root.progress_root_destruction()
-            sync_bar_root_task.join()
         if 'ask_saving_root' in globals().keys():
             ask_saving_root.quit()
             ask_saving_root.destroy()
@@ -1866,7 +1849,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def main():
-    CheckProgress()
+    CheckMFProgress()
     if not continue_this_progress:
         return
     Initialization()
