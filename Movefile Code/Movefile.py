@@ -42,44 +42,43 @@ from LT_Dic import vision
 
 class Initialization:
     def __init__(self):
-        global startup_root, first_visit, boot_time, ask_time_today
+        global startup_root
+        self.boot_time = None
+        self.roaming_path = None
+        self.image = None
         self.set_data_path()
-        startup_root = threading.Thread(target=self.check_window, daemon=True)
-        startup_root.start()
-        self.get_desktop()
+        self.mf_data = configparser.ConfigParser()
+        self.mf_data.read(mf_data_path + r'Movefile_data.ini')
+        self.get_boot_time()
         self.load_icon()
         self.asktime_plus()
 
-        first_visit = False
+        self.first_visit = False
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
-            first_visit = True
+            self.first_visit = True
 
         mf = configparser.ConfigParser()
         mf.read(mf_data_path + r"Movefile_data.ini")
 
-        boot_time = self.get_boot_time()
-        ask_time_today = mf.getint("General", "asktime_today")
+        self.ask_time_today = mf.getint("General", "asktime_today")
 
-    @staticmethod
-    def get_boot_time():
+    def get_boot_time(self):
         boot_t = psutil.boot_time()
         boot_time_obj = datetime.fromtimestamp(boot_t)
         now_time = datetime.now()
         delta_time = now_time - boot_time_obj
-        boot_time_s = delta_time.days * 3600 * 24 + delta_time.seconds
-        return boot_time_s
+        self.boot_time = delta_time.days * 3600 * 24 + delta_time.seconds
 
-    @staticmethod
-    def set_data_path():
+    def set_data_path(self):
         global mf_data_path, cf_data_path, sf_data_path, toaster
         toaster = ToastNotifier()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-        mf_data_path = roaming_path + '\\Movefile\\'
+        self.roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        mf_data_path = self.roaming_path + '\\Movefile\\'
         cf_data_path = mf_data_path + 'Cleanfile\\'
         sf_data_path = mf_data_path + 'Syncfile\\'
-        if 'Movefile' not in os.listdir(roaming_path):
+        if 'Movefile' not in os.listdir(self.roaming_path):
             os.mkdir(mf_data_path)
             time.sleep(0.5)
         if 'Cleanfile' not in os.listdir(mf_data_path):
@@ -87,66 +86,37 @@ class Initialization:
         if 'Syncfile' not in os.listdir(mf_data_path):
             os.mkdir(sf_data_path)
 
-    @staticmethod
-    def asktime_plus():
-        gencf = configparser.ConfigParser()
+    def asktime_plus(self):
         time_now = datetime.today()
         date = str(time_now.date())
         if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
             file = open(mf_data_path + r'Movefile_data.ini', 'w', encoding="ANSI")
             file.close()
-        gencf.read(mf_data_path + r'Movefile_data.ini')
-        if not gencf.has_section("General"):
-            gencf.add_section("General")
-            gencf.set("General", "date", date)
-            gencf.set("General", "asktime_today", '0')
-        if gencf.get("General", "date") != str(date):
-            gencf.set("General", "asktime_today", '0')
-            gencf.set("General", "date", date)
-        asktime_pre = gencf.getint("General", "asktime_today") + 1
-        gencf.set("General", "asktime_today", str(asktime_pre))
+        if not self.mf_data.has_section("General"):
+            self.mf_data.add_section("General")
+            self.mf_data.set("General", "date", date)
+            self.mf_data.set("General", "asktime_today", '0')
+        if self.mf_data.get("General", "date") != str(date):
+            self.mf_data.set("General", "asktime_today", '0')
+            self.mf_data.set("General", "date", date)
+        asktime_pre = self.mf_data.getint("General", "asktime_today") + 1
+        self.mf_data.set("General", "asktime_today", str(asktime_pre))
 
-        if not gencf.has_option('General', 'language'):
+        if not self.mf_data.has_option('General', 'language'):
             import ctypes
             dll_handle = ctypes.windll.kernel32
             if hex(dll_handle.GetSystemDefaultUILanguage()) == '0x804':
-                gencf.set('General', 'language', 'Chinese')
+                self.mf_data.set('General', 'language', 'Chinese')
             else:
-                gencf.set('General', 'language', 'English')
-        if not gencf.has_option('General', 'autorun'):
-            gencf.set('General', 'autorun', 'False')
-        gencf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+                self.mf_data.set('General', 'language', 'English')
+        if not self.mf_data.has_option('General', 'autorun'):
+            self.mf_data.set('General', 'autorun', 'False')
+        self.mf_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
-    @staticmethod
-    def get_desktop():
-        global desktop_path
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        desktop_path = winreg.QueryValueEx(key, "Desktop")[0]
-
-    @staticmethod
-    def load_icon():
-        image = open(mf_data_path + r'Movefile.ico', 'wb')
-        image.write(base64.b64decode(icon.Movefile_ico))
-        image.close()
-
-    @staticmethod
-    def check_window():
-        from LT_Dic import cr_label_text_dic
-        global c_root
-        mf_file = configparser.ConfigParser()
-        mf_file.read(mf_data_path + 'Movefile_data.ini')
-        # l_n = language_num(mf_file.get('General', 'language'))
-        c_root = tk.Tk()
-        c_root.geometry('420x60')
-        c_root.iconbitmap(mf_data_path + r'Movefile.ico')
-        c_root.title('Movefile')
-        c_label = tk.Label(c_root, text=cr_label_text_dic['c_label'][1])
-        c_label.grid(row=0, column=0, padx=10, pady=5)
-        c_bar = ttk.Progressbar(c_root, mode='indeterminate')
-        c_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150)
-        c_bar.start(10)
-        c_bar.mainloop()
+    def load_icon(self):
+        self.image = open(mf_data_path + r'Movefile.ico', 'wb')
+        self.image.write(base64.b64decode(icon.Movefile_ico))
+        self.image.close()
 
 
 class ProgressBar:
@@ -206,13 +176,12 @@ class ProgressBar:
 
 class CheckMFProgress:
     def __init__(self):
-        global continue_this_progress
-        continue_this_progress = True
+        self.continue_this_progress = True
         self.pl = psutil.pids()
         self.classname = None
         self.title = 'Movefile'
         if self.proc_exist(self.title) and self.open_proc_root():
-            continue_this_progress = False
+            self.continue_this_progress = False
 
     def proc_exist(self, process_name):
         for pid in self.pl:
@@ -488,7 +457,8 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         item_datas = os.scandir(old__path)  # 获取文件夹下所有文件和文件夹
         now = int(time.time())  # 当前时间
         for item_data in item_datas:
-            if '.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir() or item_data.name in pass__file:
+            if ('.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir()
+                    or item_data.name in pass__file):
                 continue
             if item_data.name == 'Movefile ' + vision + '.exe' or item_data.name == new__path.split('\\')[-1]:
                 continue
@@ -1040,13 +1010,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
-    try:
-        c_root.quit()
-        c_root.destroy()
-        startup_root.join()
-    except:
-        pass
-
     global root
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
@@ -1379,6 +1342,9 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
                 return False
 
     def initial_entry():
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        desktop_path = winreg.QueryValueEx(key, "Desktop")[0]
         if not cf_entry_old_path.get():
             cf_entry_old_path.insert(0, desktop_path)
             cf_refresh_whitelist_entry()
@@ -1847,16 +1813,16 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
 
 def main():
-    CheckMFProgress()
-    if not continue_this_progress:
+    checkpgs_result = CheckMFProgress()
+    if not checkpgs_result.continue_this_progress:
         return
-    Initialization()
-    if ask_time_today == 1:
+    initial_data = Initialization()
+    if initial_data.ask_time_today == 1:
         cf_autorun_operation()
         sf_autorun_operation('local')
-    if first_visit:
+    if initial_data.first_visit:
         make_ui(first_ask=True)
-    elif boot_time <= 120:
+    elif initial_data.boot_time <= 120:
         make_ui(muti_ask=True, startup_ask=True)
     else:
         make_ui(muti_ask=True)

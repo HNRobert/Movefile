@@ -74,7 +74,7 @@ class ToastNotifier(object):
                 self._show_toast(title, msg, icon_path, duration)
                 self._notification_queue.task_done()
             except queue.Empty:
-                sleep(1)
+                sleep(0.2)
 
     def stop_notification_thread(self):
         self._stop_notification_thread.set()
