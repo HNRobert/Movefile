@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Due to the limited ability of the author,
-this program is not so efficient.
 If you have any suggestion for optimizing this program,
 it's welcomed to submit that to the author.
 
@@ -174,7 +172,7 @@ class ProgressBar:
         self.current_file_label['text'] = content
 
     def launch(self):
-        self.progress_root = tk.Tk()
+        self.progress_root = tk.Toplevel(root)
         self.progress_root.title(self.title)
         self.progress_root.geometry('420x115')
         self.progress_root.iconbitmap(mf_data_path + r'Movefile.ico')
@@ -190,7 +188,6 @@ class ProgressBar:
         self.roll_bar = threading.Thread(target=self.show_running, daemon=True)
         self.roll_bar.start()
         self.initialization_done = True
-        self.progress_root.mainloop()
 
     def show_running(self):
         self.show_running_bar.start(10)
@@ -226,8 +223,10 @@ class CheckMFProgress:
 
     def open_proc_root(self):
         hwnd = win32gui.FindWindow(self.classname, self.title + ' Setting')
-        win32gui.ShowWindow(hwnd, 5)
-        return True
+        if hwnd:
+            win32gui.ShowWindow(hwnd, 5)
+            return True
+        return False
 
 
 def set_startup(state=True):
@@ -442,21 +441,21 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             toaster.show_toast(notice_title, movename[:-3],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=True)
+                               threaded=False)
         else:
             notice_title = old_folder + cfdic['cltitle'][lang_num]
             notice_content = cfdic['clcontent'][lang_num]
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=True)
+                               threaded=False)
         if len(errorname) > 0:
             notice_title = cfdic['errtitle'][lang_num]
             notice_content = errorname[:-3] + '\n' + cfdic['errcontent'][lang_num]
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=True)
+                               threaded=False)
 
     def del_item(path):  # 递归删除文件夹或单个文件, 代替shutil.rmtree和os.remove  (shutil.rmtree会莫名报错)
         error_files = ''
@@ -595,13 +594,13 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                            'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
-                           threaded=True)
+                           threaded=False)
         if len(sf_errorname) > 0:
             toaster.show_toast("Couldn't sync files",
                                sf_errorname + sf_label_text_dic['can_not_move_notice'][language_number],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
-                               threaded=True)
+                               threaded=False)
 
     def diff_files_in(foldera_path, folderb_path):
 
@@ -1048,6 +1047,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
     except:
         pass
 
+    global root
     root = tk.Tk()
     root.iconbitmap(mf_data_path + r'Movefile.ico')
     root.title('Movefile Setting')
@@ -1463,8 +1463,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             exit_asn()
 
         def exit_asn():
-            ask_name_window.quit()
-            ask_name_window.withdraw()
+            ask_name_window.destroy()
 
         mode = cf_or_sf.get()
         if mode == 'cf':
@@ -1477,7 +1476,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             has_error = True
             pri_save_names = []
         if not has_error:
-            ask_name_window = tk.Tk()
+            ask_name_window = tk.Toplevel(root)
             ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
             ask_name_window.geometry('400x35')
             ask_name_window.title(r_label_text_dic['ask_name_window'][lang_num])
@@ -1499,7 +1498,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             sure_name_button.grid(row=0, column=2, sticky='W')
             ask_name_window.bind('<Return>', lambda event: sure_save())
             ask_name_window.protocol('WM_DELETE_WINDOW', exit_asn)
-            ask_name_window.mainloop()
 
     def read_saving(ask_path=False):
         global ask_saving_root
@@ -1620,11 +1618,10 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             exit_asr()
 
         def exit_asr():
-            ask_saving_root.withdraw()
-            ask_saving_root.quit()
+            ask_saving_root.destroy()
 
         if ask_path:
-            ask_saving_root = tk.Tk()
+            ask_saving_root = tk.Toplevel(root)
             ask_saving_root.iconbitmap(mf_data_path + r'Movefile.ico')
             if lang_num == 0:
                 ask_saving_root.geometry('680x35')
@@ -1662,7 +1659,6 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
             ask_saving_root.bind('<Enter>', lambda event: refresh_saving())
             ask_saving_root.bind('<Return>', lambda event: sure_open())
             ask_saving_root.protocol('WM_DELETE_WINDOW', exit_asr)
-            ask_saving_root.mainloop()
         elif mode == 'cf':
             open_cf_saving(save_name)
             current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + save_name)
@@ -1723,6 +1719,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
 
     def exit_program():
         task_menu.stop()
+        toaster.stop_notification_thread()
         if 'clean_bar_root' in globals().keys():
             clean_bar_root.progress_root_destruction()
             clean_bar_root_task.join()
@@ -1732,6 +1729,7 @@ def make_ui(muti_ask=False, first_ask=False, startup_ask=False):
         if 'ask_name_window' in globals().keys():
             ask_name_window.quit()
             ask_name_window.destroy()
+
         root.quit()
         root.destroy()
         ask_permit.join()
