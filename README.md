@@ -25,7 +25,7 @@ First install the python environment. After the installation of python, open cmd
 
 If you want to package it as 32-bit exe, you should package it in 32-bit Python.
 
-After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the path box of the folder, and then enter 【pyinstaller - i Movefile.ico - noupx Movefile.pyw -- onefile】 in the pop-up command prompt window ,then get the packed file in the output 【dist】 folder.
+After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the path box of the folder, and then enter 【pyinstaller - i Movefile.ico - noupx Movefile.py -- onefile -w】 in the pop-up command prompt window ,then get the packed file in the output 【dist】 folder.
 
 ### Precautions before use:
 
@@ -146,7 +146,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 #### 使用前请务必阅读下面的使用注意事项
 
 ### 兼容性说明
-代码中的exe文件仅支持windows64位操作系统，Win10效果最佳
+代码中的exe文件仅支持windows64位操作系统，Win10或Win11效果最佳
 
 如果操作系统是32位Windows，可以下载pyw文件，然后自行打包为32位操作系统的exe文件
 
@@ -158,7 +158,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 如果想打包为32为的exe，那就要在32位的Python下打包
 
-安装完成后，打开【Movefile Code】文件夹，文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.pyw --onefile】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
+安装完成后，打开【Movefile Code】文件夹，文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
 
 ### 使用前特别注意事项：
 *1.本exe文件的名称请不要改变："Movefile vX.X.X.exe"，否则会影响开机自启功能
@@ -199,7 +199,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 选择放置文件的新文件夹，或者不填写新文件夹来直接删除这些文件
 设置过期时间
 设置过期时间判断依据（按最后修改/访问时间）
-选择是否移动文件夹（目前只支持整个文件夹移动）
+选择是否移动文件夹（整个文件夹移动）
 选择保留文件（列出原文件夹内文件/文件夹）
 选择保留文件格式（扫描原文件夹内文件后缀后列出）
 可选开机自动按配置存档运行任务
@@ -346,9 +346,21 @@ Movefile v2.2.1
 添加新文件夹选择限制，包括不能有包含关系等
 
 23:30 2023/5/7
-Movefile v2.3.1
+Movefile v2.3.0
 更新内容：
 改进Cleanfile逻辑，遇到重名文件将覆盖
 Cleanfile的新目录框若不填写可将文件删除
 添加一些标签的双语版本
+
+2:39 2023/8/19
+Movefile v2.3.1
+更新内容：
+添加进程检测功能，不会重复打开多个进程，
+检测到有已经打开的本软件进程会显示设置主窗口；
+重构syncfile的逻辑以提高效率
+采用多线程复制文件来加速；
+修复打开多个子窗口再关闭后无法关闭软件的问题；
+修复win10toast模块的内置bug，采用队列推送消息；
+优化代码结构；
+修复开机自启无法自动运行的Bug；
 ```
