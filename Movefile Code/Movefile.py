@@ -32,6 +32,7 @@ import win32gui
 import winshell
 from PIL import Image
 from mttkinter import mtTkinter as tk
+from pathlib import Path
 from pystray import MenuItem, Menu
 from win10toast import ToastNotifier
 
@@ -164,7 +165,7 @@ class ProgressBar:
 
     def sync_bar_on_exit(self):
         if tkinter.messagebox.askyesno(title='Syncfile', message=self.label_dic['confirm_exit_text'][self.lang_num]):
-            self.progress_root.withdraw()
+            self.progress_root.destroy()
             self.roll_bar.join()
             return True
         else:
@@ -196,6 +197,16 @@ class CheckMFProgress:
             win32gui.ShowWindow(hwnd, 5)
             return True
         return False
+
+
+def startup_autorun():
+    pile = 0
+    while "root" not in globals().keys() and pile < 100:
+        time.sleep(0.1)
+        pile += 1
+    if pile < 100:
+        cf_autorun_operation()
+        sf_autorun_operation('local')
 
 
 def set_startup(state=True):
@@ -636,16 +647,14 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         return sync_tasks
 
     def synchronize_files(baroot, task):
+        baroot.main_progress_bar['value'] += 0
         baroot.set_label2(sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
         new_file_path, old_file_path, create_folder = task
-        if create_folder:
-            try:
-                sf_creat_folder(old_file_path)
-            except:
-                pass
+        dest_path = Path(old_file_path)
+        dest_path.parent.mkdir(parents=True, exist_ok=True)  # Create parent directories if needed
         try:
             shutil.copy2(new_file_path, old_file_path)
-        except:
+        except shutil.Error:
             return new_file_path
         return None
 
@@ -658,7 +667,6 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
             f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
-
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(synchronize_files, baroot, task) for task in tasks]
 
@@ -677,7 +685,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         if area_name:
             path_name_1 = area_name
         sf_show_notice(path_name_1, path2.split('\\')[-1], sf_errorname)
-        baroot.progress_root.withdraw()
+        baroot.progress_root.destroy()
         sf_progress_done = True
 
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
@@ -1817,9 +1825,10 @@ def main():
     if not checkpgs_result.continue_this_progress:
         return
     initial_data = Initialization()
-    if initial_data.ask_time_today == 1:
-        cf_autorun_operation()
-        sf_autorun_operation('local')
+    time.sleep(0.1)
+    if initial_data.ask_time_today == 1 and initial_data.boot_time <= 120:
+        autorun_options = threading.Thread(target=lambda: startup_autorun(), daemon=True)
+        autorun_options.start()
     if initial_data.first_visit:
         make_ui(first_ask=True)
     elif initial_data.boot_time <= 120:

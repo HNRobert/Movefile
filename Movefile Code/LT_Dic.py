@@ -1,5 +1,5 @@
-vision = 'v2.3.1'
-update_time = '2023/8/18'
+vision = 'v2.3.2'
+update_time = '2023/8/21'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
@@ -22,7 +22,7 @@ r_label_text_dic = {
     'option_is_cleanfile': ['清理文件', 'Cleanfile'],
     'option_is_syncfile': ['同步文件', 'Syncfile'],
     'current_save_name': ['当前存档：', 'Current config：'],
-    'cf_label_old_path': ['原文件夹路径：', 'original path：'],
+    'cf_label_old_path': ['原文件夹路径：', 'Source path：'],
     'cf_browse_old_path_button': ['浏览', 'Browse'],
     'cf_browse_new_path_button': ['浏览', 'Browse'],
     'cf_label_new_path': ['目标文件夹路径：', 'Target path：'],
@@ -114,7 +114,7 @@ sf_label_text_dic = {
     'main_progress_label1': [['总进度：', '已完成'], ['Progress：', 'Completed']],
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
-    'current_file_label1': ['同步中文件：', 'File in process：'],
+    'current_file_label1': ['加入复制进程的文件：', 'File added into ThreadPool：'],
     'exit_sync': ['''文件正在同步中，
 确定中断同步进程并退出?''', '''Synchronization is in progress,
 Are you sure to interrupt the process and exit?'''],
