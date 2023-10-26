@@ -1,33 +1,38 @@
 # Movefile
-#### （中文版说明位于下方）
-This is a program for organizing files, including two main functions of Cleanfile and Syncfile.
+
+ （中文版说明位于下方）
+
+_________
+
+This is a program for **organizing files**, including two main functions of **Cleanfile** and **Syncfile**.
 
 The .exe file only provides packaged files released by the distribution. If the semantics of the code are not changed or the function is unstable, the latest packaged file will not be provided;
 
 Beta programs will not be packaged. If you want to have a better use experience, please download the latest release version.
 
-If you have any doubts about the function of this software during use, you can check the "Help" option in the menu bar.
+If you have any confusion about the function of this software during use, you can ***check the "Help" option in the menu bar***.
 
 Due to its aplenty functions, the main program code is quite lengthy. If you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
 
-#### Please read the following precautions before use
+## Please read the following ***precautions*** before use
 
 ### About Compatibility
+
 The .exe files provided here only support 64-bit Windows operating system, and Win10 works best
 
 If your operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
 
-##### This software only supports Windows operating system!
+***This software only supports Windows operating system***
 
-#### pyinstaller packaging method:
+#### pyinstaller packaging method
 
 First install the python environment. After the installation of python, open cmd to install pyinstaller (pip install pyinstaller)
 
 If you want to package it as 32-bit exe, you should package it in 32-bit Python.
 
-After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the path box of the folder, and then enter 【pyinstaller - i Movefile.ico - noupx Movefile.py -- onefile -w】 in the pop-up command prompt window ,then get the packed file in the output 【dist】 folder.
+After installation, open the **Movefile Code** folder, enter **cmd** in the path box of the folder, and then enter ```pyinstaller - i Movefile.ico - noupx Movefile.py -- onefile -w``` in the pop-up command prompt window ,then get the packed file in the output **dist** folder.
 
-### Precautions before use:
+### Precautions before use
 
 1.Please do not change the name of this exe file："Movefile vX.X.X.exe",
    or the startup function will be affected.
@@ -43,7 +48,7 @@ After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the 
    That is because this software involves changing the Startup item.
    If this software is accidentally deleted in use,
    please retrieve this software in the "Protection History"
-   of virus threat and protection in Windows Security Center, 
+   of virus threat and protection in Windows Security Center,
    Or other security software
 
 4.If the software cannot run after the new version,
@@ -51,37 +56,44 @@ After installation, open the 【Movefile Code】 folder, enter 【cmd】 in the 
 
 5.If the software fails to run normally due to other reasons, and
    also can't be repaired as explained above,
-   you can contact the author directly, 
+   you can contact the author directly,
    I will try to repair it for you as soon as possible.
 
 ## Cleanfile
+
 This is a program used to organize folders (especially the desktop), and the first program block launched by Movefile
 ![屏幕截图 2023-04-28 220535](https://user-images.githubusercontent.com/120773486/235173543-08b5f004-f90f-48d7-bd1b-196539bd0aa1.png)
 
 ### Function overview
+
 This program can transfer files in a folder that have not been modified or accessed for a certain period of time and meet other setting requirements to another folder, so that you can easily organize files
 
-#### Including functions: 
-```
-select the original folder (default desktop)
-select the new folder to place files, or not do so in order to remove these files
-set the expiration time
-set the judgment basis for the expiration time (according to the latest ask/edit time)
-select whether to move the folder (currently only the entire folder is supported)
-Select the reserved file (list the files/folders in the original folder)
-select the reserved file format (list after scanning the filenames' suffix in the original folder) 
-start cleaning automatically after startup
-```
+#### Including functions
+
+- select the original folder (default desktop)
+- select the new folder to place files, or not do so in order to remove these files
+- set the expiration time
+- set the judgment basis for the expiration time (according to the latest ask/edit time)
+- select whether to move the folder (currently only the entire folder is supported)
+- Select the reserved file (list the files/folders in the original folder)
+- select the reserved file format (list after scanning the filenames' suffix in the original folder)  
+- start cleaning automatically after startup
+
 ### Function explanation
 
-#### Preserve project/file format selection function:
-##### Keep item selection:
+#### Preserve project/file format selection function
+
+##### Keep item selection
+
 The selected items will not be transferred
-##### Keep file format selection:
+
+##### Keep file format selection
+
 Files of a certain format type will not be transferred
 For example, selecting '. lnk' means that all shortcuts in the original folder will not be transferred
 
-#### Expiration time setting:
+#### Expiration time setting
+
 The software can obtain the latest modification and access time of the file
 
 Files that have been modified/accessed for a certain period of time can be retained
@@ -92,26 +104,29 @@ The files modified within two days before the operation date will not be deleted
 If you do not want to use this method, set the expiration time to "0"
 
 ## Syncfile
+
 This is a program used to synchronize files in two paths,
 You can also synchronize USB flash disk data with the computer
 ![屏幕截图 2023-04-28 221421](https://user-images.githubusercontent.com/120773486/235173678-a22838b1-0f2e-48cd-baab-fec081786e98.png)
 
-### Function overview
+### Syncfile Function overview
+
 You can compare the files in the two folders, find the same files, and keep the latest version,
 Then copy the files that the other party does not have to the other party to realize the synchronization function
 
-#### Including functions: 
-```
-two modes of synchronization between removable disk and local disk and local disk
-Select one-way or two-way synchronization mode
-Keep the latest changed files
-Automatically run the archive after startup
-Automatically detect the archived removable disk access and automatically synchronize
-Lock folders and files to keep them from being synchronized 
-```
-### Function explanation
+#### Including functions (Syncfile)
 
-#### Mode selection between Removable Volume and Local path:
+- two modes of synchronization between removable disk and local disk and local disk
+- Select one-way or two-way synchronization mode
+- Keep the latest changed files
+- Automatically run the archive after startup
+- Automatically detect the archived removable disk access and automatically synchronize
+- Lock folders and files to keep them from being synchronized
+
+### Syncfile Function explanation
+
+#### Mode selection between Removable Volume and Local path
+
 If you select the removable disk mode and save the configuration, you can select a connected removable disk to synchronize with a local location
 
 In addition, if the software is open, every time the removable disk recorded in the configuration is accessed, a prompt box will pop up automatically. You can directly start synchronization according to the settings.
@@ -120,19 +135,22 @@ The way to determine whether the accessed disk is the disk saved in the configur
 
 If you select synchronization between local disks, you can select two local disks for synchronization
 
-#### Lock folder/file function:
+#### Lock folder/file function
 
-##### Lock folder:
+##### Lock folder
+
 When you add a folder, it will be displayed in the waiting list.
 
 Check this folder in the list to be selected, and the contents of this folder will not be modified or deleted.
 
-##### Lock file:
+##### Lock file
+
 The principle of adding is the same as locking a folder.
 
 If a file is checked, it will not be modified.
 
-# Movefile 中文说明
+## Movefile 中文说明
+
 这是一个用于整理文件的程序，包括了 Cleanfile 和 Syncfile 两个主要功能
 
 exe文件只提供发行版发布的打包的文件，若代码的语义未改变，或者功能不稳定，则不会提供最新的打包文件；
@@ -143,24 +161,26 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 由于功能比较多，主程序代码比较冗长，如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
 
-#### 使用前请务必阅读下面的使用注意事项
+## 使用前请务必阅读下面的**使用注意事项**
 
 ### 兼容性说明
+
 代码中的exe文件仅支持windows64位操作系统，Win10或Win11效果最佳
 
 如果操作系统是32位Windows，可以下载pyw文件，然后自行打包为32位操作系统的exe文件
 
-##### 本软件仅支持Windows操作系统下使用！
+***本软件目前仅支持Windows操作系统下使用***
 
-#### pyinstaller打包法：
+#### pyinstaller打包法
 
 先要安装python环境，python安装完后打开cmd安装pyinstaller (pip install pyinstaller)
 
 如果想打包为32为的exe，那就要在32位的Python下打包
 
-安装完成后，打开【Movefile Code】文件夹，文件夹的索引框内输入【cmd】，然后在弹出的命令提示框内输入【pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w】，就可以在产出的【dist】文件夹内得到打包好的exe文件。
+安装完成后，打开**Movefile Code**文件夹，文件夹的索引框内输入**cmd**，然后在弹出的命令提示框内输入**pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w**，就可以在产出的**dist**文件夹内得到打包好的exe文件。
 
-### 使用前特别注意事项：
+### 使用前特别注意事项
+
 *1.本exe文件的名称请不要改变："Movefile vX.X.X.exe"，否则会影响开机自启功能
   如果想更改名称，可以将exe文件移至别处后创建快捷方式
 
@@ -185,28 +205,30 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
   且无法按上面的解释修复，
   请联系作者,我会尽快尝试帮你修复
 
-## Cleanfile
+## Cleanfile功能
+
 这是一个用来整理文件夹（尤其是桌面）的程序，也是Movefile推出的第一个程序块
 ![屏幕截图 2023-04-28 222425](https://user-images.githubusercontent.com/120773486/235174357-ff38e984-31d4-4fec-8fa9-a8639fca20eb.png)
 
-
 ### 功能概述
+
 本程序可将某个文件夹中一定时间未修改或者未访问，且满足其他一些设定要求的文件，转移到另一个文件夹，使你可以方便地整理文件
 
-#### 包含功能：
-```
-选择原文件夹（默认桌面）
-选择放置文件的新文件夹，或者不填写新文件夹来直接删除这些文件
-设置过期时间
-设置过期时间判断依据（按最后修改/访问时间）
-选择是否移动文件夹（整个文件夹移动）
-选择保留文件（列出原文件夹内文件/文件夹）
-选择保留文件格式（扫描原文件夹内文件后缀后列出）
-可选开机自动按配置存档运行任务
-```
+#### 包含功能
+
+- 选择原文件夹（默认桌面）
+- 选择放置文件的新文件夹，或者不填写新文件夹来直接删除这些文件
+- 设置过期时间
+- 设置过期时间判断依据（按最后修改/访问时间）
+- 选择是否移动文件夹（整个文件夹移动）
+- 选择保留文件（列出原文件夹内文件/文件夹）
+- 选择保留文件格式（扫描原文件夹内文件后缀后列出）
+- 可选开机自动按配置存档运行任务
+
 ### 功能详解
 
-#### 保留项目/文件格式选择功能：
+#### 保留项目/文件格式选择功能
+
 保留项目选择：
 选中的项目不会被转移
 
@@ -214,40 +236,43 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 某种格式类型的文件都不会被转移
 比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移
 
-#### 过期时间设定：
+#### 过期时间设定
+
 本软件可以获取文件的最后修改、访问时间
 可以保留一定时间内修改/访问过的文件
 例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
 则运行日期前两天内修改过的文件不会被删除
 如果不想用此方法，则过期时间设为"0"即可
 
-#### 移动文件流程图：
+#### 移动文件流程图
+
 ![流程图](https://user-images.githubusercontent.com/120773486/212371363-01cd7daf-1114-4c2c-bd11-bbe22e9d2783.png)
 
+## Syncfile功能
 
-## Syncfile
 这是一个用来同步文件两个路径下文件的程序，
 也可以将U盘数据与电脑同步
 ![屏幕截图 2023-04-28 222030](https://user-images.githubusercontent.com/120773486/235174498-18157927-8852-4ece-b0d2-d38b4b59f35e.png)
 ![屏幕截图 2023-04-28 221850](https://user-images.githubusercontent.com/120773486/235174532-f1237b20-4cee-4eee-a286-65c374c99091.png)
 
+### 功能概述（Syncfile）
 
-### 功能概述
 可以将两个文件夹中的文件进行比较，找到相同的文件，保留最新版，
 然后将对方没有的文件复制给对方，来实现同步的功能
 
-#### 包括功能：
-```
-可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择
-选择单向与双向同步模式
-保留最新更改文件
-开机自动运行存档
-自动检测选定的可移动磁盘接入并自动同步
-锁定文件/文件夹功能
-```
-### 功能详解
+#### 包括功能
 
-#### 可移动磁盘模式与本地磁盘间模式选择：
+- 可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择
+- 选择单向与双向同步模式
+- 保留最新更改文件
+- 开机自动运行存档
+- 自动检测选定的可移动磁盘接入并自动同步
+- 锁定文件/文件夹功能
+
+### Syncfile 功能详解
+
+#### 可移动磁盘模式与本地磁盘间模式选择
+
 如果选择可移动磁盘模式并保存配置，可以选择一个已经接入的可移动磁盘，与一个本地位置同步
 
 此外，如果软件处于打开状态，每次接入配置中记录的可移动磁盘时，会自动跳出提示框，可选直接开始按设置同步。
@@ -255,25 +280,30 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 如果选择本地磁盘间同步，则可以选择两个本地磁盘进行同步
 
-#### 锁定文件夹/文件功能：
+#### 锁定文件夹/文件功能
 
-##### 锁定文件夹：
+##### 锁定文件夹
+
 当你添加了一个文件夹，这个文件夹将会被显示在待选列表中。
 
 在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改或删除。
 
-##### 锁定文件：
+##### 锁定文件
+
 添加原理与锁定文件夹相同，如果勾选一个文件，那么这个文件不会被修改。
 
 ## 特别鸣谢
-本程序中的多选下拉列表框组件代码改编自CSDN博主【只为你开心】的【Python tkinter自定义多选下拉列表框(带滚动条、全选)】，微调数据并添加了改变选择框高度的功能
 
-（ https://blog.csdn.net/weixin_45774074/article/details/123293411 ）
+本程序中的多选下拉列表框组件代码改编自CSDN博主 **只为你开心** 的 **Python tkinter自定义多选下拉列表框(带滚动条、全选)** ，微调数据并添加了改变选择框高度的功能
+
+（ <https://blog.csdn.net/weixin_45774074/article/details/123293411> ）
 
 Syncfile的文件夹比对函数由Stack Exchange的答主们提示，效率以得到提升；一些逻辑和代码结构的改进也要感谢他们
 
-# Update log - 更新日志
-```
+_________
+
+## Update log - 更新日志
+
 0:19 2022/12/30
 Movefile v1.2.2
 更新内容：
@@ -371,4 +401,3 @@ Movefile v2.3.2
 更新内容：
 改进开机自启的逻辑，优化了一些翻译
 修复了其他一些bug
-```
