@@ -177,7 +177,7 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 如果想打包为32为的exe，那就要在32位的Python下打包
 
-安装完成后，打开**Movefile Code**文件夹，文件夹的索引框内输入**cmd**，然后在弹出的命令提示框内输入**pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w**，就可以在产出的**dist**文件夹内得到打包好的exe文件。
+安装完成后，打开 **Movefile Code** 文件夹，文件夹的索引框内输入 **cmd** ，然后在弹出的命令提示框内输入`pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w`，就可以在产出的 **dist** 文件夹内得到打包好的exe文件。
 
 ### 使用前特别注意事项
 
@@ -304,6 +304,7 @@ _________
 
 ## Update log - 更新日志
 
+```
 0:19 2022/12/30
 Movefile v1.2.2
 更新内容：
@@ -401,3 +402,4 @@ Movefile v2.3.2
 更新内容：
 改进开机自启的逻辑，优化了一些翻译
 修复了其他一些bug
+```
