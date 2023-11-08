@@ -76,7 +76,8 @@ class Initialization:
         toaster = ToastNotifier()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        self.roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        self.roaming_path = os.path.join(
+            winreg.QueryValueEx(key, 'AppData')[0])
         mf_data_path = self.roaming_path + '\\Movefile\\'
         cf_data_path = mf_data_path + 'Cleanfile\\'
         sf_data_path = mf_data_path + 'Syncfile\\'
@@ -92,7 +93,8 @@ class Initialization:
         time_now = datetime.today()
         date = str(time_now.date())
         if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
-            file = open(mf_data_path + r'Movefile_data.ini', 'w', encoding="ANSI")
+            file = open(mf_data_path + r'Movefile_data.ini',
+                        'w', encoding="ANSI")
             file.close()
         if not self.mf_data.has_section("General"):
             self.mf_data.add_section("General")
@@ -113,7 +115,8 @@ class Initialization:
                 self.mf_data.set('General', 'language', 'English')
         if not self.mf_data.has_option('General', 'autorun'):
             self.mf_data.set('General', 'autorun', 'False')
-        self.mf_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+        self.mf_data.write(
+            open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
     def load_icon(self):
         self.image = open(mf_data_path + r'Movefile.ico', 'wb')
@@ -151,15 +154,23 @@ class ProgressBar:
         self.progress_root.title(self.title)
         self.progress_root.geometry('420x115')
         self.progress_root.iconbitmap(mf_data_path + r'Movefile.ico')
-        self.main_progress_label = ttk.Label(self.progress_root, text=self.label1)
-        self.main_progress_label.grid(row=0, column=0, padx=10, pady=5, sticky='SW')
+        self.main_progress_label = ttk.Label(
+            self.progress_root, text=self.label1)
+        self.main_progress_label.grid(
+            row=0, column=0, padx=10, pady=5, sticky='SW')
         self.main_progress_bar = ttk.Progressbar(self.progress_root)
-        self.main_progress_bar.grid(row=1, column=0, padx=10, pady=0, ipadx=150, sticky='W')
-        self.current_file_label = ttk.Label(self.progress_root, text=self.label2)
-        self.current_file_label.grid(row=2, column=0, padx=10, pady=5, sticky='SW')
-        self.show_running_bar = ttk.Progressbar(self.progress_root, mode='indeterminate')
-        self.show_running_bar.grid(row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
-        self.progress_root.protocol('WM_DELETE_WINDOW', lambda: self.sync_bar_on_exit())
+        self.main_progress_bar.grid(
+            row=1, column=0, padx=10, pady=0, ipadx=150, sticky='W')
+        self.current_file_label = ttk.Label(
+            self.progress_root, text=self.label2)
+        self.current_file_label.grid(
+            row=2, column=0, padx=10, pady=5, sticky='SW')
+        self.show_running_bar = ttk.Progressbar(
+            self.progress_root, mode='indeterminate')
+        self.show_running_bar.grid(
+            row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
+        self.progress_root.protocol(
+            'WM_DELETE_WINDOW', lambda: self.sync_bar_on_exit())
         self.roll_bar = threading.Thread(target=self.show_running, daemon=True)
         self.roll_bar.start()
         self.initialization_done = True
@@ -193,7 +204,8 @@ class CheckMFProgress:
             temp_root = tk.Tk()
             temp_root.withdraw()
             win32gui.ShowWindow(hwnd, 5)
-            tkinter.messagebox.showinfo(title="Movefile",message="The app's running!")
+            tkinter.messagebox.showinfo(
+                title="Movefile", message="The app's running!")
             temp_root.quit()
             temp_root.destroy()
             return True
@@ -216,7 +228,8 @@ def set_startup(state=True):
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                          r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    startup_path = os.path.join(roaming_path + r"\Microsoft\Windows\Start Menu\Programs\Startup")
+    startup_path = os.path.join(
+        roaming_path + r"\Microsoft\Windows\Start Menu\Programs\Startup")
     bin_path = r"Movefile " + vision + ".exe"
     shortcut_path = startup_path + "\\Movefile" + ".lnk"
     desc = "自动转移文件程序"
@@ -234,7 +247,8 @@ def set_startup(state=True):
             Description=desc)
     else:
         gen_cf.set('General', 'autorun', 'False')
-    gen_cf.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+    gen_cf.write(
+        open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
 def language_num(language_name):
@@ -343,7 +357,9 @@ def scan_removable_disks(s_uuid=None):
             fso = com.Dispatch("Scripting.FileSystemObject")
             drv = fso.GetDrive(pf)
             total_space = drv.TotalSize / 2 ** 30
-            show_name = area_name + ' (' + pf[:-1] + ')' + '   ' + str(total_space // 0.01 / 100) + ' GB'
+            show_name = area_name + \
+                ' (' + pf[:-1] + ')' + '   ' + \
+                str(total_space // 0.01 / 100) + ' GB'
             show_list.append(show_name)
             uuid_disk_pairs.append([str(area_number), show_name])
         if s_uuid is None:
@@ -390,7 +406,8 @@ def scan_items(folder_path):  # 扫描路径下所有文件夹
         folders = [f_path]
         for item_data in surf_items:
             if item_data.is_dir():
-                folders.extend(scan_folders_in(item_data.path))  # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
+                # 继续遍历文件夹内文件夹，直到记下全部文件夹路径
+                folders.extend(scan_folders_in(item_data.path))
         folders = sorted(set(folders))  # 排序 + 排除重复项
         surf_items.close()
         return folders
@@ -416,9 +433,11 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         new_folder = new_path.split('\\')[-1]
         old_folder = old_path.split('\\')[-1]
         if len(move_name) > 0:
-            notice_title = cfdic['title_p1'][lang_num] + old_folder + cfdic['title_p2_1'][lang_num] + new_folder + ':'
+            notice_title = cfdic['title_p1'][lang_num] + old_folder + \
+                cfdic['title_p2_1'][lang_num] + new_folder + ':'
             if new_path == '':
-                notice_title = cfdic['title_p1'][lang_num] + old_folder + cfdic['title_p2_2'][lang_num]
+                notice_title = cfdic['title_p1'][lang_num] + \
+                    old_folder + cfdic['title_p2_2'][lang_num]
             toaster.show_toast(notice_title, move_name[:-3],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
@@ -432,7 +451,8 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                                threaded=False)
         if len(error_name) > 0:
             notice_title = cfdic['errtitle'][lang_num]
-            notice_content = error_name[:-3] + '\n' + cfdic['errcontent'][lang_num]
+            notice_content = error_name[:-3] + \
+                '\n' + cfdic['errcontent'][lang_num]
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
@@ -475,16 +495,19 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             if item_data.name == 'Movefile ' + vision + '.exe' or item_data.name == new__path.split('\\')[-1]:
                 continue
             if check__mode == 1:
-                last = int(os.stat(item_data.path).st_mtime)  # 最后一次修改的时间 (Option 1)
+                # 最后一次修改的时间 (Option 1)
+                last = int(os.stat(item_data.path).st_mtime)
             elif check__mode == 2:
-                last = int(os.stat(item_data.path).st_atime)  # 最后一次访问的时间 (Option 2)
+                # 最后一次访问的时间 (Option 2)
+                last = int(os.stat(item_data.path).st_atime)
             else:
                 raise
             # if not (not is_folder or is_folder and is__move__folder) or (now - last < overdue_time):  # 判断移动条件(狗屎）
             if item_data.is_dir() and not is__move__folder or now - last < overdue_time:  # 判断移动条件
                 continue
             tasks.append([item_data.name, item_data.path, new__path])
-            baroot.set_label1(cfdic['main_progress_label'][lang_num] + item_data.name)
+            baroot.set_label1(cfdic['main_progress_label']
+                              [lang_num] + item_data.name)
             baroot.progress_root.update_idletasks()
         item_datas.close()
         return tasks
@@ -503,7 +526,8 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             item = task[0]
             item_path = task[1]
             for_path = task[2]
-            baroot.set_label2(cfdic["current_file_label1"][lang_num] + item.split('\\')[-1])
+            baroot.set_label2(cfdic["current_file_label1"]
+                              [lang_num] + item.split('\\')[-1])
             if os.path.exists(for_path + '\\' + item):
                 del_item(for_path + '\\' + item)
             if for_path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
@@ -530,11 +554,13 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                                  cfdic["main_progress_label2"][lang_num],
                                  cfdic["current_file_label"][lang_num],
                                  lang_num)
-    clean_bar_root_task = threading.Thread(target=lambda: clean_bar_root.launch(), daemon=True)
+    clean_bar_root_task = threading.Thread(
+        target=lambda: clean_bar_root.launch(), daemon=True)
     clean_bar_root_task.start()
     while not clean_bar_root.initialization_done:
         time.sleep(0.01)
-    run_tasks = threading.Thread(target=lambda: run_cleanfile(clean_bar_root), daemon=True)
+    run_tasks = threading.Thread(
+        target=lambda: run_cleanfile(clean_bar_root), daemon=True)
     run_tasks.start()
 
 
@@ -551,8 +577,10 @@ def cf_autorun_operation():
     for save_name in autorun_savings:
         cf_move_dir(old__path=cf_file.get(save_name, 'old_path'),
                     new__path=cf_file.get(save_name, 'new_path'),
-                    pass__file=cf_file.get(save_name, 'pass_filename').split(','),
-                    pass__format=cf_file.get(save_name, 'pass_format').split(','),
+                    pass__file=cf_file.get(
+                        save_name, 'pass_filename').split(','),
+                    pass__format=cf_file.get(
+                        save_name, 'pass_format').split(','),
                     overdue_time=cf_file.getint(save_name, 'set_hour') * 3600,
                     check__mode=cf_file.getint(save_name, 'mode'),
                     is__move__folder=cf_file.get(save_name, 'move_folder'))
@@ -579,7 +607,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                            threaded=False)
         if len(sf_error_name) > 0:
             toaster.show_toast("Couldn't sync files",
-                               sf_error_name + sf_label_text_dic['can_not_move_notice'][language_number],
+                               sf_error_name +
+                               sf_label_text_dic['can_not_move_notice'][language_number],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
@@ -594,19 +623,24 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             for itroot, itdirs, itfiles in os.walk(item_dir):
                 for itfile in itfiles:
                     itfile_path = os.path.join(itroot, itfile)
-                    all_files.append([itfile_path, itfile_path.replace(ort_path, opp_path)])
+                    all_files.append(
+                        [itfile_path, itfile_path.replace(ort_path, opp_path)])
             return all_files
 
         def add_diff_data(index, data_list, r_only=None):
             for item in data_list:
                 if r_only and os.path.isdir(os.path.join(folderB_path, item)):
-                    diff_data[index].extend(all_files_in(os.path.join(folderB_path, item), True))
+                    diff_data[index].extend(all_files_in(
+                        os.path.join(folderB_path, item), True))
                 elif os.path.isdir(os.path.join(folderA_path, item)):
-                    diff_data[index].extend(all_files_in(os.path.join(folderA_path, item), False))
+                    diff_data[index].extend(all_files_in(
+                        os.path.join(folderA_path, item), False))
                 elif r_only:
-                    diff_data[index].append([os.path.join(folderB_path, item), os.path.join(folderA_path, item)])
+                    diff_data[index].append(
+                        [os.path.join(folderB_path, item), os.path.join(folderA_path, item)])
                 else:
-                    diff_data[index].append([os.path.join(folderA_path, item), os.path.join(folderB_path, item)])
+                    diff_data[index].append(
+                        [os.path.join(folderA_path, item), os.path.join(folderB_path, item)])
 
         diff_data = [[], [], []]
         cmp_data = filecmp.dircmp(folderA_path, folderB_path)
@@ -614,7 +648,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         add_diff_data(1, cmp_data.left_only)
         add_diff_data(2, cmp_data.right_only, True)
         for com_dir in cmp_data.common_dirs:
-            dir_data = diff_files_in(os.path.join(folderA_path, com_dir), os.path.join(folderB_path, com_dir))
+            dir_data = diff_files_in(os.path.join(
+                folderA_path, com_dir), os.path.join(folderB_path, com_dir))
             for i in range(3):
                 diff_data[i].extend(dir_data[i])
         return diff_data
@@ -629,7 +664,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                     fileB == p_file for p_file in pass_file_paths.split(',')):
                 return
             sync_tasks.append([fileA, fileB, direct_apd])
-            _bar_root.set_label1(sf_label_text_dic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
+            _bar_root.set_label1(
+                sf_label_text_dic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
 
         sync_tasks = []
         diff_item_data = diff_files_in(path1, path2)
@@ -649,10 +685,12 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 
     def synchronize_files(baroot, task):
         baroot.main_progress_bar['value'] += 0
-        baroot.set_label2(sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
+        baroot.set_label2(
+            sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
         new_file_path, old_file_path, create_folder = task
         dest_path = Path(old_file_path)
-        dest_path.parent.mkdir(parents=True, exist_ok=True)  # Create parent directories if needed
+        # Create parent directories if needed
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             shutil.copy2(new_file_path, old_file_path)
         except shutil.Error:
@@ -669,7 +707,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         baroot.set_label1(
             f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
         with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(synchronize_files, baroot, task) for task in tasks]
+            futures = [executor.submit(
+                synchronize_files, baroot, task) for task in tasks]
 
             for future in as_completed(futures):
                 result = future.result()
@@ -693,12 +732,14 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                                 sf_label_text_dic["main_progress_label2"][language_number],
                                 sf_label_text_dic["current_file_label"][language_number],
                                 language_number)
-    sync_bar_root_task = threading.Thread(target=lambda: sync_bar_root.launch(), daemon=True)
+    sync_bar_root_task = threading.Thread(
+        target=lambda: sync_bar_root.launch(), daemon=True)
     sync_bar_root_task.start()
     while not sync_bar_root.initialization_done:
         time.sleep(0.01)
     sf_progress_done = False
-    run_tasks = threading.Thread(target=lambda: run_sync_tasks(sync_bar_root), daemon=True)
+    run_tasks = threading.Thread(
+        target=lambda: run_sync_tasks(sync_bar_root), daemon=True)
     run_tasks.start()
     while not sf_progress_done:
         time.sleep(1.0)
@@ -819,7 +860,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         if mode == 'lockfolder':
             folder_path_ = tkinter.filedialog.askdirectory()
             if folder_path_ != '':
-                sf_entry_lock_folder.values.append(folder_path_.replace('/', '\\'))
+                sf_entry_lock_folder.values.append(
+                    folder_path_.replace('/', '\\'))
         elif mode == 'lockfile':
             file_path_ = tkinter.filedialog.askopenfilenames()
             if file_path_ != '':
@@ -827,42 +869,74 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                     sf_entry_lock_file.values.append(file.replace('/', '\\'))
 
     def set_language(lang_number):
-        label_choose_state_text.set(r_label_text_dic['label_choose_state'][lang_number])
-        option_is_cleanfile_text.set(r_label_text_dic['option_is_cleanfile'][lang_number])
-        option_is_syncfile_text.set(r_label_text_dic['option_is_syncfile'][lang_number])
-        current_save_name.set(r_label_text_dic['current_save_name'][lang_number])
-        cf_label_old_path_text.set(r_label_text_dic['cf_label_old_path'][lang_number])
-        cf_browse_old_path_button_text.set(r_label_text_dic['cf_browse_old_path_button'][lang_number])
-        cf_browse_new_path_button_text.set(r_label_text_dic['cf_browse_new_path_button'][lang_number])
-        cf_label_new_path_text.set(r_label_text_dic['cf_label_new_path'][lang_number])
-        cf_label_move_options_text.set(r_label_text_dic['cf_label_move_options'][lang_number])
-        cf_option_mode_1_text.set(r_label_text_dic['cf_option_mode_1'][lang_number])
-        cf_option_mode_2_text.set(r_label_text_dic['cf_option_mode_2'][lang_number])
-        cf_option_folder_move_text.set(r_label_text_dic['cf_option_folder_move'][lang_number])
-        cf_label_keep_files_text.set(r_label_text_dic['cf_label_keep_files'][lang_number])
-        cf_label_keep_formats_text.set(r_label_text_dic['cf_label_keep_formats'][lang_number])
+        label_choose_state_text.set(
+            r_label_text_dic['label_choose_state'][lang_number])
+        option_is_cleanfile_text.set(
+            r_label_text_dic['option_is_cleanfile'][lang_number])
+        option_is_syncfile_text.set(
+            r_label_text_dic['option_is_syncfile'][lang_number])
+        current_save_name.set(
+            r_label_text_dic['current_save_name'][lang_number])
+        cf_label_old_path_text.set(
+            r_label_text_dic['cf_label_old_path'][lang_number])
+        cf_browse_old_path_button_text.set(
+            r_label_text_dic['cf_browse_old_path_button'][lang_number])
+        cf_browse_new_path_button_text.set(
+            r_label_text_dic['cf_browse_new_path_button'][lang_number])
+        cf_label_new_path_text.set(
+            r_label_text_dic['cf_label_new_path'][lang_number])
+        cf_label_move_options_text.set(
+            r_label_text_dic['cf_label_move_options'][lang_number])
+        cf_option_mode_1_text.set(
+            r_label_text_dic['cf_option_mode_1'][lang_number])
+        cf_option_mode_2_text.set(
+            r_label_text_dic['cf_option_mode_2'][lang_number])
+        cf_option_folder_move_text.set(
+            r_label_text_dic['cf_option_folder_move'][lang_number])
+        cf_label_keep_files_text.set(
+            r_label_text_dic['cf_label_keep_files'][lang_number])
+        cf_label_keep_formats_text.set(
+            r_label_text_dic['cf_label_keep_formats'][lang_number])
         cf_label_time_text.set(r_label_text_dic['cf_label_time'][lang_number])
-        cf_label_start_options_text.set(r_label_text_dic['cf_label_start_options'][lang_number])
-        cf_option_is_auto_text.set(r_label_text_dic['cf_option_is_auto'][lang_number])
-        sf_label_place_mode_text.set(r_label_text_dic['sf_label_place_mode'][lang_number])
-        sf_option_mode_usb_text.set(r_label_text_dic['sf_option_mode_usb'][lang_number])
-        sf_option_mode_local_text.set(r_label_text_dic['sf_option_mode_local'][lang_number])
-        sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_number][0])
-        sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_number][0])
-        sf_browse_path_1_button_text.set(r_label_text_dic['sf_browse_path_1_button'][lang_number])
-        sf_browse_path_2_button_text.set(r_label_text_dic['sf_browse_path_2_button'][lang_number])
+        cf_label_start_options_text.set(
+            r_label_text_dic['cf_label_start_options'][lang_number])
+        cf_option_is_auto_text.set(
+            r_label_text_dic['cf_option_is_auto'][lang_number])
+        sf_label_place_mode_text.set(
+            r_label_text_dic['sf_label_place_mode'][lang_number])
+        sf_option_mode_usb_text.set(
+            r_label_text_dic['sf_option_mode_usb'][lang_number])
+        sf_option_mode_local_text.set(
+            r_label_text_dic['sf_option_mode_local'][lang_number])
+        sf_label_path_1_text.set(
+            r_label_text_dic['sf_label_path_1'][lang_number][0])
+        sf_label_path_2_text.set(
+            r_label_text_dic['sf_label_path_2'][lang_number][0])
+        sf_browse_path_1_button_text.set(
+            r_label_text_dic['sf_browse_path_1_button'][lang_number])
+        sf_browse_path_2_button_text.set(
+            r_label_text_dic['sf_browse_path_2_button'][lang_number])
         sf_no_disk_text.set(r_label_text_dic['sf_no_disk'][lang_number])
         sf_label_mode_text.set(r_label_text_dic['sf_label_mode'][lang_number])
-        sf_option_mode_double_text.set(r_label_text_dic['sf_option_mode_double'][lang_number])
-        sf_option_mode_single_text.set(r_label_text_dic['sf_option_mode_single'][lang_number])
-        sf_label_lock_folder_text.set(r_label_text_dic['sf_label_lock_folder'][lang_number])
-        sf_browse_lockfolder_button_text.set(r_label_text_dic['sf_browse_lockfolder_button'][lang_number])
-        sf_label_lock_file_text.set(r_label_text_dic['sf_label_lock_file'][lang_number])
-        sf_browse_lockfile_button_text.set(r_label_text_dic['sf_browse_lockfile_button'][lang_number])
-        sf_label_autorun_text.set(r_label_text_dic['sf_label_autorun'][lang_number])
-        sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_number])
+        sf_option_mode_double_text.set(
+            r_label_text_dic['sf_option_mode_double'][lang_number])
+        sf_option_mode_single_text.set(
+            r_label_text_dic['sf_option_mode_single'][lang_number])
+        sf_label_lock_folder_text.set(
+            r_label_text_dic['sf_label_lock_folder'][lang_number])
+        sf_browse_lockfolder_button_text.set(
+            r_label_text_dic['sf_browse_lockfolder_button'][lang_number])
+        sf_label_lock_file_text.set(
+            r_label_text_dic['sf_label_lock_file'][lang_number])
+        sf_browse_lockfile_button_text.set(
+            r_label_text_dic['sf_browse_lockfile_button'][lang_number])
+        sf_label_autorun_text.set(
+            r_label_text_dic['sf_label_autorun'][lang_number])
+        sf_option_autorun_text.set(
+            r_label_text_dic['sf_option_autorun'][lang_number])
         save_button_text.set(r_label_text_dic['save_button'][lang_number])
-        continue_button_text.set(r_label_text_dic['continue_button'][lang_number])
+        continue_button_text.set(
+            r_label_text_dic['continue_button'][lang_number])
 
         file_menu_text.set(r_label_text_dic['file_menu'][lang_number])
         readfile_menu_text.set(r_label_text_dic['readfile_menu'][lang_number])
@@ -872,13 +946,17 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         language_menu_text.set(r_label_text_dic['language_menu'][lang_number])
         help_menu_text.set(r_label_text_dic['help_menu'][lang_number])
         about_menu_text.set(r_label_text_dic['about_menu'][lang_number])
-        precautions_menu_text.set(r_label_text_dic['precautions_menu'][lang_number])
+        precautions_menu_text.set(
+            r_label_text_dic['precautions_menu'][lang_number])
         cf_keep_menu_text.set(r_label_text_dic['cf_keep_menu'][lang_number])
-        cf_expire_menu_text.set(r_label_text_dic['cf_expire_menu'][lang_number])
-        sf_removable_menu_text.set(r_label_text_dic['sf_removable_menu'][lang_number])
+        cf_expire_menu_text.set(
+            r_label_text_dic['cf_expire_menu'][lang_number])
+        sf_removable_menu_text.set(
+            r_label_text_dic['sf_removable_menu'][lang_number])
         sf_lock_menu_text.set(r_label_text_dic['sf_lock_menu'][lang_number])
 
-        taskbar_setting_text.set(r_label_text_dic['taskbar_setting'][lang_number])
+        taskbar_setting_text.set(
+            r_label_text_dic['taskbar_setting'][lang_number])
         taskbar_exit_text.set(r_label_text_dic['taskbar_exit'][lang_number])
 
     class Place:
@@ -886,8 +964,10 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
             self.mode = mode
             label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
             blank.grid(row=3, column=1, padx=321, pady=5, sticky='W')
-            option_is_cleanfile.grid(row=0, column=1, padx=10, pady=5, sticky='W')
-            option_is_syncfile.grid(row=0, column=1, padx=100, pady=5, sticky='W')
+            option_is_cleanfile.grid(
+                row=0, column=1, padx=10, pady=5, sticky='W')
+            option_is_syncfile.grid(
+                row=0, column=1, padx=100, pady=5, sticky='W')
             label_current_save_name.grid(row=0, column=1, padx=10, sticky='E')
             if self.mode == 'cf':
                 self.cf_state()
@@ -898,28 +978,42 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         @staticmethod
         def sf_change_place_mode(mode):
             if mode == 'movable':
-                sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][0])
-                sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][0])
-                sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][0])
+                sf_label_path_1_text.set(
+                    r_label_text_dic['sf_label_path_1'][lang_num][0])
+                sf_label_path_2_text.set(
+                    r_label_text_dic['sf_label_path_2'][lang_num][0])
+                sf_option_autorun_text.set(
+                    r_label_text_dic['sf_option_autorun'][lang_num][0])
                 sf_browse_path_1_button.grid_forget()
-                sf_entry_select_removable.grid(row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
+                sf_entry_select_removable.grid(
+                    row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
             else:
-                sf_label_path_1_text.set(r_label_text_dic['sf_label_path_1'][lang_num][1])
-                sf_label_path_2_text.set(r_label_text_dic['sf_label_path_2'][lang_num][1])
-                sf_option_autorun_text.set(r_label_text_dic['sf_option_autorun'][lang_num][1])
-                sf_browse_path_1_button.grid(row=3, column=1, ipadx=3, sticky='E', padx=10)
+                sf_label_path_1_text.set(
+                    r_label_text_dic['sf_label_path_1'][lang_num][1])
+                sf_label_path_2_text.set(
+                    r_label_text_dic['sf_label_path_2'][lang_num][1])
+                sf_option_autorun_text.set(
+                    r_label_text_dic['sf_option_autorun'][lang_num][1])
+                sf_browse_path_1_button.grid(
+                    row=3, column=1, ipadx=3, sticky='E', padx=10)
                 sf_entry_select_removable.grid_forget()
 
         @staticmethod
         def judge_button_pix():
             if lang_num == 0:
-                save_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='W')
-                continue_button.grid(row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
-                cf_option_mode_2.grid(row=3, column=1, padx=180, ipadx=0, sticky='E')
+                save_button.grid(row=8, column=1, ipadx=100,
+                                 pady=4, padx=10, sticky='W')
+                continue_button.grid(
+                    row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
+                cf_option_mode_2.grid(
+                    row=3, column=1, padx=180, ipadx=0, sticky='E')
             elif lang_num == 1:
-                save_button.grid(row=8, column=1, ipadx=95, pady=4, padx=10, sticky='W')
-                continue_button.grid(row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
-                cf_option_mode_2.grid(row=3, column=1, padx=210, ipadx=0, sticky='W')
+                save_button.grid(row=8, column=1, ipadx=95,
+                                 pady=4, padx=10, sticky='W')
+                continue_button.grid(
+                    row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
+                cf_option_mode_2.grid(
+                    row=3, column=1, padx=210, ipadx=0, sticky='W')
 
         @staticmethod
         def cf_state():
@@ -947,18 +1041,27 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
 
-            cf_entry_old_path.grid(row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            cf_browse_old_path_button.grid(row=1, column=1, ipadx=3, sticky='E', padx=10)
-            cf_entry_new_path.grid(row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            cf_browse_new_path_button.grid(row=2, column=1, ipadx=3, sticky='E', padx=10)
-            cf_option_mode_1.grid(row=3, column=1, padx=10, ipadx=0, sticky='W')
-            cf_option_mode_2.grid(row=3, column=1, padx=180, ipadx=0, sticky='W')
+            cf_entry_old_path.grid(
+                row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            cf_browse_old_path_button.grid(
+                row=1, column=1, ipadx=3, sticky='E', padx=10)
+            cf_entry_new_path.grid(
+                row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            cf_browse_new_path_button.grid(
+                row=2, column=1, ipadx=3, sticky='E', padx=10)
+            cf_option_mode_1.grid(
+                row=3, column=1, padx=10, ipadx=0, sticky='W')
+            cf_option_mode_2.grid(
+                row=3, column=1, padx=180, ipadx=0, sticky='W')
             cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
-            cf_entry_keep_files.grid(row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-            cf_entry_keep_formats.grid(row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            cf_entry_keep_files.grid(
+                row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            cf_entry_keep_formats.grid(
+                row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
             cf_entry_frame_keep_files.grid(row=4, column=1, sticky='W')
             cf_entry_frame_keep_formats.grid(row=5, column=1, sticky='W')
-            cf_entry_time.grid(row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+            cf_entry_time.grid(row=6, column=1, padx=10,
+                               pady=5, ipadx=240, sticky='W')
             cf_option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
             cf_label_old_path.grid(row=1, column=0, pady=5, sticky='E')
             cf_label_new_path.grid(row=2, column=0, pady=5, sticky='E')
@@ -999,24 +1102,34 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 Place.sf_change_place_mode('local')
 
             sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
-            sf_option_mode_usb.grid(row=1, column=1, padx=10, pady=5, sticky='W')
+            sf_option_mode_usb.grid(
+                row=1, column=1, padx=10, pady=5, sticky='W')
             sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
-            sf_option_mode_double.grid(row=2, column=1, padx=10, ipadx=0, sticky='W')
-            sf_option_mode_single.grid(row=2, column=1, padx=200, ipadx=0, sticky='W')
+            sf_option_mode_double.grid(
+                row=2, column=1, padx=10, ipadx=0, sticky='W')
+            sf_option_mode_single.grid(
+                row=2, column=1, padx=200, ipadx=0, sticky='W')
             sf_label_mode.grid(row=2, column=0, pady=5, sticky='E')
             sf_label_path_1.grid(row=3, column=0, pady=5, sticky='E')
             sf_label_path_2.grid(row=4, column=0, pady=5, sticky='E')
-            sf_entry_path_1.grid(row=3, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_entry_path_2.grid(row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_browse_path_2_button.grid(row=4, column=1, ipadx=3, sticky='E', padx=10)
+            sf_entry_path_1.grid(row=3, column=1, padx=10,
+                                 pady=5, ipadx=190, sticky='W')
+            sf_entry_path_2.grid(row=4, column=1, padx=10,
+                                 pady=5, ipadx=190, sticky='W')
+            sf_browse_path_2_button.grid(
+                row=4, column=1, ipadx=3, sticky='E', padx=10)
             sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
             sf_entry_frame_lock_folder.grid(row=5, column=1, sticky='W')
-            sf_entry_lock_folder.grid(row=5, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_browse_lockfolder_button.grid(row=5, column=1, padx=10, sticky='E', ipadx=3)
+            sf_entry_lock_folder.grid(
+                row=5, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_browse_lockfolder_button.grid(
+                row=5, column=1, padx=10, sticky='E', ipadx=3)
             sf_label_lock_file.grid(row=6, column=0, pady=5, sticky='E')
             sf_entry_frame_lock_file.grid(row=6, column=1, sticky='W')
-            sf_entry_lock_file.grid(row=6, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            sf_browse_lockfile_button.grid(row=6, column=1, padx=10, sticky='E', ipadx=3)
+            sf_entry_lock_file.grid(
+                row=6, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+            sf_browse_lockfile_button.grid(
+                row=6, column=1, padx=10, sticky='E', ipadx=3)
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
@@ -1092,7 +1205,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
     lang_num = language_num(root_language.get())
     set_language(lang_num)
 
-    label_choose_state = ttk.Label(root, text=label_choose_state_text.get(), textvariable=label_choose_state_text)
+    label_choose_state = ttk.Label(
+        root, text=label_choose_state_text.get(), textvariable=label_choose_state_text)
     cf_or_sf = tk.StringVar()
     option_is_cleanfile = ttk.Radiobutton(root, textvariable=option_is_cleanfile_text, variable=cf_or_sf,
                                           value='cf',
@@ -1101,7 +1215,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                                          value='sf',
                                          command=lambda: Place(cf_or_sf.get()))
 
-    label_current_save_name = ttk.Label(root, text=current_save_name.get(), textvariable=current_save_name)
+    label_current_save_name = ttk.Label(
+        root, text=current_save_name.get(), textvariable=current_save_name)
 
     blank = ttk.Label(root)
 
@@ -1117,7 +1232,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                                            command=lambda: select_path(place='new',
                                                                        ori_content=cf_entry_new_path.get()))
 
-    cf_label_move_options = ttk.Label(root, textvariable=cf_label_move_options_text)
+    cf_label_move_options = ttk.Label(
+        root, textvariable=cf_label_move_options_text)
     cf_entry_mode = tk.IntVar()
     cf_option_mode_1 = ttk.Radiobutton(root, textvariable=cf_option_mode_1_text, variable=cf_entry_mode,
                                        value=1)
@@ -1128,23 +1244,32 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                                             variable=cf_is_folder_move)
 
     cf_entry_frame_keep_files = tk.Frame(root)
-    cf_label_keep_files = ttk.Label(root, textvariable=cf_label_keep_files_text)
-    cf_entry_keep_files = Combopicker(master=cf_entry_frame_keep_files, values='', frameheight=120)
-    cf_entry_keep_files.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
+    cf_label_keep_files = ttk.Label(
+        root, textvariable=cf_label_keep_files_text)
+    cf_entry_keep_files = Combopicker(
+        master=cf_entry_frame_keep_files, values='', frameheight=120)
+    cf_entry_keep_files.bind(
+        '<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_entry_frame_keep_formats = tk.Frame(root)
-    cf_label_keep_formats = ttk.Label(root, textvariable=cf_label_keep_formats_text)
-    cf_entry_keep_formats = Combopicker(master=cf_entry_frame_keep_formats, values='', frameheight=90)
-    cf_entry_keep_formats.bind('<Button-1>', lambda event: cf_refresh_whitelist_entry())
+    cf_label_keep_formats = ttk.Label(
+        root, textvariable=cf_label_keep_formats_text)
+    cf_entry_keep_formats = Combopicker(
+        master=cf_entry_frame_keep_formats, values='', frameheight=90)
+    cf_entry_keep_formats.bind(
+        '<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
     cf_label_time = ttk.Label(root, textvariable=cf_label_time_text)
     cf_entry_time = ttk.Entry(root)
 
-    cf_label_start_options = ttk.Label(root, textvariable=cf_label_start_options_text)
+    cf_label_start_options = ttk.Label(
+        root, textvariable=cf_label_start_options_text)
     cf_is_autorun = tk.BooleanVar()
-    cf_option_is_auto = ttk.Checkbutton(root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun)
+    cf_option_is_auto = ttk.Checkbutton(
+        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun)
 
-    sf_label_place_mode = ttk.Label(root, textvariable=sf_label_place_mode_text)
+    sf_label_place_mode = ttk.Label(
+        root, textvariable=sf_label_place_mode_text)
     sf_place_mode = tk.StringVar()
     sf_option_mode_usb = ttk.Radiobutton(root, textvariable=sf_option_mode_usb_text,
                                          variable=sf_place_mode,
@@ -1161,8 +1286,10 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
     sf_browse_path_1_button = ttk.Button(root, textvariable=sf_browse_path_1_button_text,
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
 
-    sf_entry_select_removable = ttk.Combobox(root, values=scan_removable_disks(), state='readonly')
-    sf_entry_select_removable.bind('<Button-1>', lambda event: sf_refresh_disk_list())
+    sf_entry_select_removable = ttk.Combobox(
+        root, values=scan_removable_disks(), state='readonly')
+    sf_entry_select_removable.bind(
+        '<Button-1>', lambda event: sf_refresh_disk_list())
 
     sf_label_path_2 = ttk.Label(root, textvariable=sf_label_path_2_text)
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
@@ -1178,15 +1305,18 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                                             variable=sf_entry_mode,
                                             value='single')
 
-    sf_label_lock_folder = ttk.Label(root, textvariable=sf_label_lock_folder_text)
+    sf_label_lock_folder = ttk.Label(
+        root, textvariable=sf_label_lock_folder_text)
     sf_entry_frame_lock_folder = tk.Frame(root)
-    sf_entry_lock_folder = Combopicker(master=sf_entry_frame_lock_folder, values=['全选'], frameheight=90)
+    sf_entry_lock_folder = Combopicker(
+        master=sf_entry_frame_lock_folder, values=['全选'], frameheight=90)
     sf_browse_lockfolder_button = ttk.Button(root, textvariable=sf_browse_lockfolder_button_text,
                                              command=lambda: choose_lock_items('lockfolder'))
 
     sf_label_lock_file = ttk.Label(root, textvariable=sf_label_lock_file_text)
     sf_entry_frame_lock_file = tk.Frame(root)
-    sf_entry_lock_file = Combopicker(master=sf_entry_frame_lock_file, values=['全选'], frameheight=50)
+    sf_entry_lock_file = Combopicker(
+        master=sf_entry_frame_lock_file, values=['全选'], frameheight=50)
     sf_browse_lockfile_button = ttk.Button(root, textvariable=sf_browse_lockfile_button_text,
                                            command=lambda: choose_lock_items('lockfile'))
 
@@ -1200,7 +1330,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         @staticmethod
         def help_main():
             from LT_Dic import help_main_text
-            tkinter.messagebox.showinfo(title='Movefile', message=help_main_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=help_main_text[lang_num])
 
         @staticmethod
         def help_before_use():
@@ -1211,32 +1342,38 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         @staticmethod
         def cf_help():
             from LT_Dic import cf_help_text
-            tkinter.messagebox.showinfo(title='Movefile', message=cf_help_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=cf_help_text[lang_num])
 
         @staticmethod
         def cf_help_keep():
             from LT_Dic import cf_help_keep_text
-            tkinter.messagebox.showinfo(title='Movefile', message=cf_help_keep_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=cf_help_keep_text[lang_num])
 
         @staticmethod
         def cf_help_timeset():
             from LT_Dic import cf_help_timeset_text
-            tkinter.messagebox.showinfo(title='Movefile', message=cf_help_timeset_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=cf_help_timeset_text[lang_num])
 
         @staticmethod
         def sf_help():
             from LT_Dic import sf_help_text
-            tkinter.messagebox.showinfo(title='Movefile', message=sf_help_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=sf_help_text[lang_num])
 
         @staticmethod
         def sf_removable_help():
             from LT_Dic import sf_removable_help_text
-            tkinter.messagebox.showinfo(title='Movefile', message=sf_removable_help_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=sf_removable_help_text[lang_num])
 
         @staticmethod
         def sf_lock_help():
             from LT_Dic import sf_lock_help_text
-            tkinter.messagebox.showinfo(title='Movefile', message=sf_lock_help_text[lang_num])
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=sf_lock_help_text[lang_num])
 
         @staticmethod
         def cf_is_num():
@@ -1292,7 +1429,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         def sf_path_error():
             try:
                 if sf_place_mode.get() == 'movable':
-                    os.listdir(sf_entry_select_removable.get().split(':')[0][-1] + ':')
+                    os.listdir(sf_entry_select_removable.get().split(
+                        ':')[0][-1] + ':')
                 else:
                     os.listdir(sf_entry_path_1.get())
                 os.listdir(sf_entry_path_2.get())
@@ -1312,17 +1450,20 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         @staticmethod
         def cf_has_error():
             if not ZFunc.cf_is_num():
-                tkinter.messagebox.showwarning('Movefile', r_label_text_dic['num_warning'][lang_num])
+                tkinter.messagebox.showwarning(
+                    'Movefile', r_label_text_dic['num_warning'][lang_num])
                 return True
             elif ZFunc.cf_has_blank():
-                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
                 return True
             elif ZFunc.cf_path_error() == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=r_label_text_dic['same_path_warning'][lang_num])
                 return True
             elif ZFunc.cf_path_error():
-                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
                 return True
             else:
                 return False
@@ -1331,7 +1472,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         def sf_has_error():
             path_error_data = ZFunc.sf_path_error()
             if ZFunc.sf_has_blank():
-                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
                 return True
             elif path_error_data == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
@@ -1346,7 +1488,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                                                message=r_label_text_dic['in_disk_path_warning'][lang_num])
                 return True
             elif path_error_data:
-                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
                 return True
             else:
                 return False
@@ -1378,20 +1521,23 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 for cf_save in cf_save_names:
                     try:
                         cf_data.set(cf_save, '_last_edit_', 'False')
-                        cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                        cf_data.write(
+                            open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
                     except:
                         pass
             if len(sf_save_names) != 0:
                 for sf_save in sf_save_names:
                     try:
                         sf_data.set(sf_save, '_last_edit_', 'False')
-                        sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                        sf_data.write(
+                            open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
                     except:
                         pass
 
             if function == 'cf':  # 如果当前界面为cf
                 if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
-                    file = open(cf_data_path + r'Cleanfile_data.ini', 'w', encoding='ANSI')
+                    file = open(cf_data_path + r'Cleanfile_data.ini',
+                                'w', encoding='ANSI')
                     file.close()
                 cf_data.read(cf_data_path + r'Cleanfile_data.ini')
                 if not cf_data.has_section(str(save_name)):
@@ -1399,17 +1545,22 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 cf_data.set(save_name, '_last_edit_', 'True')
                 cf_data.set(save_name, "old_path", cf_entry_old_path.get())
                 cf_data.set(save_name, "new_path", cf_entry_new_path.get())
-                cf_data.set(save_name, "pass_filename", cf_entry_keep_files.get())
-                cf_data.set(save_name, "pass_format", cf_entry_keep_formats.get())
+                cf_data.set(save_name, "pass_filename",
+                            cf_entry_keep_files.get())
+                cf_data.set(save_name, "pass_format",
+                            cf_entry_keep_formats.get())
                 cf_data.set(save_name, "set_hour", cf_entry_time.get())
                 cf_data.set(save_name, "mode", str(cf_entry_mode.get()))
                 cf_data.set(save_name, "autorun", str(cf_is_autorun.get()))
-                cf_data.set(save_name, "move_folder", str(cf_is_folder_move.get()))
-                cf_data.write(open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
+                cf_data.set(save_name, "move_folder",
+                            str(cf_is_folder_move.get()))
+                cf_data.write(
+                    open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
 
             if function == 'sf':  # 如果当前界面为sf
                 if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
-                    file = open(sf_data_path + r'Syncfile_data.ini', 'w', encoding='ANSI')
+                    file = open(sf_data_path + r'Syncfile_data.ini',
+                                'w', encoding='ANSI')
                     file.close()
                 sf_data.read(sf_data_path + r'Syncfile_data.ini')
                 if not sf_data.has_section(str(save_name)):
@@ -1424,10 +1575,13 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                                 str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
                 sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
                 sf_data.set(save_name, 'mode', sf_entry_mode.get())
-                sf_data.set(save_name, 'lock_folder', sf_entry_lock_folder.get())
+                sf_data.set(save_name, 'lock_folder',
+                            sf_entry_lock_folder.get())
                 sf_data.set(save_name, 'lock_file', sf_entry_lock_file.get())
-                sf_data.set(save_name, 'autorun', str(sf_entry_is_autorun.get()))
-                sf_data.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                sf_data.set(save_name, 'autorun', str(
+                    sf_entry_is_autorun.get()))
+                sf_data.write(
+                    open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
 
             tkinter.messagebox.showinfo(title=r_label_text_dic['succ_save'][lang_num][0],
                                         message=r_label_text_dic['succ_save'][lang_num][1])
@@ -1435,7 +1589,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
 
         def sure_save():
             savefile(function=cf_or_sf.get(), save_name=name_entry.get())
-            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + name_entry.get())
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + name_entry.get())
             exit_asn()
 
         def exit_asn():
@@ -1455,7 +1610,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
             ask_name_window = tk.Toplevel(root)
             ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
             ask_name_window.geometry('400x35')
-            ask_name_window.title(r_label_text_dic['ask_name_window'][lang_num])
+            ask_name_window.title(
+                r_label_text_dic['ask_name_window'][lang_num])
             ask_name_window.focus_force()
             last_edit_name = 'New_Setting'
             if last_saving_data:
@@ -1463,7 +1619,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                     last_edit_name = last_saving_data[1]
                 else:
                     last_edit_name = last_saving_data[2]
-            name_label = ttk.Label(ask_name_window, text=r_label_text_dic['name_label'][lang_num])
+            name_label = ttk.Label(
+                ask_name_window, text=r_label_text_dic['name_label'][lang_num])
             name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
 
             name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
@@ -1497,9 +1654,11 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 cf_entry_old_path.delete(0, 'end')
             if cf_entry_new_path.get() != '':
                 cf_entry_new_path.delete(0, 'end')
-            cf_entry_old_path.insert(0, cf_file.get(setting_name, 'old_path'))  # 旧文件夹
+            cf_entry_old_path.insert(0, cf_file.get(
+                setting_name, 'old_path'))  # 旧文件夹
             cf_ori_old_path = cf_entry_old_path.get()
-            cf_entry_new_path.insert(0, cf_file.get(setting_name, 'new_path'))  # 新文件夹
+            cf_entry_new_path.insert(0, cf_file.get(
+                setting_name, 'new_path'))  # 新文件夹
             cf_refresh_whitelist_entry()
             if cf_entry_keep_files.get() != '':
                 cf_entry_keep_files.delete(0, 'end')
@@ -1507,16 +1666,21 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 cf_entry_keep_formats.delete(0, 'end')
             if cf_entry_time.get() != '':
                 cf_entry_time.delete(0, 'end')
-            cf_entry_keep_files.insert(0, cf_file.get(setting_name, 'pass_filename'))  # 设置跳过白名单
-            cf_entry_keep_formats.insert(0, cf_file.get(setting_name, 'pass_format'))  # 设置跳过格式
-            cf_entry_time.insert(0, cf_file.get(setting_name, 'set_hour'))  # 设置过期时间(hour)
+            cf_entry_keep_files.insert(0, cf_file.get(
+                setting_name, 'pass_filename'))  # 设置跳过白名单
+            cf_entry_keep_formats.insert(0, cf_file.get(
+                setting_name, 'pass_format'))  # 设置跳过格式
+            cf_entry_time.insert(0, cf_file.get(
+                setting_name, 'set_hour'))  # 设置过期时间(hour)
             cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # 设置判断模式
-            cf_is_autorun.set(cf_file.get(setting_name, 'autorun')=='True')
-            cf_is_folder_move.set(cf_file.get(setting_name, 'move_folder')=='True')
+            cf_is_autorun.set(cf_file.get(setting_name, 'autorun') == 'True')
+            cf_is_folder_move.set(cf_file.get(
+                setting_name, 'move_folder') == 'True')
             Place('cf')
             cf_or_sf.set('cf')
             if data_error('cf', setting_name):
-                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
 
         def open_sf_saving(setting_name):
             if sf_entry_path_1.get() != '':
@@ -1544,13 +1708,17 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                     count_i += 1
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
-            sf_entry_lock_folder.insert(0, sf_file.get(setting_name, 'lock_folder'))
-            sf_entry_lock_file.insert(0, sf_file.get(setting_name, 'lock_file'))
-            sf_entry_is_autorun.set(sf_file.get(setting_name, 'autorun')=='True')
+            sf_entry_lock_folder.insert(
+                0, sf_file.get(setting_name, 'lock_folder'))
+            sf_entry_lock_file.insert(
+                0, sf_file.get(setting_name, 'lock_file'))
+            sf_entry_is_autorun.set(sf_file.get(
+                setting_name, 'autorun') == 'True')
             Place('sf', place_mode)
             cf_or_sf.set('sf')
             if data_error('sf', setting_name):
-                tkinter.messagebox.showwarning(title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
 
         def refresh_saving():
             nonlocal new_values
@@ -1572,16 +1740,19 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
         def del_saving():
             del_mode = read_mode_entry.get()
             del_name = read_name_entry.get()
-            is_continue = tkinter.messagebox.askyesno(title='Movefile', message='确认删除配置 ' + del_name + ' ?')
+            is_continue = tkinter.messagebox.askyesno(
+                title='Movefile', message='确认删除配置 ' + del_name + ' ?')
             ini_file = configparser.ConfigParser()
             if del_mode in ['清理文件(Cleanfile)', 'Cleanfile'] and is_continue:
                 ini_file.read(cf_data_path + 'Cleanfile_data.ini')
                 ini_file.remove_section(del_name)
-                ini_file.write(open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                ini_file.write(
+                    open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
             elif del_mode in ['同步文件(Syncfile)', 'Syncfile'] and is_continue:
                 ini_file.read(sf_data_path + 'Syncfile_data.ini')
                 ini_file.remove_section(del_name)
-                ini_file.write(open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                ini_file.write(
+                    open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
             exit_asr()
 
         def sure_open():
@@ -1590,7 +1761,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 open_cf_saving(saving_name)
             elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
                 open_sf_saving(saving_name)
-            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + saving_name)
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + saving_name)
             exit_asr()
 
         def exit_asr():
@@ -1611,7 +1783,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
             if last_saving_data:
                 last_edit_mode = last_saving_data[0]
                 last_edit_name = last_saving_data[1]
-            read_name_label = ttk.Label(ask_saving_root, text=r_label_text_dic['read_name_label'][lang_num])
+            read_name_label = ttk.Label(
+                ask_saving_root, text=r_label_text_dic['read_name_label'][lang_num])
             read_name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
             read_mode_entry = ttk.Combobox(ask_saving_root, values=r_label_text_dic['read_mode_entry'][lang_num],
                                            state='readonly')
@@ -1620,12 +1793,14 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 read_mode_entry.current(1)
             elif last_edit_mode == 'cf':
                 read_mode_entry.current(0)
-            read_name_entry = ttk.Combobox(ask_saving_root, values=save_names, state='readonly')
+            read_name_entry = ttk.Combobox(
+                ask_saving_root, values=save_names, state='readonly')
             refresh_saving()
             for save_index, name in enumerate(new_values):
                 if name == last_edit_name:
                     read_name_entry.current(save_index)
-            read_name_entry.grid(row=0, column=2, padx=5, pady=5, ipadx=20, sticky='W')
+            read_name_entry.grid(row=0, column=2, padx=5,
+                                 pady=5, ipadx=20, sticky='W')
             del_save_button = ttk.Button(ask_saving_root, text=r_label_text_dic['del_save_button'][lang_num],
                                          command=lambda: del_saving())
             del_save_button.grid(row=0, column=3, padx=5, pady=5)
@@ -1637,10 +1812,12 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
             ask_saving_root.protocol('WM_DELETE_WINDOW', exit_asr)
         elif mode == 'cf':
             open_cf_saving(save_name)
-            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + save_name)
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + save_name)
         elif mode == 'sf':
             open_sf_saving(save_name)
-            current_save_name.set(r_label_text_dic['current_save_name'][lang_num] + save_name)
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + save_name)
         initial_entry()
 
     def cf_operate_from_root():
@@ -1672,24 +1849,29 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
             single_sync = True
         else:
             single_sync = False
-        sf_sync_dir(path1, path2, single_sync, lang_num, area_name, lockfile, lockfolder)
+        sf_sync_dir(path1, path2, single_sync, lang_num,
+                    area_name, lockfile, lockfolder)
 
     def change_language(language):
         nonlocal lang_num
         general_data.set('General', 'language', language)
-        general_data.write(open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+        general_data.write(
+            open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
         Place(cf_or_sf.get(), sf_place_mode.get())
-        tkinter.messagebox.showinfo(title='Movefile', message=r_label_text_dic['change_language'][lang_num])
+        tkinter.messagebox.showinfo(
+            title='Movefile', message=r_label_text_dic['change_language'][lang_num])
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not ZFunc.cf_has_error():
-            cf_operator = threading.Thread(target=lambda: cf_operate_from_root(), daemon=True)
+            cf_operator = threading.Thread(
+                target=lambda: cf_operate_from_root(), daemon=True)
             cf_operator.start()
             root.withdraw()
         elif cf_or_sf.get() == 'sf' and not ZFunc.sf_has_error():
-            sf_operator = threading.Thread(target=lambda: sf_operate_from_root(), daemon=True)
+            sf_operator = threading.Thread(
+                target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
             root.withdraw()
 
@@ -1715,8 +1897,10 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
     # 创建按键
     blank_pix = ttk.Label(root, text=' ')
     blank_pix.grid(row=8, column=0, ipadx=67, pady=4, padx=0, sticky='E')
-    save_button = ttk.Button(root, textvariable=save_button_text, command=lambda: ask_save_name())
-    continue_button = ttk.Button(root, textvariable=continue_button_text, command=lambda: continue_going())
+    save_button = ttk.Button(
+        root, textvariable=save_button_text, command=lambda: ask_save_name())
+    continue_button = ttk.Button(
+        root, textvariable=continue_button_text, command=lambda: continue_going())
     continue_button.config(state=tk.DISABLED)
 
     # 菜单栏
@@ -1724,11 +1908,12 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
     file_menu = tk.Menu(main_menu, tearoff=False)
     file_menu.add_command(label=readfile_menu_text.get(), command=lambda: read_saving(ask_path=True),
                           accelerator="Ctrl+O")
-    file_menu.add_command(label=savefile_menu_text.get(), command=lambda: ask_save_name(), accelerator="Ctrl+S")
+    file_menu.add_command(label=savefile_menu_text.get(
+    ), command=lambda: ask_save_name(), accelerator="Ctrl+S")
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
-    is_startup_run.set(general_data.get('General', 'autorun')=="True")
+    is_startup_run.set(general_data.get('General', 'autorun') == "True")
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
                                 command=lambda: set_startup(is_startup_run.get()))
 
@@ -1740,15 +1925,20 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
 
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label=about_menu_text.get(), command=ZFunc.help_main)
-    help_menu.add_command(label=precautions_menu_text.get(), command=ZFunc.help_before_use)
+    help_menu.add_command(label=precautions_menu_text.get(),
+                          command=ZFunc.help_before_use)
     help_menu.add_separator()
     help_menu.add_command(label='Cleanfile', command=ZFunc.cf_help)
-    help_menu.add_command(label=cf_keep_menu_text.get(), command=ZFunc.cf_help_keep)
-    help_menu.add_command(label=cf_expire_menu_text.get(), command=ZFunc.cf_help_timeset)
+    help_menu.add_command(label=cf_keep_menu_text.get(),
+                          command=ZFunc.cf_help_keep)
+    help_menu.add_command(label=cf_expire_menu_text.get(),
+                          command=ZFunc.cf_help_timeset)
     help_menu.add_separator()
     help_menu.add_command(label='Syncfile', command=ZFunc.sf_help)
-    help_menu.add_command(label=sf_removable_menu_text.get(), command=ZFunc.sf_removable_help)
-    help_menu.add_command(label=sf_lock_menu_text.get(), command=ZFunc.sf_lock_help)
+    help_menu.add_command(label=sf_removable_menu_text.get(),
+                          command=ZFunc.sf_removable_help)
+    help_menu.add_command(label=sf_lock_menu_text.get(),
+                          command=ZFunc.sf_lock_help)
 
     main_menu.add_cascade(label=file_menu_text.get(), menu=file_menu)
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
@@ -1758,7 +1948,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
 
     # 托盘菜单
     menu = (
-        MenuItem(taskbar_setting_text.get(), lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
+        MenuItem(taskbar_setting_text.get(),
+                 lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
         MenuItem(taskbar_exit_text.get(), lambda event: exit_program()))
     image = Image.open(mf_data_path + 'Movefile.ico')
     task_menu = pystray.Icon("icon", image, "Movefile", menu)
@@ -1790,7 +1981,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                     if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
                                                                                                  message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，' + '\n' +
                                                                                                          f'确定按配置 "{autorun_id[1]}" 进行同步?'):
-                        run_list.append([new_area_data[0], new_area_data[1], autorun_id[1]])
+                        run_list.append(
+                            [new_area_data[0], new_area_data[1], autorun_id[1]])
                 new_areas_data.remove(new_area_data)
             if run_list:
                 sf_autorun_operation('movable', run_list)
@@ -1814,7 +2006,8 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
-    background_detect = threading.Thread(target=lambda: detect_removable_disks_thread(), daemon=True)
+    background_detect = threading.Thread(
+        target=lambda: detect_removable_disks_thread(), daemon=True)
     background_detect.start()
     ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
     ask_permit.start()
@@ -1829,7 +2022,8 @@ def main():
     initial_data = Initialization()
     time.sleep(0.1)
     if initial_data.ask_time_today == 1 and initial_data.boot_time <= 120:
-        autorun_options = threading.Thread(target=lambda: startup_autorun(), daemon=True)
+        autorun_options = threading.Thread(
+            target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
     if initial_data.first_visit:
         make_ui(first_ask=True)
