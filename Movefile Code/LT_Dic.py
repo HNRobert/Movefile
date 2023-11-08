@@ -1,5 +1,5 @@
 vision = 'v2.3.3'
-update_time = '2023/8/21'
+update_time = '2023/11/8'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
@@ -83,7 +83,7 @@ please don't edit the config file directly"""],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software
 to make the language of some labels changed''']
-    }
+}
 
 cr_label_text_dic = {
     'c_label': ['Movefile 初始化中...', 'Movefile initializing...']
@@ -122,7 +122,7 @@ Are you sure to interrupt the process and exit?'''],
 无法被移动，请在关闭文件或移除重名文件后重试""", """
 Couldn't be moved, Please try again after closing the file
 or removing the duplicate file """]
-    }
+}
 
 progress_root_label_dic = {
     'confirm_exit_text': ['''文件正在复制中，

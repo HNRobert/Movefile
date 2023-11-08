@@ -72,6 +72,10 @@ class Initialization:
         return boot_time
 
     def set_data_path(self):
+        """
+        The function globalize the path where previous data of this program can be found.
+        """
+        
         global mf_data_path, cf_data_path, sf_data_path, toaster
         toaster = ToastNotifier()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
@@ -90,6 +94,10 @@ class Initialization:
             os.mkdir(sf_data_path)
 
     def asktime_plus(self):
+        """
+        The function "asktime_plus" is not defined in the code provided.
+        """
+        
         time_now = datetime.today()
         date = str(time_now.date())
         if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
@@ -124,6 +132,7 @@ class Initialization:
         self.image.close()
 
 
+# The ProgressBar class generate a root used to display the progress of a task.
 class ProgressBar:
     def __init__(self, title, label1, label2, lang_num):
         self.initialization_done = False
@@ -190,7 +199,10 @@ class ProgressBar:
         self.progress_root.destroy()
 
 
+# The CheckMFProgress class is used to check if the program is already running.
+# If it's running, it will display a message box to inform the user, and put the window on the top.
 class CheckMFProgress:
+    
     def __init__(self):
         self.continue_this_progress = True
         self.pl = psutil.pids()
@@ -223,6 +235,13 @@ def startup_autorun():
 
 
 def set_startup(state=True):
+    """
+    The function sets the auto startup state to either True or False.
+    
+    :param state: The `state` parameter is a boolean value that determines whether the startup process
+    should be enabled or disabled. If `state` is `True`, the startup process will be enabled. If `state`
+    is `False`, the startup process will be disabled, defaults to True (optional)
+    """
     # 将快捷方式添加到自启动目录
     # 获取用户名
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
@@ -252,6 +271,12 @@ def set_startup(state=True):
 
 
 def language_num(language_name):
+    """
+    The function takes a string as input, and returns the corresponding language number.
+    
+    :param language_name: The `language_name` parameter is a string that represents the language name.
+    :return: The function returns the language number as an integer.
+    """
     if language_name == 'Chinese':
         l_num = 0
     elif language_name == 'English':
@@ -340,6 +365,14 @@ def data_error(mode_, name_):
 
 
 def scan_removable_disks(s_uuid=None):
+    """
+    This function scans for removable disks and returns their UUIDs.
+
+    :param s_uuid: The s_uuid parameter is an optional parameter that represents the UUID (Universally
+    Unique Identifier) of a specific removable disk. If provided, the function will only scan and return
+    information about the removable disk with the specified UUID. If not provided, the function will
+    scan and return information about all available removable disks
+    """
     disk_list = []
     show_list = []
     uuid_disk_pairs = []
@@ -372,6 +405,9 @@ def scan_removable_disks(s_uuid=None):
 
 
 def detect_removable_disks_thread():
+    """
+    The function detects removable disks using threading.
+    """
     global new_areas_data
     disk_list = []
     area_data_list = []
@@ -424,6 +460,24 @@ def scan_items(folder_path):  # 扫描路径下所有文件夹
 
 
 def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
+    """
+    The function `cf_move_dir` is used to move files or folders from one directory to another, with
+    options for specifying file formats, checking modes, and handling overdue files.
+    
+    :param old__path: The current path or location of the file or folder that needs to be moved
+    :param new__path: The new path where the file or folder will be moved to
+    :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is
+    a boolean value where True means files will be passed and False means files will not be passed
+    :param pass__format: The pass__format parameter is used to specify the format of the files that
+    should be moved. It can be a string or a list of strings representing the file formats. For example,
+    if you want to move only text files, you can set pass__format to "txt" or ["txt"]
+    :param overdue_time: The parameter "overdue_time" is used to specify the time in seconds after which
+    a file or folder is considered overdue
+    :param check__mode: The check__mode parameter is used to specify the type of check to be performed.
+    It can have one of the following values:
+    :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
+    """
+    
     from LT_Dic import cf_label_text_dic as cfdic
     mf_file = configparser.ConfigParser()
     mf_file.read(mf_data_path + 'Movefile_data.ini')
@@ -485,6 +539,11 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         return [moved_files, error_files]
 
     def get_cf_tasks(baroot):
+        """
+        The function "get_cf_tasks" decide what to clean in a directory.
+        
+        :param baroot: The progress bar object
+        """
         tasks = []
         item_datas = os.scandir(old__path)  # 获取文件夹下所有文件和文件夹
         now = int(time.time())  # 当前时间
@@ -502,7 +561,6 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                 last = int(os.stat(item_data.path).st_atime)
             else:
                 raise
-            # if not (not is_folder or is_folder and is__move__folder) or (now - last < overdue_time):  # 判断移动条件(狗屎）
             if item_data.is_dir() and not is__move__folder or now - last < overdue_time:  # 判断移动条件
                 continue
             tasks.append([item_data.name, item_data.path, new__path])
@@ -565,6 +623,9 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
 
 
 def cf_autorun_operation():
+    """
+    The function cf_autorun_operation is used to perform an cleanfile operation automatically.
+    """
     cf_store_path = cf_data_path + r'Cleanfile_data.ini'
     cf_file = configparser.ConfigParser()
     cf_file.read(cf_store_path)
@@ -614,6 +675,13 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                                threaded=False)
 
     def diff_files_in(folderA_path, folderB_path):
+        """
+        The function takes two folder paths as input and returns the files that are present in one
+        folder but not in the other.
+
+        :param folderA_path: The path to the first folder that you want to compare
+        :param folderB_path: The path to the second folder that you want to compare
+        """
 
         def all_files_in(item_dir: str, is_r: bool):
             all_files = []
@@ -655,7 +723,28 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         return diff_data
 
     def get_task(_bar_root):
+        """
+        The function "get_task" compares the two folder and decides which file need to be moved or replaced.
+
+        :param _bar_root: The parameter `_bar_root` is likely a variable or object that represents the
+        root node or starting point of a tree or hierarchy structure. It could be used to navigate or
+        perform operations on the tree or hierarchy
+        """
         def judge_and_append(fileA: str, fileB: str, direct_apd: bool):
+            """
+            The function `judge_and_append` takes two file names as input and a boolean value indicating
+            whether to append the contents of fileB to fileA or not.
+
+            :param fileA: A string representing the path to the first file
+            :type fileA: str
+            :param fileB: The `fileB` parameter is a string that represents the file name or file path
+            of the second file
+            :type fileB: str
+            :param direct_apd: The `direct_apd` parameter is a boolean value that determines whether the
+            contents of `fileB` should be directly appended to `fileA` or if a judgment should be made
+            before appending
+            :type direct_apd: bool
+            """
             if int(os.stat(fileA).st_mtime) < int(os.stat(fileB).st_mtime):
                 if single_sync:
                     return
@@ -684,20 +773,34 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         return sync_tasks
 
     def synchronize_files(baroot, task):
+        """
+        The function `synchronize_files` takes two parameters, `baroot` and `task`, and does some kind
+        of file synchronization operation.
+
+        :param baroot: The `baroot` parameter is a string that represents the root directory of the
+        source files. It is the directory from which the files will be synchronized
+        :param task: The `task` parameter is a string that represents the specific task or operation
+        that needs to be performed on the files
+        """
         baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
             sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
-        new_file_path, old_file_path, create_folder = task
-        dest_path = Path(old_file_path)
+        source_file_path, dest_file_path, create_folder = task
+        dest_path = Path(dest_file_path)
         # Create parent directories if needed
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            shutil.copy2(new_file_path, old_file_path)
+            shutil.copy2(source_file_path, dest_file_path)
         except shutil.Error:
-            return new_file_path
+            return source_file_path
         return None
 
     def run_sync_tasks(baroot):
+        """
+        The function "run_sync_tasks" performs synchronous tasks.
+
+        :param baroot: The progress bar root object
+        """
         nonlocal sf_progress_done
         sf_error_name = ''
         baroot.main_progress_bar['value'] = 0
@@ -749,6 +852,16 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 
 
 def sf_autorun_operation(place, saving_datas=None):
+    """
+    The function `sf_autorun_operation` performs an sync operation on a given place and optional saving data.
+    
+    :param place: The place parameter is a string that represents the location or context in which the
+    operation is being performed. It could be a specific folder, directory, or any other relevant
+    location
+    :param saving_datas: The `saving_datas` parameter is an optional parameter that allows you to pass
+    in a dictionary of data that you want to save. If you don't provide a value for this parameter, it
+    will default to `None`
+    """
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_data_path + 'Syncfile_data.ini')
     mf_file = configparser.ConfigParser()
@@ -791,7 +904,21 @@ def sf_autorun_operation(place, saving_datas=None):
         autorun_local_sf(get_sf_startup_savings())
 
 
-def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
+def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
+    """
+    The function "make_ui" creates a user interface.
+    
+    :param multi_visit: A boolean parameter that indicates whether the user is making more than one visits to
+    the UI today. If set to True, it means the user has already visited the UI before and is returning for
+    another visit. If set to False, it means this is the user's first visit to the UI today, defaults to False
+    (optional)
+    :param first_visit: A boolean parameter that indicates whether it is the user's first time using this software.
+    If set to True, it means that the user is visiting the UI for the first time, defaults to False
+    (optional)
+    :param startup_visit: A boolean parameter that indicates whether it is the first time the user is
+    visiting the application after booting the computer, defaults to False (optional)
+    """
+    
     from LT_Dic import r_label_text_dic
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
@@ -1988,20 +2115,20 @@ def make_ui(multi_ask=False, first_ask=False, startup_ask=False):
                 sf_autorun_operation('movable', run_list)
             time.sleep(2)
 
-    if first_ask:
+    if first_visit:
         initial_entry()
         cf_or_sf.set('cf')
         Place('cf')
         ZFunc.help_main()
         ZFunc.help_before_use()
-    elif multi_ask:
+    elif multi_visit:
         read_saving()
         cf_refresh_whitelist_entry()
         continue_button.config(state=tk.NORMAL)
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
             Place('cf')
-        if startup_ask:
+        if startup_visit:
             root.withdraw()
 
     butt_icon = threading.Thread(target=task_menu.run, daemon=True)
@@ -2026,11 +2153,11 @@ def main():
             target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
     if initial_data.first_visit:
-        make_ui(first_ask=True)
+        make_ui(first_visit=True)
     elif initial_data.boot_time <= 120:
-        make_ui(multi_ask=True, startup_ask=True)
+        make_ui(multi_visit=True, startup_visit=True)
     else:
-        make_ui(multi_ask=True)
+        make_ui(multi_visit=True)
 
 
 if __name__ == '__main__':
