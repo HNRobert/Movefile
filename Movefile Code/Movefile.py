@@ -75,7 +75,7 @@ class Initialization:
         """
         The function globalize the path where previous data of this program can be found.
         """
-        
+
         global mf_data_path, cf_data_path, sf_data_path, toaster
         toaster = ToastNotifier()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
@@ -97,7 +97,7 @@ class Initialization:
         """
         The function "asktime_plus" is not defined in the code provided.
         """
-        
+
         time_now = datetime.today()
         date = str(time_now.date())
         if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
@@ -121,8 +121,24 @@ class Initialization:
                 self.mf_data.set('General', 'language', 'Chinese')
             else:
                 self.mf_data.set('General', 'language', 'English')
+
         if not self.mf_data.has_option('General', 'autorun'):
             self.mf_data.set('General', 'autorun', 'False')
+        if not self.mf_data.has_option('General', 'start_menu'):
+            self.mf_data.set('General', 'start_menu', 'False')
+
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+        roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
+        start_menu_path = os.path.join(
+            roaming_path + r"\Microsoft\Windows\Start Menu\Programs")
+        startup_path = os.path.join(start_menu_path, "StartUp")
+
+        if not os.path.exists(os.path.join(start_menu_path, "Movefile.lnk")):
+            self.mf_data.set('General', 'start_menu', 'False')
+        if not os.path.exists(os.path.join(startup_path, "Movefile.lnk")):
+            self.mf_data.set('General', 'autorun', 'False')
+
         self.mf_data.write(
             open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
@@ -202,7 +218,7 @@ class ProgressBar:
 # The CheckMFProgress class is used to check if the program is already running.
 # If it's running, it will display a message box to inform the user, and put the window on the top.
 class CheckMFProgress:
-    
+
     def __init__(self):
         self.continue_this_progress = True
         self.pl = psutil.pids()
@@ -234,24 +250,30 @@ def startup_autorun():
         sf_autorun_operation('local')
 
 
-def set_startup(state=True):
-    """
-    The function sets the auto startup state to either True or False.
-    
-    :param state: The `state` parameter is a boolean value that determines whether the startup process
-    should be enabled or disabled. If `state` is `True`, the startup process will be enabled. If `state`
-    is `False`, the startup process will be disabled, defaults to True (optional)
-    """
-    # 将快捷方式添加到自启动目录
+def get_start_menu_path():
     # 获取用户名
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                          r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-    startup_path = os.path.join(
-        roaming_path + r"\Microsoft\Windows\Start Menu\Programs\Startup")
+    start_menu_path = os.path.join(
+        roaming_path + r"\Microsoft\Windows\Start Menu\Programs")
+    return start_menu_path
+
+
+def set_startup(state=True, lang_n=0):
+    """
+    The function sets the auto startup state to either True or False.
+
+    :param state: The `state` parameter is a boolean value that determines whether the startup process
+    should be enabled or disabled. If `state` is `True`, the startup process will be enabled. If `state`
+    is `False`, the startup process will be disabled, defaults to True (optional)
+    """
+    from LT_Dic import lnk_desc
+    # 将快捷方式添加到自启动目录
+    startup_path = os.path.join(get_start_menu_path(), "StartUp")
     bin_path = r"Movefile " + vision + ".exe"
-    shortcut_path = startup_path + "\\Movefile" + ".lnk"
-    desc = "自动转移文件程序"
+    shortcut_path = os.path.join(startup_path, "Movefile.lnk")
+    desc = lnk_desc[lang_n]
     icon_ = mf_data_path + r'Movefile.ico'
     gen_cf = configparser.ConfigParser()
     gen_cf.read(mf_data_path + 'Movefile_data.ini')
@@ -270,10 +292,42 @@ def set_startup(state=True):
         open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
 
 
+def put_start_menu(state=True, lang_n=0):
+    """
+    The function `put_start_menu` allows you to put the shortcut of this program into Windows Start Menu.
+
+    :param state: The state parameter is a boolean value that determines whether the start menu should be displayed or not. If state is set to True, the start menu will be displayed. If state is set to False, the start menu will not be displayed, defaults to True (optional)
+    :param lang_n: The `lang_n` parameter is used to specify the language for the start menu. It is an integer value that represents the language code, defaults to 1 (optional)
+    """
+    from LT_Dic import lnk_desc
+    # 将快捷方式添加到开始菜单
+    # 获取用户名
+    start_menu_path = get_start_menu_path()
+    bin_path = r"Movefile " + vision + ".exe"
+    shortcut_path = os.path.join(start_menu_path, "Movefile.lnk")
+    desc = lnk_desc[lang_n]
+    icon_ = mf_data_path + r'Movefile.ico'
+    gen_cf = configparser.ConfigParser()
+    gen_cf.read(mf_data_path + 'Movefile_data.ini')
+    if os.path.exists(shortcut_path):
+        os.remove(shortcut_path)
+    if state:
+        gen_cf.set('General', 'start_menu', 'True')
+        winshell.CreateShortcut(
+            Path=shortcut_path,
+            Target=bin_path,
+            Icon=(icon_, 0),
+            Description=desc)
+    else:
+        gen_cf.set('General', 'start_menu', 'False')
+    gen_cf.write(
+        open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+
+
 def language_num(language_name):
     """
     The function takes a string as input, and returns the corresponding language number.
-    
+
     :param language_name: The `language_name` parameter is a string that represents the language name.
     :return: The function returns the language number as an integer.
     """
@@ -463,7 +517,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
     """
     The function `cf_move_dir` is used to move files or folders from one directory to another, with
     options for specifying file formats, checking modes, and handling overdue files.
-    
+
     :param old__path: The current path or location of the file or folder that needs to be moved
     :param new__path: The new path where the file or folder will be moved to
     :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is
@@ -477,7 +531,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
     It can have one of the following values:
     :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
     """
-    
+
     from LT_Dic import cf_label_text_dic as cfdic
     mf_file = configparser.ConfigParser()
     mf_file.read(mf_data_path + 'Movefile_data.ini')
@@ -541,7 +595,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
     def get_cf_tasks(baroot):
         """
         The function "get_cf_tasks" decide what to clean in a directory.
-        
+
         :param baroot: The progress bar object
         """
         tasks = []
@@ -774,13 +828,10 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 
     def synchronize_files(baroot, task):
         """
-        The function `synchronize_files` takes two parameters, `baroot` and `task`, and does some kind
-        of file synchronization operation.
+        The function `synchronize_files` takes two parameters, `baroot` and `task`, and does some kind of file synchronization operation.
 
-        :param baroot: The `baroot` parameter is a string that represents the root directory of the
-        source files. It is the directory from which the files will be synchronized
-        :param task: The `task` parameter is a string that represents the specific task or operation
-        that needs to be performed on the files
+        :param baroot: The `baroot` parameter is a string that represents the root directory of the source files. It is the directory from which the files will be synchronized
+        :param task: The `task` parameter is a string that represents the specific task or operation that needs to be performed on the files
         """
         baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
@@ -854,7 +905,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 def sf_autorun_operation(place, saving_datas=None):
     """
     The function `sf_autorun_operation` performs an sync operation on a given place and optional saving data.
-    
+
     :param place: The place parameter is a string that represents the location or context in which the
     operation is being performed. It could be a specific folder, directory, or any other relevant
     location
@@ -904,21 +955,16 @@ def sf_autorun_operation(place, saving_datas=None):
         autorun_local_sf(get_sf_startup_savings())
 
 
-def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
+def make_ui(first_visit=False, startup_visit=False):
     """
     The function "make_ui" creates a user interface.
-    
-    :param multi_visit: A boolean parameter that indicates whether the user is making more than one visits to
-    the UI today. If set to True, it means the user has already visited the UI before and is returning for
-    another visit. If set to False, it means this is the user's first visit to the UI today, defaults to False
-    (optional)
-    :param first_visit: A boolean parameter that indicates whether it is the user's first time using this software.
-    If set to True, it means that the user is visiting the UI for the first time, defaults to False
-    (optional)
-    :param startup_visit: A boolean parameter that indicates whether it is the first time the user is
-    visiting the application after booting the computer, defaults to False (optional)
+
+    :param multi_visit: A boolean parameter that indicates whether the user is making more than one visits to the UI today. If set to True, it means the user has already visited the UI before and is returning for
+    another visit. If set to False, it means this is the user's first visit to the UI today, defaults to False (optional)
+    :param first_visit: A boolean parameter that indicates whether it is the user's first time using this software. If set to True, it means that the user is visiting the UI for the first time, defaults to False (optional)
+    :param startup_visit: A boolean parameter that indicates whether it is the first time the user is visiting the application after booting the computer, defaults to False (optional)
     """
-    
+
     from LT_Dic import r_label_text_dic
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
@@ -1070,6 +1116,7 @@ def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
         savefile_menu_text.set(r_label_text_dic['savefile_menu'][lang_number])
         option_menu_text.set(r_label_text_dic['option_menu'][lang_number])
         autorun_menu_text.set(r_label_text_dic['autorun_menu'][lang_number])
+        start_menu_text.set(r_label_text_dic['start_menu'][lang_number])
         language_menu_text.set(r_label_text_dic['language_menu'][lang_number])
         help_menu_text.set(r_label_text_dic['help_menu'][lang_number])
         about_menu_text.set(r_label_text_dic['about_menu'][lang_number])
@@ -1316,6 +1363,7 @@ def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
     savefile_menu_text = tk.StringVar()
     option_menu_text = tk.StringVar()
     autorun_menu_text = tk.StringVar()
+    start_menu_text = tk.StringVar()
     language_menu_text = tk.StringVar()
     help_menu_text = tk.StringVar()
     about_menu_text = tk.StringVar()
@@ -2041,8 +2089,12 @@ def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
     is_startup_run.set(general_data.get('General', 'autorun') == "True")
+    is_start_menu = tk.BooleanVar()
+    is_start_menu.set(general_data.get('General', 'start_menu') == "True")
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
-                                command=lambda: set_startup(is_startup_run.get()))
+                                command=lambda: set_startup(is_startup_run.get(), lang_num))
+    option_menu.add_checkbutton(label=start_menu_text.get(
+    ), variable=is_start_menu, command=lambda: put_start_menu(is_start_menu.get(), lang_num))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
     language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese',
@@ -2101,6 +2153,10 @@ def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
         return autorun_ids
 
     def ask_sync_disk():
+        """
+        The function "ask_sync_disk" is used to prompt the user to input whether they want to
+        synchronize their disk.
+        """
         while True:
             run_list = []
             for new_area_data in new_areas_data:
@@ -2121,7 +2177,7 @@ def make_ui(multi_visit=False, first_visit=False, startup_visit=False):
         Place('cf')
         ZFunc.help_main()
         ZFunc.help_before_use()
-    elif multi_visit:
+    else:
         read_saving()
         cf_refresh_whitelist_entry()
         continue_button.config(state=tk.NORMAL)
@@ -2148,16 +2204,16 @@ def main():
         return
     initial_data = Initialization()
     time.sleep(0.1)
-    if initial_data.ask_time_today == 1 and initial_data.boot_time <= 120:
+    ask_time_today = initial_data.ask_time_today
+    boot_visit = initial_data.boot_time <= 120
+    first_visit = initial_data.first_visit
+
+    if ask_time_today == 1 and boot_visit:
         autorun_options = threading.Thread(
             target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
-    if initial_data.first_visit:
-        make_ui(first_visit=True)
-    elif initial_data.boot_time <= 120:
-        make_ui(multi_visit=True, startup_visit=True)
-    else:
-        make_ui(multi_visit=True)
+
+    make_ui(first_visit=first_visit, startup_visit=boot_visit)
 
 
 if __name__ == '__main__':

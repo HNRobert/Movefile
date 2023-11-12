@@ -6,6 +6,7 @@ r_label_text_dic = {
     'savefile_menu': ['保存', 'Save config'],
     'option_menu': ['选项', 'Option'],
     'autorun_menu': ['开机自动启动本软件', 'Start automatically'],
+    'start_menu': ['添加到开始菜单', 'Add to Windows Start Menu list'],
     'language_menu': ['语言', 'Language'],
     'help_menu': ['帮助', 'Help'],
     'about_menu': ['关于本软件', 'About'],
@@ -336,3 +337,5 @@ Lock file:
 The principle of adding is the same as locking a folder,
 If a file is checked, it will not be modified.
 ''']
+
+lnk_desc = ["自动转移文件工具", "File declutter tool"]
