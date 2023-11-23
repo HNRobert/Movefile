@@ -51,21 +51,18 @@ class Initialization:
         self.image = None
         self.set_data_path()
         self.mf_data = configparser.ConfigParser()
-        self.mf_data.read(mf_data_path + r'Movefile_data.ini')
-        self.get_boot_time()
-        self.load_icon()
-        self.asktime_plus()
+        self.mf_data.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
         self.log_file_path = os.path.join(mf_data_path, r'Movefile.log')
         self.set_log_writer()
+        self.load_icon()
+        self.asktime_plus()
 
+        self.ask_time_today = self.mf_data.getint("General", "asktime_today")
         self.first_visit = False
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
             self.first_visit = True
+            logging.info("This is the first visit of this program.")
 
-        mf = configparser.ConfigParser()
-        mf.read(mf_data_path + r"Movefile_data.ini")
-
-        self.ask_time_today = mf.getint("General", "asktime_today")
 
     def get_boot_time(self):
         boot_t = psutil.boot_time()
@@ -156,12 +153,11 @@ class Initialization:
         if not os.path.exists(log_file_path):
             logfile = open(log_file_path, 'a')
             logfile.close()
-        formatter = "%(asctime)s - %(levelname)s: %(message)s"
+        formatter = "[%(asctime)s] - [%(levelname)s]: %(message)s"
         logging.basicConfig(level=logging.INFO,
                             filename=log_file_path,
                             filemode='a+',
                             format=formatter)
-        logging.info("Movefile Start")
 
 
 # The ProgressBar class generate a root used to display the progress of a task.
@@ -737,17 +733,20 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         sf_notice_content = sf_ltd["title_p2_1"][language_number] + path_1 + \
             sf_ltd["title_p2_2"][language_number] + path_2 + \
             sf_ltd["title_p2_3"][language_number]
-
         logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
         toaster.show_toast(sf_notice_title,
                            sf_notice_content,
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
+
         if len(sf_error_name) > 0:
-            toaster.show_toast(sf_ltd["errtitle"][language_number],
-                               sf_error_name +
-                               sf_ltd['can_not_move_notice'][language_number],
+            sf_error_title = sf_ltd["errtitle"][language_number]
+            sf_error_content = sf_error_name + \
+                sf_ltd['can_not_move_notice'][language_number]
+            logging.warning("\n" + sf_error_title + "\n" + sf_error_content)
+            toaster.show_toast(sf_error_title,
+                               sf_error_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
@@ -2234,11 +2233,12 @@ def main():
         return
     initial_data = Initialization()
     time.sleep(0.1)
-    ask_time_today = initial_data.ask_time_today
+    visits_today = initial_data.ask_time_today
     boot_visit = initial_data.boot_time <= 120
     first_visit = initial_data.first_visit
+    logging.info(f"Movefile Start \nVisits today: {visits_today} \nTime since startup: {initial_data.boot_time} \nStartup visit: {str(boot_visit)}")
 
-    if ask_time_today == 1 and boot_visit:
+    if visits_today == 1 and boot_visit:
         autorun_options = threading.Thread(
             target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
