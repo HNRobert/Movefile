@@ -1,8 +1,9 @@
 {
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.autopep8"
-    },
-    "python.formatting.provider": "none",
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.autoImportCompletions": true
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "python.formatting.provider": "none",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "cSpell.words": ["levelname"]
 }

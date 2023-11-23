@@ -111,6 +111,14 @@ cf_label_text_dic = {
 }
 
 sf_label_text_dic = {
+    'title_p1': ['同步成功 ', 'Sync Successfully'],
+    'title_p2_1': ['"', 'The files in "'],
+    'title_p2_2': ['" 与 "', '" and "'],
+    'title_p2_3': ['" 中的文件已被成功同步', '" are synchronized'],
+    'cltitle': [' 目前很干净', ' is pretty clean now'],
+    'clcontent': ['没有文件被移除', 'Nothing is moved away'],
+    'errtitle': ['无法同步一些文件', "Couldn't synchronize several files"],
+
     'main_progress_label': ['扫描文件中...  发现文件：', 'Scanning items...  Found item：'],
     'main_progress_label1': [['总进度：', '已完成'], ['Progress：', 'Completed']],
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
@@ -120,8 +128,8 @@ sf_label_text_dic = {
 确定中断同步进程并退出?''', '''Synchronization is in progress,
 Are you sure to interrupt the process and exit?'''],
     'can_not_move_notice': ["""
-无法被移动，请在关闭文件或移除重名文件后重试""", """
-Couldn't be moved, Please try again after closing the file
+无法被同步，请在关闭文件或移除重名文件后重试""", """
+Couldn't be synchronized, Please try again after closing the file
 or removing the duplicate file """]
 }
 
@@ -147,7 +155,9 @@ help_main_text = ["""软件名称： Movefile
 
 如有功能异常请先访问 Github 查看有无新版本，
 或者阅读 Github 中的其他注意事项和运行机制说明
-地址：https://github.com/HNRobert/Movefile""", """Software name： Movefile
+地址：https://github.com/HNRobert/Movefile
+
+在创建一个配置存档后本窗口将不再自动弹出""", """Software name： Movefile
 Vision： """ + vision + """               Update time： """ + update_time + """
 
 Function overview:
@@ -166,7 +176,9 @@ If the comments are adopted, changes will be made in the new version.
 If there is any function abnormality,
 please visit Github first to check whether there is a new version,
 Or read other precautions and operating mechanism instructions in Github.
-Address: https://github.com/HNRobert/Movefile"""]
+Address: https://github.com/HNRobert/Movefile
+
+This notice won't be shown automatically once a config file is saved"""]
 
 help_before_use_text = ["""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，

@@ -10,8 +10,10 @@ QQ: 2567466856
 GitHub address: https://github.com/HNRobert/Movefile
 """
 
+import atexit
 import base64
 import configparser
+import logging
 import os
 import shutil
 import threading
@@ -26,6 +28,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import filecmp
 import psutil
 import pystray
+from torch import normal
 import win32api
 import win32com.client as com
 import win32gui
@@ -43,7 +46,6 @@ from LT_Dic import vision
 
 class Initialization:
     def __init__(self):
-        global startup_root
         self.boot_time = self.get_boot_time()
         self.roaming_path = None
         self.image = None
@@ -53,6 +55,8 @@ class Initialization:
         self.get_boot_time()
         self.load_icon()
         self.asktime_plus()
+        self.log_file_path = os.path.join(mf_data_path, r'Movefile.log')
+        self.set_log_writer()
 
         self.first_visit = False
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
@@ -146,6 +150,18 @@ class Initialization:
         self.image = open(mf_data_path + r'Movefile.ico', 'wb')
         self.image.write(base64.b64decode(icon.Movefile_ico))
         self.image.close()
+
+    def set_log_writer(self):
+        log_file_path = self.log_file_path
+        if not os.path.exists(log_file_path):
+            logfile = open(log_file_path, 'a')
+            logfile.close()
+        formatter = "%(asctime)s - %(levelname)s: %(message)s"
+        logging.basicConfig(level=logging.INFO,
+                            filename=log_file_path,
+                            filemode='a+',
+                            format=formatter)
+        logging.info("Movefile Start")
 
 
 # The ProgressBar class generate a root used to display the progress of a task.
@@ -546,6 +562,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             if new_path == '':
                 notice_title = cfdic['title_p1'][lang_num] + \
                     old_folder + cfdic['title_p2_2'][lang_num]
+            logging.info("\n" + notice_title + "\n" + move_name[:-3])
             toaster.show_toast(notice_title, move_name[:-3],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
@@ -553,6 +570,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         else:
             notice_title = old_folder + cfdic['cltitle'][lang_num]
             notice_content = cfdic['clcontent'][lang_num]
+            logging.info("\n" + notice_title + "\n" + notice_content)
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
@@ -561,6 +579,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             notice_title = cfdic['errtitle'][lang_num]
             notice_content = error_name[:-3] + \
                 '\n' + cfdic['errcontent'][lang_num]
+            logging.warning("\n" + notice_title + "\n" + notice_content)
             toaster.show_toast(notice_title, notice_content,
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
@@ -711,19 +730,24 @@ def sf_create_folder(target_path):
 
 
 def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
-    from LT_Dic import sf_label_text_dic
+    from LT_Dic import sf_label_text_dic as sf_ltd
 
     def sf_show_notice(path_1, path_2, sf_error_name):
+        sf_notice_title = sf_ltd["title_p1"][language_number]
+        sf_notice_content = sf_ltd["title_p2_1"][language_number] + path_1 + \
+            sf_ltd["title_p2_2"][language_number] + path_2 + \
+            sf_ltd["title_p2_3"][language_number]
 
-        toaster.show_toast('Sync Successfully',
-                           'The Files in "' + path_1 + '" and "' + path_2 + '" are Synchronized',
+        logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
+        toaster.show_toast(sf_notice_title,
+                           sf_notice_content,
                            icon_path=mf_data_path + r'Movefile.ico',
                            duration=10,
                            threaded=False)
         if len(sf_error_name) > 0:
-            toaster.show_toast("Couldn't sync files",
+            toaster.show_toast(sf_ltd["errtitle"][language_number],
                                sf_error_name +
-                               sf_label_text_dic['can_not_move_notice'][language_number],
+                               sf_ltd['can_not_move_notice'][language_number],
                                icon_path=mf_data_path + r'Movefile.ico',
                                duration=10,
                                threaded=False)
@@ -808,19 +832,19 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 return
             sync_tasks.append([fileA, fileB, direct_apd])
             _bar_root.set_label1(
-                sf_label_text_dic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
+                sf_ltd['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
 
         sync_tasks = []
         diff_item_data = diff_files_in(path1, path2)
         for a_only_item in diff_item_data[1]:
             sync_tasks.append([a_only_item[0], a_only_item[1], True])
             _bar_root.set_label1(
-                sf_label_text_dic['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
+                sf_ltd['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
         if not single_sync:
             for b_only_item in diff_item_data[2]:
                 sync_tasks.append([b_only_item[0], b_only_item[1], True])
                 _bar_root.set_label1(
-                    sf_label_text_dic['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
+                    sf_ltd['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
         for diff_item in diff_item_data[0]:
             judge_and_append(diff_item[0], diff_item[1], False)
 
@@ -835,7 +859,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         """
         baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
-            sf_label_text_dic["current_file_label1"][language_number] + task[0].split('\\')[-1])
+            sf_ltd["current_file_label1"][language_number] + task[0].split('\\')[-1])
         source_file_path, dest_file_path, create_folder = task
         dest_path = Path(dest_file_path)
         # Create parent directories if needed
@@ -859,7 +883,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         tasks = get_task(baroot)
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
-            f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
+            f'{sf_ltd["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_ltd["main_progress_label1"][language_number][1]}')
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(
                 synchronize_files, baroot, task) for task in tasks]
@@ -871,7 +895,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 
                 baroot.main_progress_bar['value'] += 1
                 baroot.set_label1(
-                    f'{sf_label_text_dic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_label_text_dic["main_progress_label1"][language_number][1]}')
+                    f'{sf_ltd["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_ltd["main_progress_label1"][language_number][1]}')
                 baroot.progress_root.update_idletasks()
 
         baroot.progress_root.withdraw()
@@ -883,8 +907,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         sf_progress_done = True
 
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
-                                sf_label_text_dic["main_progress_label2"][language_number],
-                                sf_label_text_dic["current_file_label"][language_number],
+                                sf_ltd["main_progress_label2"][language_number],
+                                sf_ltd["current_file_label"][language_number],
                                 language_number)
     sync_bar_root_task = threading.Thread(
         target=lambda: sync_bar_root.launch(), daemon=True)
@@ -970,6 +994,7 @@ def make_ui(first_visit=False, startup_visit=False):
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
     general_data.read(mf_data_path + r'Movefile_data.ini')
+    normal_paused = False
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
@@ -2050,24 +2075,29 @@ def make_ui(first_visit=False, startup_visit=False):
             sf_operator.start()
             root.withdraw()
 
+    @atexit.register
     def exit_program():
-        task_menu.stop()
-        toaster.stop_notification_thread()
-        if 'clean_bar_root' in globals().keys():
-            clean_bar_root.progress_root_destruction()
-            clean_bar_root_task.join()
-        if 'ask_saving_root' in globals().keys():
-            ask_saving_root.quit()
-            ask_saving_root.destroy()
-        if 'ask_name_window' in globals().keys():
-            ask_name_window.quit()
-            ask_name_window.destroy()
+        nonlocal normal_paused
+        if not normal_paused:
+            normal_paused = True
+            task_menu.stop()
+            toaster.stop_notification_thread()
+            if 'clean_bar_root' in globals().keys():
+                clean_bar_root.progress_root_destruction()
+                clean_bar_root_task.join()
+            if 'ask_saving_root' in globals().keys():
+                ask_saving_root.quit()
+                ask_saving_root.destroy()
+            if 'ask_name_window' in globals().keys():
+                ask_name_window.quit()
+                ask_name_window.destroy()
 
-        root.quit()
-        root.destroy()
-        ask_permit.join()
-        butt_icon.join()
-        background_detect.join()
+            root.quit()
+            root.destroy()
+            logging.info("Movefile Quit \n")
+            ask_permit.join()
+            butt_icon.join()
+            background_detect.join()
 
     # 创建按键
     blank_pix = ttk.Label(root, text=' ')
