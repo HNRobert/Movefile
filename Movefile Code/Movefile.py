@@ -48,16 +48,20 @@ class Initialization:
     def __init__(self):
         self.boot_time = self.get_boot_time()
         self.roaming_path = None
-        self.image = None
         self.set_data_path()
+        
         self.mf_data = configparser.ConfigParser()
         self.mf_data.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
+        
         self.log_file_path = os.path.join(mf_data_path, r'Movefile.log')
         self.set_log_writer()
+
+        self.image = None
         self.load_icon()
+
+        self.ask_time_today = 0
         self.asktime_plus()
 
-        self.ask_time_today = self.mf_data.getint("General", "asktime_today")
         self.first_visit = False
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
             self.first_visit = True
@@ -101,19 +105,22 @@ class Initialization:
 
         time_now = datetime.today()
         date = str(time_now.date())
+
         if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
             file = open(mf_data_path + r'Movefile_data.ini',
                         'w', encoding="ANSI")
             file.close()
+
         if not self.mf_data.has_section("General"):
             self.mf_data.add_section("General")
+            
+        if not self.mf_data.has_section("General") or self.mf_data.get("General", "date") != str(date):
+            self.ask_time_today = 1
             self.mf_data.set("General", "date", date)
-            self.mf_data.set("General", "asktime_today", '0')
-        if self.mf_data.get("General", "date") != str(date):
-            self.mf_data.set("General", "asktime_today", '0')
-            self.mf_data.set("General", "date", date)
-        asktime_pre = self.mf_data.getint("General", "asktime_today") + 1
-        self.mf_data.set("General", "asktime_today", str(asktime_pre))
+            self.mf_data.set("General", "asktime_today", '1')
+        else:
+            self.ask_time_today = self.mf_data.getint("General", "asktime_today") + 1
+            self.mf_data.set("General", "asktime_today", str(self.ask_time_today))
 
         if not self.mf_data.has_option('General', 'language'):
             import ctypes
