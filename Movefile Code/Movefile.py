@@ -14,8 +14,6 @@ import base64
 import configparser
 import logging
 import os
-import shutil
-import threading
 import time
 import tkinter.filedialog
 import tkinter.messagebox
@@ -23,16 +21,18 @@ import tkinter.ttk as ttk
 import winreg
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from shutil import copy2 as shutil_copy2, move as shutil_move, Error as shutil_Error
+from threading import Thread
 
-import win32api
 import win32com.client as com
-import win32gui
 from filecmp import dircmp
 from PIL import Image
 from mttkinter import mtTkinter as tk
 from pathlib import Path
 from psutil import disk_partitions, pids, boot_time
 from pystray import MenuItem, Menu, Icon
+from win32api import GetVolumeInformation
+from win32gui import FindWindow, ShowWindow
 from win10toast import ToastNotifier
 from winshell import CreateShortcut
 
@@ -213,7 +213,7 @@ class ProgressBar:
             row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
         self.progress_root.protocol(
             'WM_DELETE_WINDOW', lambda: self.sync_bar_on_exit())
-        self.roll_bar = threading.Thread(target=self.show_running, daemon=True)
+        self.roll_bar = Thread(target=self.show_running, daemon=True)
         self.roll_bar.start()
         self.initialization_done = True
 
@@ -244,11 +244,11 @@ class CheckMFProgress:
             self.continue_this_progress = False
 
     def opened_proc_root(self):
-        hwnd = win32gui.FindWindow(self.classname, 'Movefile Setting')
+        hwnd = FindWindow(self.classname, 'Movefile Setting')
         if hwnd:
             temp_root = tk.Tk()
             temp_root.withdraw()
-            win32gui.ShowWindow(hwnd, 5)
+            ShowWindow(hwnd, 5)
             tkinter.messagebox.showinfo(
                 title="Movefile", message="The app's running!")
             temp_root.quit()
@@ -455,7 +455,7 @@ def scan_removable_disks(s_uuid=None):
                 disk_list.append(item.mountpoint)
     if disk_list:
         for pf in disk_list:
-            seria_data = win32api.GetVolumeInformation(pf)
+            seria_data = GetVolumeInformation(pf)
             area_name = seria_data[0]
             area_number = seria_data[1]
             fso = com.Dispatch("Scripting.FileSystemObject")
@@ -497,7 +497,7 @@ def detect_removable_disks_thread():
                     disk_list.remove(pf)
                     area_data_list.remove(number_book[pf])
                 else:
-                    seria_number = win32api.GetVolumeInformation(pf)
+                    seria_number = GetVolumeInformation(pf)
                     area_name = seria_number[0]
                     area_number = seria_number[1]
                     if area_number not in area_data_list:
@@ -664,7 +664,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                 del_item(for_path + '\\' + item)
             if for_path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
                 try:
-                    shutil.move(item_path, for_path)
+                    shutil_move(item_path, for_path)
                 except:
                     cf_error_name += (item + ',  ')
                 else:
@@ -686,12 +686,12 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                                  cfdic["main_progress_label2"][lang_num],
                                  cfdic["current_file_label"][lang_num],
                                  lang_num)
-    clean_bar_root_task = threading.Thread(
+    clean_bar_root_task = Thread(
         target=lambda: clean_bar_root.launch(), daemon=True)
     clean_bar_root_task.start()
     while not clean_bar_root.initialization_done:
         time.sleep(0.01)
-    run_tasks = threading.Thread(
+    run_tasks = Thread(
         target=lambda: run_cleanfile(clean_bar_root), daemon=True)
     run_tasks.start()
 
@@ -871,8 +871,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         # Create parent directories if needed
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            shutil.copy2(source_file_path, dest_file_path)
-        except shutil.Error:
+            shutil_copy2(source_file_path, dest_file_path)
+        except shutil_Error:
             return source_file_path
         return None
 
@@ -916,13 +916,13 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                                 sf_ltd["main_progress_label2"][language_number],
                                 sf_ltd["current_file_label"][language_number],
                                 language_number)
-    sync_bar_root_task = threading.Thread(
+    sync_bar_root_task = Thread(
         target=lambda: sync_bar_root.launch(), daemon=True)
     sync_bar_root_task.start()
     while not sync_bar_root.initialization_done:
         time.sleep(0.01)
     sf_progress_done = False
-    run_tasks = threading.Thread(
+    run_tasks = Thread(
         target=lambda: run_sync_tasks(sync_bar_root), daemon=True)
     run_tasks.start()
     while not sf_progress_done:
@@ -1780,7 +1780,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 else:
                     disk_data = sf_entry_select_removable.get()
                     sf_data.set(save_name, 'disk_number',
-                                str(win32api.GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
+                                str(GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
                 sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
                 sf_data.set(save_name, 'mode', sf_entry_mode.get())
                 sf_data.set(save_name, 'lock_folder',
@@ -2061,7 +2061,7 @@ def make_ui(first_visit=False, startup_visit=False):
         lockfolder = sf_entry_lock_folder.get()
         lockfile = sf_entry_lock_file.get()
         if len(path1) == 2:
-            area_name = win32api.GetVolumeInformation(path1)[0]
+            area_name = GetVolumeInformation(path1)[0]
         if mode == 'single':
             single_sync = True
         else:
@@ -2082,12 +2082,12 @@ def make_ui(first_visit=False, startup_visit=False):
 
     def continue_going():
         if cf_or_sf.get() == 'cf' and not ZFunc.cf_has_error():
-            cf_operator = threading.Thread(
+            cf_operator = Thread(
                 target=lambda: cf_operate_from_root(), daemon=True)
             cf_operator.start()
             root.withdraw()
         elif cf_or_sf.get() == 'sf' and not ZFunc.sf_has_error():
-            sf_operator = threading.Thread(
+            sf_operator = Thread(
                 target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
             root.withdraw()
@@ -2234,12 +2234,12 @@ def make_ui(first_visit=False, startup_visit=False):
         if startup_visit:
             root.withdraw()
 
-    butt_icon = threading.Thread(target=task_menu.run, daemon=True)
+    butt_icon = Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
-    background_detect = threading.Thread(
+    background_detect = Thread(
         target=lambda: detect_removable_disks_thread(), daemon=True)
     background_detect.start()
-    ask_permit = threading.Thread(target=lambda: ask_sync_disk(), daemon=True)
+    ask_permit = Thread(target=lambda: ask_sync_disk(), daemon=True)
     ask_permit.start()
 
     root.mainloop()
@@ -2258,7 +2258,7 @@ def main():
         f"Movefile Start \nVisits today: {visits_today} \nTime since startup: {initial_data.boot_time} \nStartup visit: {str(boot_visit)}")
 
     if visits_today == 1 and boot_visit:
-        autorun_options = threading.Thread(
+        autorun_options = Thread(
             target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
 
