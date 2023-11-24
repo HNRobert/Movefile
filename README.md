@@ -12,6 +12,8 @@ Beta programs will not be packaged. If you want to have a better use experience,
 
 If you have any confusion about the function of this software during use, you can ***check the "Help" option in the menu bar***.
 
+All operations performed by this software will be recorded in Roaming/Movefile/Movefile.log, so you'll be able to check what have this program done to your files when something wrong occurred.
+
 Due to its aplenty functions, the main program code is quite lengthy. If you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
 
 ## Please read the following ***precautions*** before use
@@ -158,6 +160,8 @@ exe文件只提供发行版发布的打包的文件，若代码的语义未改�
 Beta 版程序不会打包，如果想要有更加好的使用体验，请下载最新发布版本
 
 如果使用过程中对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
+
+使用本软件进行的所有操作会在 Roaming/Movefile/Movefile.log 中记录，以便产生任何未知原因的损失时查看本软件的操作记录
 
 由于功能比较多，主程序代码比较冗长，如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
 
@@ -402,4 +406,11 @@ Movefile v2.3.2
 更新内容：
 改进开机自启的逻辑，优化了一些翻译
 修复了其他一些bug
+
+21:06 2023/11/24
+Movefile v2.3.3
+更新内容：
+彻底修复开机自启无法自动运行的Bug，
+添加logging功能，
+使所有执行的操作被记录在Roaming/Movefile/Movefile.log中
 ```
