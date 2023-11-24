@@ -1,5 +1,5 @@
 vision = 'v2.3.3'
-update_time = '2023/11/8'
+update_time = '2023/11/24'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
@@ -148,6 +148,8 @@ help_main_text = ["""软件名称： Movefile
 使你可以方便地整理文件
 
 如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
+使用本软件进行的所有操作会在Roaming中
+Movefile文件夹的Movefile.log记录
 
 作者：Robert He
 如果对本软件有任何改进意见，请联系作者
@@ -167,6 +169,8 @@ Enabling you to organize documents easily
 
 If you have any doubts about the function of this software,
 you can check the "Help" option in the menu bar
+All operations performed by this software will be recorded
+in Roaming/Movefile/Movefile.log
 
 Author: Robert He
 If you have any suggestions for improvement of this software, 

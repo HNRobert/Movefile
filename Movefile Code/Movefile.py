@@ -49,10 +49,10 @@ class Initialization:
         self.boot_time = self.get_boot_time()
         self.roaming_path = None
         self.set_data_path()
-        
+
         self.mf_data = configparser.ConfigParser()
         self.mf_data.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
-        
+
         self.log_file_path = os.path.join(mf_data_path, r'Movefile.log')
         self.set_log_writer()
 
@@ -66,7 +66,6 @@ class Initialization:
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
             self.first_visit = True
             logging.info("This is the first visit of this program.")
-
 
     def get_boot_time(self):
         boot_t = psutil.boot_time()
@@ -113,14 +112,16 @@ class Initialization:
 
         if not self.mf_data.has_section("General"):
             self.mf_data.add_section("General")
-            
+
         if not self.mf_data.has_section("General") or self.mf_data.get("General", "date") != str(date):
             self.ask_time_today = 1
             self.mf_data.set("General", "date", date)
             self.mf_data.set("General", "asktime_today", '1')
         else:
-            self.ask_time_today = self.mf_data.getint("General", "asktime_today") + 1
-            self.mf_data.set("General", "asktime_today", str(self.ask_time_today))
+            self.ask_time_today = self.mf_data.getint(
+                "General", "asktime_today") + 1
+            self.mf_data.set("General", "asktime_today",
+                             str(self.ask_time_today))
 
         if not self.mf_data.has_option('General', 'language'):
             import ctypes
@@ -721,6 +722,8 @@ def cf_autorun_operation():
                     overdue_time=cf_file.getint(save_name, 'set_hour') * 3600,
                     check__mode=cf_file.getint(save_name, 'mode'),
                     is__move__folder=cf_file.get(save_name, 'move_folder'))
+        logging.info(
+            f'Automatically ran Cleanfile operation as config "{save_name}"')
 
 
 def sf_create_folder(target_path):
@@ -978,6 +981,8 @@ def sf_autorun_operation(place, saving_datas=None):
                 single_sync = False
             sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')),
                         pass_folder_paths=lockfolder, pass_file_paths=lockfile)
+            logging.info(
+                f'Automatically ran Syncfile operation as config "{data_name}"')
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
@@ -1795,6 +1800,11 @@ def make_ui(first_visit=False, startup_visit=False):
 
         def sure_save():
             savefile(function=cf_or_sf.get(), save_name=name_entry.get())
+            log_function = 'Syncfile'
+            if cf_or_sf.get() == 'cf':
+                log_function = 'Cleanfile'
+            logging.info(
+                f"A config file of {log_function} named {name_entry.get()} is saved")
             current_save_name.set(
                 r_label_text_dic['current_save_name'][lang_num] + name_entry.get())
             exit_asn()
@@ -1954,11 +1964,15 @@ def make_ui(first_visit=False, startup_visit=False):
                 ini_file.remove_section(del_name)
                 ini_file.write(
                     open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                logging.info(
+                    f"A config file of Cleanfile named {del_name} is deleted")
             elif del_mode in ['同步文件(Syncfile)', 'Syncfile'] and is_continue:
                 ini_file.read(sf_data_path + 'Syncfile_data.ini')
                 ini_file.remove_section(del_name)
                 ini_file.write(
                     open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                logging.info(
+                    f"A config file of Syncfile named {del_name} is deleted")
             exit_asr()
 
         def sure_open():
@@ -2081,7 +2095,7 @@ def make_ui(first_visit=False, startup_visit=False):
             sf_operator.start()
             root.withdraw()
 
-    @atexit.register
+    #@atexit.register
     def exit_program():
         nonlocal normal_paused
         if not normal_paused:
@@ -2243,7 +2257,8 @@ def main():
     visits_today = initial_data.ask_time_today
     boot_visit = initial_data.boot_time <= 120
     first_visit = initial_data.first_visit
-    logging.info(f"Movefile Start \nVisits today: {visits_today} \nTime since startup: {initial_data.boot_time} \nStartup visit: {str(boot_visit)}")
+    logging.info(
+        f"Movefile Start \nVisits today: {visits_today} \nTime since startup: {initial_data.boot_time} \nStartup visit: {str(boot_visit)}")
 
     if visits_today == 1 and boot_visit:
         autorun_options = threading.Thread(
