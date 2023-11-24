@@ -10,7 +10,6 @@ QQ: 2567466856
 GitHub address: https://github.com/HNRobert/Movefile
 """
 
-import atexit
 import base64
 import configparser
 import logging
@@ -25,19 +24,17 @@ import winreg
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import filecmp
-import psutil
-import pystray
-from torch import normal
 import win32api
 import win32com.client as com
 import win32gui
-import winshell
+from filecmp import dircmp
 from PIL import Image
 from mttkinter import mtTkinter as tk
 from pathlib import Path
-from pystray import MenuItem, Menu
+from psutil import disk_partitions, pids, boot_time
+from pystray import MenuItem, Menu, Icon
 from win10toast import ToastNotifier
+from winshell import CreateShortcut
 
 import Movefile_icon as icon
 from ComBoPicker import Combopicker
@@ -68,12 +65,12 @@ class Initialization:
             logging.info("This is the first visit of this program.")
 
     def get_boot_time(self):
-        boot_t = psutil.boot_time()
+        boot_t = boot_time()
         boot_time_obj = datetime.fromtimestamp(boot_t)
         now_time = datetime.now()
         delta_time = now_time - boot_time_obj
-        boot_time = delta_time.days * 3600 * 24 + delta_time.seconds
-        return boot_time
+        time_since_boot = delta_time.days * 3600 * 24 + delta_time.seconds
+        return time_since_boot
 
     def set_data_path(self):
         """
@@ -241,7 +238,7 @@ class CheckMFProgress:
 
     def __init__(self):
         self.continue_this_progress = True
-        self.pl = psutil.pids()
+        self.pl = pids()
         self.classname = None
         if self.opened_proc_root():
             self.continue_this_progress = False
@@ -301,7 +298,7 @@ def set_startup(state=True, lang_n=0):
         os.remove(shortcut_path)
     if state:
         gen_cf.set('General', 'autorun', 'True')
-        winshell.CreateShortcut(
+        CreateShortcut(
             Path=shortcut_path,
             Target=bin_path,
             Icon=(icon_, 0),
@@ -333,7 +330,7 @@ def put_start_menu(state=True, lang_n=0):
         os.remove(shortcut_path)
     if state:
         gen_cf.set('General', 'start_menu', 'True')
-        winshell.CreateShortcut(
+        CreateShortcut(
             Path=shortcut_path,
             Target=bin_path,
             Icon=(icon_, 0),
@@ -450,7 +447,7 @@ def scan_removable_disks(s_uuid=None):
     disk_list = []
     show_list = []
     uuid_disk_pairs = []
-    for item in psutil.disk_partitions():
+    for item in disk_partitions():
         # 判断是不是可移动磁盘
         if "removable" in item.opts:
             # 获取可移动磁盘的盘符
@@ -488,7 +485,7 @@ def detect_removable_disks_thread():
     number_book = {}
     new_areas_data = []
     while True:
-        for item in psutil.disk_partitions():
+        for item in disk_partitions():
             # 判断是不是可移动磁盘
             if "removable" in item.opts:
                 # 获取可移动磁盘的盘符
@@ -798,7 +795,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                         [os.path.join(folderA_path, item), os.path.join(folderB_path, item)])
 
         diff_data = [[], [], []]
-        cmp_data = filecmp.dircmp(folderA_path, folderB_path)
+        cmp_data = dircmp(folderA_path, folderB_path)
         add_diff_data(0, cmp_data.diff_files)
         add_diff_data(1, cmp_data.left_only)
         add_diff_data(2, cmp_data.right_only, True)
@@ -2095,7 +2092,7 @@ def make_ui(first_visit=False, startup_visit=False):
             sf_operator.start()
             root.withdraw()
 
-    #@atexit.register
+    # @atexit.register
     def exit_program():
         nonlocal normal_paused
         if not normal_paused:
@@ -2181,7 +2178,7 @@ def make_ui(first_visit=False, startup_visit=False):
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
         MenuItem(taskbar_exit_text.get(), lambda event: exit_program()))
     image = Image.open(mf_data_path + 'Movefile.ico')
-    task_menu = pystray.Icon("icon", image, "Movefile", menu)
+    task_menu = Icon("icon", image, "Movefile", menu)
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
     root.bind("<Control-O>", lambda event: read_saving(ask_path=True))
