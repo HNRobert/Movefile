@@ -83,9 +83,9 @@ class Initialization:
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         self.roaming_path = os.path.join(
             winreg.QueryValueEx(key, 'AppData')[0])
-        mf_data_path = self.roaming_path + '\\Movefile\\'
-        cf_data_path = mf_data_path + 'Cleanfile\\'
-        sf_data_path = mf_data_path + 'Syncfile\\'
+        mf_data_path = os.path.join(self.roaming_path, '\\Movefile\\')
+        cf_data_path = os.path.join(mf_data_path, 'Cleanfile\\')
+        sf_data_path = os.path.join(mf_data_path, 'Syncfile\\')
         if 'Movefile' not in os.listdir(self.roaming_path):
             os.mkdir(mf_data_path)
             time.sleep(0.5)
@@ -102,8 +102,8 @@ class Initialization:
         time_now = datetime.today()
         date = str(time_now.date())
 
-        if not os.path.exists(mf_data_path + r'Movefile_data.ini'):  # 创建配置文件
-            file = open(mf_data_path + r'Movefile_data.ini',
+        if not os.path.exists(os.path.join(mf_data_path, r'Movefile_data.ini')):  # 创建配置文件
+            file = open(os.path.join(mf_data_path, r'Movefile_data.ini'),
                         'w', encoding="ANSI")
             file.close()
 
@@ -137,7 +137,7 @@ class Initialization:
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
         start_menu_path = os.path.join(
-            roaming_path + r"\Microsoft\Windows\Start Menu\Programs")
+            roaming_path, r"\Microsoft\Windows\Start Menu\Programs")
         startup_path = os.path.join(start_menu_path, "StartUp")
 
         if not os.path.exists(os.path.join(start_menu_path, "Movefile.lnk")):
@@ -146,10 +146,10 @@ class Initialization:
             self.mf_data.set('General', 'autorun', 'False')
 
         self.mf_data.write(
-            open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+            open(os.path.join(mf_data_path, r'Movefile_data.ini'), "w+", encoding='ANSI'))
 
     def load_icon(self):
-        self.image = open(mf_data_path + r'Movefile.ico', 'wb')
+        self.image = open(os.path.join(mf_data_path, r'Movefile.ico'), 'wb')
         self.image.write(base64.b64decode(icon.Movefile_ico))
         self.image.close()
 
@@ -195,7 +195,7 @@ class ProgressBar:
         self.progress_root = tk.Toplevel(root)
         self.progress_root.title(self.title)
         self.progress_root.geometry('420x115')
-        self.progress_root.iconbitmap(mf_data_path + r'Movefile.ico')
+        self.progress_root.iconbitmap(os.path.join(mf_data_path, r'Movefile.ico'))
         self.main_progress_label = ttk.Label(
             self.progress_root, text=self.label1)
         self.main_progress_label.grid(
@@ -273,7 +273,7 @@ def get_start_menu_path():
                          r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
     start_menu_path = os.path.join(
-        roaming_path + r"\Microsoft\Windows\Start Menu\Programs")
+        roaming_path, r"\Microsoft\Windows\Start Menu\Programs")
     return start_menu_path
 
 
@@ -291,9 +291,9 @@ def set_startup(state=True, lang_n=0):
     bin_path = r"Movefile " + vision + ".exe"
     shortcut_path = os.path.join(startup_path, "Movefile.lnk")
     desc = lnk_desc[lang_n]
-    icon_ = mf_data_path + r'Movefile.ico'
+    icon_ = os.path.join(mf_data_path, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(mf_data_path + 'Movefile_data.ini')
+    gen_cf.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -306,7 +306,7 @@ def set_startup(state=True, lang_n=0):
     else:
         gen_cf.set('General', 'autorun', 'False')
     gen_cf.write(
-        open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+        open(os.path.join(mf_data_path, r'Movefile_data.ini'), "w+", encoding='ANSI'))
 
 
 def put_start_menu(state=True, lang_n=0):
@@ -323,9 +323,9 @@ def put_start_menu(state=True, lang_n=0):
     bin_path = r"Movefile " + vision + ".exe"
     shortcut_path = os.path.join(start_menu_path, "Movefile.lnk")
     desc = lnk_desc[lang_n]
-    icon_ = mf_data_path + r'Movefile.ico'
+    icon_ = os.path.join(mf_data_path, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(mf_data_path + 'Movefile_data.ini')
+    gen_cf.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -338,7 +338,7 @@ def put_start_menu(state=True, lang_n=0):
     else:
         gen_cf.set('General', 'start_menu', 'False')
     gen_cf.write(
-        open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+        open(os.path.join(mf_data_path, r'Movefile_data.ini'), "w+", encoding='ANSI'))
 
 
 def language_num(language_name):
@@ -359,8 +359,8 @@ def language_num(language_name):
 
 def list_saving_data():
     global last_saving_data, all_save_names, cf_save_names, sf_save_names
-    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-    sf_store_path = sf_data_path + r'Syncfile_data.ini'
+    cf_store_path = os.path.join(cf_data_path, r'Cleanfile_data.ini')
+    sf_store_path = os.path.join(sf_data_path, r'Syncfile_data.ini')
     cf_file = configparser.ConfigParser()
     cf_file.read(cf_store_path)
     cf_save_names = cf_file.sections()
@@ -395,7 +395,7 @@ def data_error(mode_, name_):
     if mode_ == 'cf':
         try:
             cf = configparser.ConfigParser()
-            cf.read(cf_data_path + r'Cleanfile_data.ini')  # 获取配置文件
+            cf.read(os.path.join(cf_data_path, r'Cleanfile_data.ini'))  # 获取配置文件
             old_path_ = cf.get(name_, 'old_path')  # 旧文件夹
             new_path_ = cf.get(name_, 'new_path')  # 新文件夹
             move_folder = cf.get(name_, 'move_folder')
@@ -417,7 +417,7 @@ def data_error(mode_, name_):
     elif mode_ == 'sf':
         try:
             cf = configparser.ConfigParser()
-            cf.read(sf_data_path + r'Syncfile_data.ini')
+            cf.read(os.path.join(sf_data_path, r'Syncfile_data.ini'))
             if cf.has_option(name_, 'path_1'):
                 path_1_ = cf.get(name_, 'path_1')
                 usb_mode = False
@@ -551,12 +551,13 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
 
     from LT_Dic import cf_label_text_dic as cfdic
     mf_file = configparser.ConfigParser()
-    mf_file.read(mf_data_path + 'Movefile_data.ini')
+    mf_file.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
     lang_num = language_num(mf_file.get('General', 'language'))
 
     def cf_show_notice(old_path, new_path, move_name, error_name):
         new_folder = new_path.split('\\')[-1]
         old_folder = old_path.split('\\')[-1]
+        mf_icon_path = os.path.join(mf_data_path, r'Movefile.ico')
         if len(move_name) > 0:
             notice_title = cfdic['title_p1'][lang_num] + old_folder + \
                 cfdic['title_p2_1'][lang_num] + new_folder + ':'
@@ -565,7 +566,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                     old_folder + cfdic['title_p2_2'][lang_num]
             logging.info("\n" + notice_title + "\n" + move_name[:-3])
             toaster.show_toast(notice_title, move_name[:-3],
-                               icon_path=mf_data_path + r'Movefile.ico',
+                               icon_path=mf_icon_path,
                                duration=10,
                                threaded=False)
         else:
@@ -573,7 +574,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             notice_content = cfdic['clcontent'][lang_num]
             logging.info("\n" + notice_title + "\n" + notice_content)
             toaster.show_toast(notice_title, notice_content,
-                               icon_path=mf_data_path + r'Movefile.ico',
+                               icon_path=mf_icon_path,
                                duration=10,
                                threaded=False)
         if len(error_name) > 0:
@@ -582,7 +583,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
                 '\n' + cfdic['errcontent'][lang_num]
             logging.warning("\n" + notice_title + "\n" + notice_content)
             toaster.show_toast(notice_title, notice_content,
-                               icon_path=mf_data_path + r'Movefile.ico',
+                               icon_path=mf_icon_path,
                                duration=10,
                                threaded=False)
 
@@ -593,7 +594,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             del_data = scan_items(path)  # 扫描文件夹里所有子文件夹和文件
             for dfile in del_data[1]:
                 try:
-                    os.remove(path + dfile)
+                    os.remove(os.path.join(path, dfile))
                 except:
                     error_files += dfile + ',  '  # 这样还可以返回文件夹里无法移动的单个文件
             for dfolder in del_data[0][::-1]:
@@ -660,8 +661,9 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             for_path = task[2]
             baroot.set_label2(cfdic["current_file_label1"]
                               [lang_num] + item.split('\\')[-1])
-            if os.path.exists(for_path + '\\' + item):
-                del_item(for_path + '\\' + item)
+            for_item = os.path.join(for_path, item)
+            if os.path.exists(for_item):
+                del_item(for_item)
             if for_path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
                 try:
                     shutil_move(item_path, for_path)
@@ -700,9 +702,8 @@ def cf_autorun_operation():
     """
     The function cf_autorun_operation is used to perform an cleanfile operation automatically.
     """
-    cf_store_path = cf_data_path + r'Cleanfile_data.ini'
     cf_file = configparser.ConfigParser()
-    cf_file.read(cf_store_path)
+    cf_file.read(os.path.join(cf_data_path, r'Cleanfile_data.ini'))
 
     autorun_savings = []
     for cf_name in cf_save_names:
@@ -736,6 +737,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
     from LT_Dic import sf_label_text_dic as sf_ltd
 
     def sf_show_notice(path_1, path_2, sf_error_name):
+        mf_icon_path = os.path.join(mf_data_path, r'Movefile.ico')
         sf_notice_title = sf_ltd["title_p1"][language_number]
         sf_notice_content = sf_ltd["title_p2_1"][language_number] + path_1 + \
             sf_ltd["title_p2_2"][language_number] + path_2 + \
@@ -743,7 +745,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
         toaster.show_toast(sf_notice_title,
                            sf_notice_content,
-                           icon_path=mf_data_path + r'Movefile.ico',
+                           icon_path=mf_icon_path,
                            duration=10,
                            threaded=False)
 
@@ -754,7 +756,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             logging.warning("\n" + sf_error_title + "\n" + sf_error_content)
             toaster.show_toast(sf_error_title,
                                sf_error_content,
-                               icon_path=mf_data_path + r'Movefile.ico',
+                               icon_path=mf_icon_path,
                                duration=10,
                                threaded=False)
 
@@ -944,9 +946,9 @@ def sf_autorun_operation(place, saving_datas=None):
     will default to `None`
     """
     sf_file = configparser.ConfigParser()
-    sf_file.read(sf_data_path + 'Syncfile_data.ini')
+    sf_file.read(os.path.join(sf_data_path, 'Syncfile_data.ini'))
     mf_file = configparser.ConfigParser()
-    mf_file.read(mf_data_path + 'Movefile_data.ini')
+    mf_file.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
 
     def get_sf_startup_savings():
         sf_startup_settings = []
@@ -1001,7 +1003,7 @@ def make_ui(first_visit=False, startup_visit=False):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
-    general_data.read(mf_data_path + r'Movefile_data.ini')
+    general_data.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
     normal_paused = False
     cf_ori_old_path = ''
 
@@ -1342,7 +1344,7 @@ def make_ui(first_visit=False, startup_visit=False):
 
     global root
     root = tk.Tk()
-    root.iconbitmap(mf_data_path + r'Movefile.ico')
+    root.iconbitmap(os.path.join(mf_data_path, r'Movefile.ico'))
     root.title('Movefile Setting')
     root.geometry("800x287")
     root.resizable(False, False)
@@ -1721,8 +1723,8 @@ def make_ui(first_visit=False, startup_visit=False):
         list_saving_data()
 
         def savefile(function, save_name='New_Setting'):  # 保存文件
-            cf_data.read(cf_data_path + r'Cleanfile_data.ini')
-            sf_data.read(sf_data_path + r'Syncfile_data.ini')
+            cf_data.read(os.path.join(cf_data_path, r'Cleanfile_data.ini'))
+            sf_data.read(os.path.join(sf_data_path, r'Syncfile_data.ini'))
             list_saving_data()
 
             if len(cf_save_names) != 0:  # 更改上次修改项
@@ -1730,7 +1732,7 @@ def make_ui(first_visit=False, startup_visit=False):
                     try:
                         cf_data.set(cf_save, '_last_edit_', 'False')
                         cf_data.write(
-                            open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                            open(os.path.join(cf_data_path, r'Cleanfile_data.ini'), 'w+', encoding='ANSI'))
                     except:
                         pass
             if len(sf_save_names) != 0:
@@ -1738,16 +1740,16 @@ def make_ui(first_visit=False, startup_visit=False):
                     try:
                         sf_data.set(sf_save, '_last_edit_', 'False')
                         sf_data.write(
-                            open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                            open(os.path.join(sf_data_path, r'Syncfile_data.ini'), 'w+', encoding='ANSI'))
                     except:
                         pass
 
             if function == 'cf':  # 如果当前界面为cf
-                if not os.path.exists(cf_data_path + r'Cleanfile_data.ini'):
-                    file = open(cf_data_path + r'Cleanfile_data.ini',
+                if not os.path.exists(os.path.join(cf_data_path, r'Cleanfile_data.ini')):
+                    file = open(os.path.join(cf_data_path, r'Cleanfile_data.ini'),
                                 'w', encoding='ANSI')
                     file.close()
-                cf_data.read(cf_data_path + r'Cleanfile_data.ini')
+                cf_data.read(os.path.join(cf_data_path, r'Cleanfile_data.ini'))
                 if not cf_data.has_section(str(save_name)):
                     cf_data.add_section(str(save_name))
                 cf_data.set(save_name, '_last_edit_', 'True')
@@ -1763,14 +1765,14 @@ def make_ui(first_visit=False, startup_visit=False):
                 cf_data.set(save_name, "move_folder",
                             str(cf_is_folder_move.get()))
                 cf_data.write(
-                    open(cf_data_path + r'Cleanfile_data.ini', "w+", encoding='ANSI'))
+                    open(os.path.join(cf_data_path, r'Cleanfile_data.ini'), "w+", encoding='ANSI'))
 
             if function == 'sf':  # 如果当前界面为sf
-                if not os.path.exists(sf_data_path + r'Syncfile_data.ini'):
-                    file = open(sf_data_path + r'Syncfile_data.ini',
+                if not os.path.exists(os.path.join(sf_data_path, r'Syncfile_data.ini')):
+                    file = open(os.path.join(sf_data_path, r'Syncfile_data.ini'),
                                 'w', encoding='ANSI')
                     file.close()
-                sf_data.read(sf_data_path + r'Syncfile_data.ini')
+                sf_data.read(os.path.join(sf_data_path, r'Syncfile_data.ini'))
                 if not sf_data.has_section(str(save_name)):
                     sf_data.add_section(str(save_name))
                 sf_data.set(save_name, '_last_edit_', 'True')
@@ -1789,7 +1791,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 sf_data.set(save_name, 'autorun', str(
                     sf_entry_is_autorun.get()))
                 sf_data.write(
-                    open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                    open(os.path.join(sf_data_path, r'Syncfile_data.ini'), 'w+', encoding='ANSI'))
 
             tkinter.messagebox.showinfo(title=r_label_text_dic['succ_save'][lang_num][0],
                                         message=r_label_text_dic['succ_save'][lang_num][1])
@@ -1821,7 +1823,7 @@ def make_ui(first_visit=False, startup_visit=False):
             pri_save_names = []
         if not has_error:
             ask_name_window = tk.Toplevel(root)
-            ask_name_window.iconbitmap(mf_data_path + r'Movefile.ico')
+            ask_name_window.iconbitmap(os.path.join(mf_data_path, r'Movefile.ico'))
             ask_name_window.geometry('400x35')
             ask_name_window.title(
                 r_label_text_dic['ask_name_window'][lang_num])
@@ -1847,8 +1849,8 @@ def make_ui(first_visit=False, startup_visit=False):
 
     def read_saving(ask_path=False):
         global ask_saving_root
-        cf_store_path = cf_data_path + r'Cleanfile_data.ini'
-        sf_store_path = sf_data_path + r'Syncfile_data.ini'
+        cf_store_path = os.path.join(cf_data_path, r'Cleanfile_data.ini')
+        sf_store_path = os.path.join(sf_data_path, r'Syncfile_data.ini')
         cf_file = configparser.ConfigParser()
         cf_file.read(cf_store_path)  # 获取配置文件
         sf_file = configparser.ConfigParser()
@@ -1957,17 +1959,17 @@ def make_ui(first_visit=False, startup_visit=False):
                 title='Movefile', message='确认删除配置 ' + del_name + ' ?')
             ini_file = configparser.ConfigParser()
             if del_mode in ['清理文件(Cleanfile)', 'Cleanfile'] and is_continue:
-                ini_file.read(cf_data_path + 'Cleanfile_data.ini')
+                ini_file.read(os.path.join(cf_data_path, 'Cleanfile_data.ini'))
                 ini_file.remove_section(del_name)
                 ini_file.write(
-                    open(cf_data_path + r'Cleanfile_data.ini', 'w+', encoding='ANSI'))
+                    open(os.path.join(cf_data_path, r'Cleanfile_data.ini'), 'w+', encoding='ANSI'))
                 logging.info(
                     f"A config file of Cleanfile named {del_name} is deleted")
             elif del_mode in ['同步文件(Syncfile)', 'Syncfile'] and is_continue:
-                ini_file.read(sf_data_path + 'Syncfile_data.ini')
+                ini_file.read(os.path.join(sf_data_path, 'Syncfile_data.ini'))
                 ini_file.remove_section(del_name)
                 ini_file.write(
-                    open(sf_data_path + r'Syncfile_data.ini', 'w+', encoding='ANSI'))
+                    open(os.path.join(sf_data_path, r'Syncfile_data.ini'), 'w+', encoding='ANSI'))
                 logging.info(
                     f"A config file of Syncfile named {del_name} is deleted")
             exit_asr()
@@ -1987,7 +1989,7 @@ def make_ui(first_visit=False, startup_visit=False):
 
         if ask_path:
             ask_saving_root = tk.Toplevel(root)
-            ask_saving_root.iconbitmap(mf_data_path + r'Movefile.ico')
+            ask_saving_root.iconbitmap(os.path.join(mf_data_path, r'Movefile.ico'))
             if lang_num == 0:
                 ask_saving_root.geometry('680x35')
             elif lang_num == 1:
@@ -2073,7 +2075,7 @@ def make_ui(first_visit=False, startup_visit=False):
         nonlocal lang_num
         general_data.set('General', 'language', language)
         general_data.write(
-            open(mf_data_path + r'Movefile_data.ini', "w+", encoding='ANSI'))
+            open(os.path.join(mf_data_path, r'Movefile_data.ini'), "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
         Place(cf_or_sf.get(), sf_place_mode.get())
@@ -2177,7 +2179,7 @@ def make_ui(first_visit=False, startup_visit=False):
         MenuItem(taskbar_setting_text.get(),
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
         MenuItem(taskbar_exit_text.get(), lambda event: exit_program()))
-    image = Image.open(mf_data_path + 'Movefile.ico')
+    image = Image.open(os.path.join(mf_data_path, 'Movefile.ico'))
     task_menu = Icon("icon", image, "Movefile", menu)
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
@@ -2191,7 +2193,7 @@ def make_ui(first_visit=False, startup_visit=False):
 
     def get_movable_autorun_ids():
         sf_dat = configparser.ConfigParser()
-        sf_dat.read(sf_data_path + 'Syncfile_data.ini')
+        sf_dat.read(os.path.join(sf_data_path, 'Syncfile_data.ini'))
         savings = sf_dat.sections()
         autorun_ids = []
         for saving in savings:
