@@ -30,11 +30,6 @@ from mttkinter import mtTkinter as tk
 from pathlib import Path
 from psutil import disk_partitions, pids, boot_time as psutil_boot_time
 from pystray import MenuItem, Menu, Icon
-from win32api import GetVolumeInformation
-from win32com.client import Dispatch
-from win32gui import FindWindow, ShowWindow
-from win10toast import ToastNotifier
-from winshell import CreateShortcut
 
 import Movefile_icon as icon
 from ComBoPicker import Combopicker
