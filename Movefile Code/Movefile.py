@@ -2260,7 +2260,7 @@ def main():
     boot_visit = initial_data.boot_time <= 120
     first_visit = initial_data.first_visit
     logging.info(
-        f"Movefile Start \nVisits today: {visits_today} \nTime since startup: {initial_data.boot_time} \nStartup visit: {str(boot_visit)}")
+        f"Movefile Start\nVisits today: {visits_today}\nTime since startup: {initial_data.boot_time}\nStartup visit: {str(boot_visit)}")
 
     if visits_today == 1:
         autorun_options = Thread(
