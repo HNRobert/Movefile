@@ -73,8 +73,7 @@ class Initialization:
         The function globalize the route where previous data of this program can be found.
         """
 
-        global mf_data_path, cf_data_path, cf_config_path, sf_data_path, sf_config_path, toaster
-        toaster = ToastNotifier()
+        global mf_data_path, cf_data_path, cf_config_path, sf_data_path, sf_config_path
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         self.roaming_path = os.path.join(
@@ -137,11 +136,11 @@ class Initialization:
         roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
         start_menu_path = os.path.join(
             roaming_path, r"\Microsoft\Windows\Start Menu\Programs")
-        startup_path = os.path.join(start_menu_path, "StartUp")
+        startup_path = os.path.join(start_menu_path, r"StartUp")
 
-        if not os.path.exists(os.path.join(start_menu_path, "Movefile.lnk")):
+        if not os.path.exists(os.path.join(start_menu_path, r"Movefile.lnk")):
             self.mf_data.set('General', 'start_menu', 'False')
-        if not os.path.exists(os.path.join(startup_path, "Movefile.lnk")):
+        if not os.path.exists(os.path.join(startup_path, r"Movefile.lnk")):
             self.mf_data.set('General', 'autorun', 'False')
 
         self.mf_data.write(
@@ -273,7 +272,7 @@ def get_start_menu_path():
                          r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
     start_menu_path = os.path.join(
-        roaming_path, r"\Microsoft\Windows\Start Menu\Programs")
+        roaming_path, r"Microsoft\Windows\Start Menu\Programs")
     return start_menu_path
 
 
@@ -287,13 +286,13 @@ def set_startup(state=True, lang_n=0):
     """
     from LT_Dic import lnk_desc
     # 将快捷方式添加到自启动目录
-    startup_path = os.path.join(get_start_menu_path(), "StartUp")
+    startup_path = os.path.join(get_start_menu_path(), r"StartUp")
     bin_path = r"Movefile " + vision + ".exe"
-    shortcut_path = os.path.join(startup_path, "Movefile.lnk")
+    shortcut_path = os.path.join(startup_path, r"Movefile.lnk")
     desc = lnk_desc[lang_n]
     icon_ = os.path.join(mf_data_path, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
+    gen_cf.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -321,11 +320,11 @@ def put_start_menu(state=True, lang_n=0):
     # 获取用户名
     start_menu_path = get_start_menu_path()
     bin_path = r"Movefile " + vision + ".exe"
-    shortcut_path = os.path.join(start_menu_path, "Movefile.lnk")
+    shortcut_path = os.path.join(start_menu_path, r"Movefile.lnk")
     desc = lnk_desc[lang_n]
     icon_ = os.path.join(mf_data_path, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
+    gen_cf.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -549,7 +548,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
 
     from LT_Dic import cf_label_text_dic as cfdic
     mf_file = configparser.ConfigParser()
-    mf_file.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
+    mf_file.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
     lang_num = language_num(mf_file.get('General', 'language'))
 
     def cf_show_notice(old_path, new_path, move_name, error_name):
@@ -946,7 +945,7 @@ def sf_autorun_operation(place, saving_datas=None):
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_config_path)
     mf_file = configparser.ConfigParser()
-    mf_file.read(os.path.join(mf_data_path, 'Movefile_data.ini'))
+    mf_file.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
 
     def get_sf_startup_savings():
         sf_startup_settings = []
@@ -2177,7 +2176,7 @@ def make_ui(first_visit=False, startup_visit=False):
         MenuItem(taskbar_setting_text.get(),
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
         MenuItem(taskbar_exit_text.get(), lambda event: exit_program()))
-    image = Image.open(os.path.join(mf_data_path, 'Movefile.ico'))
+    image = Image.open(os.path.join(mf_data_path, r'Movefile.ico'))
     task_menu = Icon("icon", image, "Movefile", menu)
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
@@ -2255,9 +2254,9 @@ def main():
     boot_visit = initial_data.boot_time <= 120
     first_visit = initial_data.first_visit
     logging.info(
-        f"Movefile Start \nVisits today: {visits_today} \nTime since startup: {initial_data.boot_time} \nStartup visit: {str(boot_visit)}")
+        f"Movefile Start\nVisits today: {visits_today}\nTime since startup: {initial_data.boot_time}\nStartup visit: {str(boot_visit)}")
 
-    if visits_today == 1:
+    if visits_today == 1 and boot_visit:
         autorun_options = Thread(
             target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
