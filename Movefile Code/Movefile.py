@@ -2262,7 +2262,7 @@ def main():
     logging.info(
         f"Movefile Start\nVisits today: {visits_today}\nTime since startup: {initial_data.boot_time}\nStartup visit: {str(boot_visit)}")
 
-    if visits_today == 1:
+    if visits_today == 1 and boot_visit:
         autorun_options = Thread(
             target=lambda: startup_autorun(), daemon=True)
         autorun_options.start()
