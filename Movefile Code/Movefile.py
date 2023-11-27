@@ -278,7 +278,7 @@ def get_start_menu_path():
                          r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
     roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
     start_menu_path = os.path.join(
-        roaming_path, r"\Microsoft\Windows\Start Menu\Programs")
+        roaming_path, r"Microsoft\Windows\Start Menu\Programs")
     return start_menu_path
 
 
