@@ -39,7 +39,6 @@ from LT_Dic import vision
 class Initialization:
     def __init__(self):
         self.boot_time = self.get_boot_time()
-        self.roaming_path = None
         self.set_data_path()
 
         self.mf_data = configparser.ConfigParser()
@@ -68,16 +67,22 @@ class Initialization:
         time_since_boot = delta_time.days * 3600 * 24 + delta_time.seconds
         return time_since_boot
 
+    def get_current_user(self):
+        try:  
+            # pwd is unix only
+            import pwd
+            return pwd.getpwuid(os.getuid())[0]
+        except ImportError:
+            import getpass
+            return getpass.getuser()
+
     def set_data_path(self):
         """
         The function globalize the route where previous data of this program can be found.
         """
 
         global mf_data_path, cf_data_path, cf_config_path, sf_data_path, sf_config_path
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                             r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
-        self.roaming_path = os.path.join(
-            winreg.QueryValueEx(key, 'AppData')[0])
+        user_name = self.get_current_user()
         mf_data_path = os.path.join(self.roaming_path, r'Movefile')
         cf_data_path = os.path.join(mf_data_path, r'Cleanfile')
         cf_config_path = os.path.join(cf_data_path, r'Cleanfile_data.ini')
