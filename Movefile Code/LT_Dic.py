@@ -1,12 +1,12 @@
 vision = 'v2.3.4'
-update_time = '2023/11/27'
+update_time = '2023/11/29'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
     'savefile_menu': ['保存', 'Save config'],
     'option_menu': ['选项', 'Option'],
     'autorun_menu': ['开机自动启动本软件', 'Start automatically'],
-    'start_menu': ['添加到开始菜单', 'Add to Windows Start Menu list'],
+    'desktop_shortcut': ['添加快捷方式到桌面', 'Add a shortcut to Desktop'],
     'language_menu': ['语言', 'Language'],
     'help_menu': ['帮助', 'Help'],
     'about_menu': ['关于本软件', 'About'],
@@ -187,7 +187,7 @@ This notice won't be shown automatically once a config file is saved"""]
 help_before_use_text = ["""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
   后续将推出32位操作系统版本
-2.本exe文件的名称请不要改变："Movefile """ + vision + """.exe"
+2.本exe文件的名称请不要改变："Movefile.exe"
   否则会影响开机自启功能
 3.使用本软件前请打开Windows设置中的
   系统/通知和操作/通知/
@@ -208,7 +208,7 @@ help_before_use_text = ["""使用前特别注意事项：
   或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use:
 1.This software must be run under a 64-bit operating system,
    The 32-bit operating system version will be introduced later.
-2.Please do not change the name of this exe file："Movefile """ + vision + """.exe"
+2.Please do not change the name of this exe file："Movefile.exe"
    Otherwise, the startup function will be affected.
 3.Please open the option in the windows setting:
    System/notification and operation/notification/

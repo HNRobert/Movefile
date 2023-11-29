@@ -292,7 +292,7 @@ def set_startup(state=True, lang_n=0):
     from LT_Dic import lnk_desc
     # 将快捷方式添加到自启动目录
     startup_path = os.path.join(get_start_menu_path(), r"StartUp")
-    bin_path = r"Movefile " + vision + ".exe"
+    bin_path = r"Movefile.exe"
     shortcut_path = os.path.join(startup_path, r"Movefile.lnk")
     desc = lnk_desc[lang_n]
     icon_ = os.path.join(mf_data_path, r'Movefile.ico')
@@ -324,7 +324,7 @@ def put_start_menu(state=True, lang_n=0):
     # 将快捷方式添加到开始菜单
     # 获取用户名
     start_menu_path = get_start_menu_path()
-    bin_path = r"Movefile " + vision + ".exe"
+    bin_path = r"Movefile.exe"
     shortcut_path = os.path.join(start_menu_path, r"Movefile.lnk")
     desc = lnk_desc[lang_n]
     icon_ = os.path.join(mf_data_path, r'Movefile.ico')
@@ -628,7 +628,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             if ('.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir()
                     or item_data.name in pass__file):
                 continue
-            if item_data.name == 'Movefile ' + vision + '.exe' or item_data.name == new__path.split('\\')[-1]:
+            if item_data.name == 'Movefile.exe' or item_data.name == new__path.split('\\')[-1]:
                 continue
             if check__mode == 1:
                 # 最后一次修改的时间 (Option 1)

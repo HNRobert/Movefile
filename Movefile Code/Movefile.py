@@ -19,6 +19,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.ttk as ttk
 import winreg
+from ctypes import windll
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from shutil import copy2 as shutil_copy2, move as shutil_move, Error as shutil_Error
@@ -64,6 +65,13 @@ class Initialization:
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
             self.first_visit = True
             logging.info("This is the first visit of this program.")
+
+    def get_system_uptime(self):
+        # Call the GetTickCount64 function from the kernel32 library
+        tick_count = windll.kernel32.GetTickCount64()
+        # Calculate the uptime in seconds
+        uptime_seconds = tick_count / 1000.0
+        return uptime_seconds        
 
     def get_boot_time(self):
         boot_t = psutil_boot_time()
@@ -134,18 +142,18 @@ class Initialization:
 
         if not self.mf_data.has_option('General', 'autorun'):
             self.mf_data.set('General', 'autorun', 'False')
-        if not self.mf_data.has_option('General', 'start_menu'):
-            self.mf_data.set('General', 'start_menu', 'False')
+        if not self.mf_data.has_option('General', 'desktop_shortcut'):
+            self.mf_data.set('General', 'desktop_shortcut', 'False')
 
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-        start_menu_path = os.path.join(
-            roaming_path, r"\Microsoft\Windows\Start Menu\Programs")
-        startup_path = os.path.join(start_menu_path, r"StartUp")
+        desktop_path = winreg.QueryValueEx(key, "Desktop")[0]        
+        startup_path = os.path.join(
+            roaming_path, r"\Microsoft\Windows\Start Menu\Programs\StartUp")
 
-        if not os.path.exists(os.path.join(start_menu_path, r"Movefile.lnk")):
-            self.mf_data.set('General', 'start_menu', 'False')
+        if not os.path.exists(os.path.join(desktop_path, r"Movefile.lnk")):
+            self.mf_data.set('General', 'desktop_path', 'False')
         if not os.path.exists(os.path.join(startup_path, r"Movefile.lnk")):
             self.mf_data.set('General', 'autorun', 'False')
 
@@ -293,7 +301,7 @@ def set_startup(state=True, lang_n=0):
     from LT_Dic import lnk_desc
     # 将快捷方式添加到自启动目录
     startup_path = os.path.join(get_start_menu_path(), r"StartUp")
-    bin_path = r"Movefile " + vision + ".exe"
+    bin_path = r"Movefile.exe"
     shortcut_path = os.path.join(startup_path, r"Movefile.lnk")
     desc = lnk_desc[lang_n]
     icon_ = os.path.join(mf_data_path, r'Movefile.ico')
@@ -314,19 +322,21 @@ def set_startup(state=True, lang_n=0):
         open(os.path.join(mf_data_path, r'Movefile_data.ini'), "w+", encoding='ANSI'))
 
 
-def put_start_menu(state=True, lang_n=0):
+def put_desktop_shortcut(state=True, lang_n=0):
     """
-    The function `put_start_menu` allows you to put the shortcut of this program into Windows Start Menu.
+    The function `put_desktop_shortcut` allows you to put the shortcut of this program into Windows Start Menu.
 
     :param state: The state parameter is a boolean value that determines whether the start menu should be displayed or not. If state is set to True, the start menu will be displayed. If state is set to False, the start menu will not be displayed, defaults to True (optional)
     :param lang_n: The `lang_n` parameter is used to specify the language for the start menu. It is an integer value that represents the language code, defaults to 1 (optional)
     """
     from LT_Dic import lnk_desc
-    # 将快捷方式添加到开始菜单
+    # 将快捷方式添加到桌面
     # 获取用户名
-    start_menu_path = get_start_menu_path()
-    bin_path = r"Movefile " + vision + ".exe"
-    shortcut_path = os.path.join(start_menu_path, r"Movefile.lnk")
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                         r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
+    desktop_path = winreg.QueryValueEx(key, "Desktop")[0]
+    bin_path = r"Movefile.exe"
+    shortcut_path = os.path.join(desktop_path, r"Movefile.lnk")
     desc = lnk_desc[lang_n]
     icon_ = os.path.join(mf_data_path, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
@@ -334,14 +344,14 @@ def put_start_menu(state=True, lang_n=0):
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
-        gen_cf.set('General', 'start_menu', 'True')
+        gen_cf.set('General', 'desktop_shortcut', 'True')
         CreateShortcut(
             Path=shortcut_path,
             Target=bin_path,
             Icon=(icon_, 0),
             Description=desc)
     else:
-        gen_cf.set('General', 'start_menu', 'False')
+        gen_cf.set('General', 'desktop_shortcut', 'False')
     gen_cf.write(
         open(os.path.join(mf_data_path, r'Movefile_data.ini'), "w+", encoding='ANSI'))
 
@@ -629,7 +639,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
             if ('.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir()
                     or item_data.name in pass__file):
                 continue
-            if item_data.name == 'Movefile ' + vision + '.exe' or item_data.name == new__path.split('\\')[-1]:
+            if item_data.name == 'Movefile.exe' or item_data.name == new__path.split('\\')[-1]:
                 continue
             if check__mode == 1:
                 # 最后一次修改的时间 (Option 1)
@@ -1154,7 +1164,8 @@ def make_ui(first_visit=False, startup_visit=False):
         savefile_menu_text.set(r_label_text_dic['savefile_menu'][lang_number])
         option_menu_text.set(r_label_text_dic['option_menu'][lang_number])
         autorun_menu_text.set(r_label_text_dic['autorun_menu'][lang_number])
-        start_menu_text.set(r_label_text_dic['start_menu'][lang_number])
+        desktop_shortcut_text.set(
+            r_label_text_dic['desktop_shortcut'][lang_number])
         language_menu_text.set(r_label_text_dic['language_menu'][lang_number])
         help_menu_text.set(r_label_text_dic['help_menu'][lang_number])
         about_menu_text.set(r_label_text_dic['about_menu'][lang_number])
@@ -1401,7 +1412,7 @@ def make_ui(first_visit=False, startup_visit=False):
     savefile_menu_text = tk.StringVar()
     option_menu_text = tk.StringVar()
     autorun_menu_text = tk.StringVar()
-    start_menu_text = tk.StringVar()
+    desktop_shortcut_text = tk.StringVar()
     language_menu_text = tk.StringVar()
     help_menu_text = tk.StringVar()
     about_menu_text = tk.StringVar()
@@ -2141,12 +2152,13 @@ def make_ui(first_visit=False, startup_visit=False):
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
     is_startup_run.set(general_data.get('General', 'autorun') == "True")
-    is_start_menu = tk.BooleanVar()
-    is_start_menu.set(general_data.get('General', 'start_menu') == "True")
+    is_desktop_shortcut = tk.BooleanVar()
+    is_desktop_shortcut.set(general_data.get(
+        'General', 'desktop_shortcut') == "True")
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
                                 command=lambda: set_startup(is_startup_run.get(), lang_num))
-    option_menu.add_checkbutton(label=start_menu_text.get(
-    ), variable=is_start_menu, command=lambda: put_start_menu(is_start_menu.get(), lang_num))
+    option_menu.add_checkbutton(label=desktop_shortcut_text.get(
+    ), variable=is_desktop_shortcut, command=lambda: put_desktop_shortcut(is_desktop_shortcut.get(), lang_num))
 
     language_menu = tk.Menu(main_menu, tearoff=False)
     language_menu.add_radiobutton(label='简体中文', variable=root_language, value='Chinese',
