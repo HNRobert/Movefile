@@ -24,7 +24,9 @@ The .exe files provided here only support 64-bit Windows operating system, and W
 
 If your operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
 
-***This software only supports Windows operating system***
+PS: Starting from version 2.3.4, software installation packages will be provided instead of packaged single file programs
+
+***This software only supports Windows operating system now***
 
 #### pyinstaller packaging method
 
@@ -33,6 +35,8 @@ First install the python environment. After the installation of python, open cmd
 If you want to package it as 32-bit exe, you should package it in 32-bit Python.
 
 After installation, open the **Movefile Code** folder, enter **cmd** in the path box of the folder, and then enter ```pyinstaller - i Movefile.ico - noupx Movefile.py -- onefile -w``` in the pop-up command prompt window ,then get the packed file in the output **dist** folder.
+
+***Note: The Win10toast module used in this program has been modified. The modified version adds thread pool and notification queue management functions to improve notification display logic***
 
 ### Precautions before use
 
@@ -173,6 +177,8 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 
 如果操作系统是32位Windows，可以下载pyw文件，然后自行打包为32位操作系统的exe文件
 
+PS: 从2.3.4版本开始将提供软件安装包，而非打包好的单文件程序
+
 ***本软件目前仅支持Windows操作系统下使用***
 
 #### pyinstaller打包法
@@ -182,6 +188,8 @@ Beta 版程序不会打包，如果想要有更加好的使用体验，请下载
 如果想打包为32为的exe，那就要在32位的Python下打包
 
 安装完成后，打开 **Movefile Code** 文件夹，文件夹的索引框内输入 **cmd** ，然后在弹出的命令提示框内输入`pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w`，就可以在产出的 **dist** 文件夹内得到打包好的exe文件。
+
+***注意：本程序使用的 win10toast 模块是被魔改过的，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑***
 
 ### 使用前特别注意事项
 
@@ -413,4 +421,12 @@ Movefile v2.3.3
 彻底修复开机自启无法自动运行的Bug，
 添加logging功能，
 使所有执行的操作被记录在Roaming/Movefile/Movefile.log中
+
+21:18 2023/11/30
+Movefile v2.3.4
+更新内容：
+更改开机自启的判断逻辑，使判定更加准确
+修复Syncfile功能磁盘同步的路径问题
+将开始菜单快捷方式添加功能改为添加桌面快捷方式
+修复其他一些小bug，完善logging与import
 ```

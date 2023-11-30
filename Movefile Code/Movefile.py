@@ -35,12 +35,12 @@ from pystray import MenuItem, Menu, Icon
 from win32api import GetVolumeInformation
 from win32com.client import Dispatch
 from win32gui import FindWindow, ShowWindow
-from win10toast import ToastNotifier
 from winshell import CreateShortcut
 
 import Movefile_icon as icon
 from ComBoPicker import Combopicker
 from LT_Dic import *
+from win10toast_edited import ToastNotifier
 
 
 class Initialization:
@@ -65,7 +65,7 @@ class Initialization:
         self.first_visit = False
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
             self.first_visit = True
-            logging.info("This is the first visit of this program.")
+            logging.info("\nThis is the first visit of this program.")
 
     def get_startup_statue(self):
         if "--startup_visit" in sys.argv:
@@ -738,7 +738,7 @@ def cf_autorun_operation():
                     check__mode=cf_file.getint(save_name, 'mode'),
                     is__move__folder=cf_file.get(save_name, 'move_folder'))
         logging.info(
-            f'Automatically ran Cleanfile operation as config "{save_name}"')
+            f'\nAutomatically ran Cleanfile operation as config "{save_name}"')
 
 
 def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
@@ -997,7 +997,7 @@ def sf_autorun_operation(place, saving_datas=None):
             sf_sync_dir(path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')),
                         pass_folder_paths=lockfolder, pass_file_paths=lockfile)
             logging.info(
-                f'Automatically ran Syncfile operation as config "{data_name}"')
+                f'\nAutomatically ran Syncfile operation as config "{data_name}"')
 
     if place == 'movable':
         autorun_movable_sf(saving_datas)
@@ -1811,7 +1811,7 @@ def make_ui(first_visit=False, startup_visit=False):
             if cf_or_sf.get() == 'cf':
                 log_function = 'Cleanfile'
             logging.info(
-                f"A config file of {log_function} named {name_entry.get()} is saved")
+                f"\nA config file of {log_function} named {name_entry.get()} is saved")
             current_save_name.set(
                 r_label_text_dic['current_save_name'][lang_num] + name_entry.get())
             exit_asn()
@@ -1971,14 +1971,14 @@ def make_ui(first_visit=False, startup_visit=False):
                 ini_file.write(
                     open(cf_config_path, 'w+', encoding='ANSI'))
                 logging.info(
-                    f"A config file of Cleanfile named {del_name} is deleted")
+                    f"\nA config file of Cleanfile named {del_name} is deleted")
             elif del_mode in ['同步文件(Syncfile)', 'Syncfile'] and is_continue:
                 ini_file.read(sf_config_path)
                 ini_file.remove_section(del_name)
                 ini_file.write(
                     open(sf_config_path, 'w+', encoding='ANSI'))
                 logging.info(
-                    f"A config file of Syncfile named {del_name} is deleted")
+                    f"\nA config file of Syncfile named {del_name} is deleted")
             exit_asr()
 
         def sure_open():
@@ -2121,7 +2121,7 @@ def make_ui(first_visit=False, startup_visit=False):
 
             root.quit()
             root.destroy()
-            logging.info("Movefile Quit \n")
+            logging.info("\nMovefile Quit\n")
             ask_permit.join()
             butt_icon.join()
             background_detect.join()
@@ -2266,7 +2266,7 @@ def main():
     boot_visit = initial_data.startup_visit
     first_visit = initial_data.first_visit
     logging.info(
-        f"\n{sys.argv}\nMovefile Start\nVisits today: {visits_today}\nTime since startup: {boot_visit}\nStartup visit: {str(boot_visit)}")
+        f"\nMovefile Start\nVisits today: {visits_today}\nStartup visit: {str(boot_visit)}")
 
     if visits_today == 1 and boot_visit:
         autorun_options = Thread(
