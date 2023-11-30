@@ -68,7 +68,7 @@ class Initialization:
         return time_since_boot
 
     def get_current_user(self):
-        try:  
+        try:
             # pwd is unix only
             import pwd
             return pwd.getpwuid(os.getuid())[0]
@@ -551,7 +551,7 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
     :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
     """
 
-    from LT_Dic import cf_label_text_dic as cfdic
+    from LT_Dic import cfdic as cfdic
     mf_file = configparser.ConfigParser()
     mf_file.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
     lang_num = language_num(mf_file.get('General', 'language'))
@@ -727,14 +727,14 @@ def cf_autorun_operation():
 
 
 def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
-    from LT_Dic import sf_label_text_dic as sf_ltd
+    from LT_Dic import sfdic as sfdic
 
     def sf_show_notice(path_1, path_2, sf_error_name):
         mf_icon_path = os.path.join(mf_data_path, r'Movefile.ico')
-        sf_notice_title = sf_ltd["title_p1"][language_number]
-        sf_notice_content = sf_ltd["title_p2_1"][language_number] + path_1 + \
-            sf_ltd["title_p2_2"][language_number] + path_2 + \
-            sf_ltd["title_p2_3"][language_number]
+        sf_notice_title = sfdic["title_p1"][language_number]
+        sf_notice_content = sfdic["title_p2_1"][language_number] + path_1 + \
+            sfdic["title_p2_2"][language_number] + path_2 + \
+            sfdic["title_p2_3"][language_number]
         logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
         toaster.show_toast(sf_notice_title,
                            sf_notice_content,
@@ -743,9 +743,9 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                            threaded=False)
 
         if len(sf_error_name) > 0:
-            sf_error_title = sf_ltd["errtitle"][language_number]
+            sf_error_title = sfdic["errtitle"][language_number]
             sf_error_content = sf_error_name + \
-                sf_ltd['can_not_move_notice'][language_number]
+                sfdic['can_not_move_notice'][language_number]
             logging.warning("\n" + sf_error_title + "\n" + sf_error_content)
             toaster.show_toast(sf_error_title,
                                sf_error_content,
@@ -842,19 +842,19 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 return
             sync_tasks.append([fileA, fileB, direct_apd])
             _bar_root.set_label1(
-                sf_ltd['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
+                sfdic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
 
         sync_tasks = []
         diff_item_data = diff_files_in(path1, path2)
         for a_only_item in diff_item_data[1]:
             sync_tasks.append([a_only_item[0], a_only_item[1], True])
             _bar_root.set_label1(
-                sf_ltd['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
+                sfdic['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
         if not single_sync:
             for b_only_item in diff_item_data[2]:
                 sync_tasks.append([b_only_item[0], b_only_item[1], True])
                 _bar_root.set_label1(
-                    sf_ltd['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
+                    sfdic['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
         for diff_item in diff_item_data[0]:
             judge_and_append_task(diff_item[0], diff_item[1], False)
 
@@ -869,7 +869,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         """
         baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
-            sf_ltd["current_file_label1"][language_number] + task[0].split('\\')[-1])
+            sfdic["current_file_label1"][language_number] + task[0].split('\\')[-1])
         source_file_path, dest_file_path, create_folder = task
         dest_path = Path(dest_file_path)
         # Create parent directories if needed
@@ -893,7 +893,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         tasks = get_task(baroot)
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
-            f'{sf_ltd["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_ltd["main_progress_label1"][language_number][1]}')
+            f'{sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sfdic["main_progress_label1"][language_number][1]}')
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(
                 synchronize_files, baroot, task) for task in tasks]
@@ -905,7 +905,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 
                 baroot.main_progress_bar['value'] += 1
                 baroot.set_label1(
-                    f'{sf_ltd["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_ltd["main_progress_label1"][language_number][1]}')
+                    f'{sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sfdic["main_progress_label1"][language_number][1]}')
                 baroot.progress_root.update_idletasks()
 
         baroot.progress_root.withdraw()
@@ -917,8 +917,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         sf_progress_done = True
 
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
-                                sf_ltd["main_progress_label2"][language_number],
-                                sf_ltd["current_file_label"][language_number],
+                                sfdic["main_progress_label2"][language_number],
+                                sfdic["current_file_label"][language_number],
                                 language_number)
     sync_bar_root_task = Thread(
         target=lambda: sync_bar_root.launch(), daemon=True)

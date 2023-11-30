@@ -5,5 +5,5 @@
   "python.formatting.provider": "none",
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.autoImportCompletions": true,
-  "cSpell.words": ["levelname"]
+  "cSpell.words": ["levelname", "sfdic"]
 }

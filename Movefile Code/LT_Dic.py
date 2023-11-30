@@ -1,5 +1,5 @@
 vision = 'v2.3.4'
-update_time = '2023/11/29'
+update_time = '2023/11/30'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
@@ -86,11 +86,8 @@ please don't edit the config file directly"""],
 to make the language of some labels changed''']
 }
 
-cr_label_text_dic = {
-    'c_label': ['Movefile 初始化中...', 'Movefile initializing...']
-}
 
-cf_label_text_dic = {
+cfdic = {
     'title_p1': ['这些文件已从 ', 'These Files from '],
     'title_p2_1': [' 移动到 ', ' are moved to '],
     'title_p2_2': [' 移除:', ' are removed:'],
@@ -110,7 +107,7 @@ cf_label_text_dic = {
     'current_file_label1': ['文件处理中：', 'File in process：'],
 }
 
-sf_label_text_dic = {
+sfdic = {
     'title_p1': ['同步成功 ', 'Sync Successfully'],
     'title_p2_1': ['"', 'The files in "'],
     'title_p2_2': ['" 与 "', '" and "'],

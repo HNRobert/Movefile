@@ -14,6 +14,7 @@ import base64
 import configparser
 import logging
 import os
+import sys
 import time
 import tkinter.filedialog
 import tkinter.messagebox
@@ -29,7 +30,7 @@ from filecmp import dircmp
 from PIL import Image
 from mttkinter import mtTkinter as tk
 from pathlib import Path
-from psutil import disk_partitions, pids, boot_time as psutil_boot_time
+from psutil import disk_partitions, pids
 from pystray import MenuItem, Menu, Icon
 from win32api import GetVolumeInformation
 from win32com.client import Dispatch
@@ -39,12 +40,12 @@ from winshell import CreateShortcut
 
 import Movefile_icon as icon
 from ComBoPicker import Combopicker
-from LT_Dic import vision
+from LT_Dic import *
 
 
 class Initialization:
     def __init__(self):
-        self.boot_time = self.get_boot_time()
+        self.startup_visit = self.get_startup_statue()
         self.roaming_path = None
         self.set_data_path()
 
@@ -66,6 +67,12 @@ class Initialization:
             self.first_visit = True
             logging.info("This is the first visit of this program.")
 
+    def get_startup_statue(self):
+        if "--startup_visit" in sys.argv:
+            return True
+        return False
+
+    """
     def get_system_uptime(self):
         # Call the GetTickCount64 function from the kernel32 library
         tick_count = windll.kernel32.GetTickCount64()
@@ -73,13 +80,14 @@ class Initialization:
         uptime_seconds = tick_count / 1000.0
         return uptime_seconds        
 
-    def get_boot_time(self):
+    def psutil_get_boot_time(self):
         boot_t = psutil_boot_time()
         boot_time_obj = datetime.fromtimestamp(boot_t)
         now_time = datetime.now()
         delta_time = now_time - boot_time_obj
         time_since_boot = delta_time.days * 3600 * 24 + delta_time.seconds
         return time_since_boot
+    """
 
     def set_data_path(self):
         """
@@ -133,8 +141,7 @@ class Initialization:
                              str(self.ask_time_today))
 
         if not self.mf_data.has_option('General', 'language'):
-            import ctypes
-            dll_handle = ctypes.windll.kernel32
+            dll_handle = windll.kernel32
             if hex(dll_handle.GetSystemDefaultUILanguage()) == '0x804':
                 self.mf_data.set('General', 'language', 'Chinese')
             else:
@@ -148,9 +155,9 @@ class Initialization:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         roaming_path = os.path.join(winreg.QueryValueEx(key, 'AppData')[0])
-        desktop_path = winreg.QueryValueEx(key, "Desktop")[0]        
+        desktop_path = winreg.QueryValueEx(key, "Desktop")[0]
         startup_path = os.path.join(
-            roaming_path, r"\Microsoft\Windows\Start Menu\Programs\StartUp")
+            roaming_path, r"Microsoft\Windows\Start Menu\Programs\StartUp")
 
         if not os.path.exists(os.path.join(desktop_path, r"Movefile.lnk")):
             self.mf_data.set('General', 'desktop_path', 'False')
@@ -181,7 +188,7 @@ class Initialization:
 class ProgressBar:
     def __init__(self, title, label1, label2, lang_num):
         self.initialization_done = False
-        from LT_Dic import progress_root_label_dic
+
         self.title = title
         self.label1 = label1
         self.label2 = label2
@@ -298,7 +305,6 @@ def set_startup(state=True, lang_n=0):
     should be enabled or disabled. If `state` is `True`, the startup process will be enabled. If `state`
     is `False`, the startup process will be disabled, defaults to True (optional)
     """
-    from LT_Dic import lnk_desc
     # 将快捷方式添加到自启动目录
     startup_path = os.path.join(get_start_menu_path(), r"StartUp")
     bin_path = r"Movefile.exe"
@@ -315,7 +321,8 @@ def set_startup(state=True, lang_n=0):
             Path=shortcut_path,
             Target=bin_path,
             Icon=(icon_, 0),
-            Description=desc)
+            Description=desc,
+            Arguments="--startup_visit")
     else:
         gen_cf.set('General', 'autorun', 'False')
     gen_cf.write(
@@ -329,7 +336,6 @@ def put_desktop_shortcut(state=True, lang_n=0):
     :param state: The state parameter is a boolean value that determines whether the start menu should be displayed or not. If state is set to True, the start menu will be displayed. If state is set to False, the start menu will not be displayed, defaults to True (optional)
     :param lang_n: The `lang_n` parameter is used to specify the language for the start menu. It is an integer value that represents the language code, defaults to 1 (optional)
     """
-    from LT_Dic import lnk_desc
     # 将快捷方式添加到桌面
     # 获取用户名
     key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
@@ -561,8 +567,6 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
     It can have one of the following values:
     :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
     """
-
-    from LT_Dic import cf_label_text_dic as cfdic
     mf_file = configparser.ConfigParser()
     mf_file.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
     lang_num = language_num(mf_file.get('General', 'language'))
@@ -738,14 +742,13 @@ def cf_autorun_operation():
 
 
 def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
-    from LT_Dic import sf_label_text_dic as sf_ltd
 
     def sf_show_notice(path_1, path_2, sf_error_name):
         mf_icon_path = os.path.join(mf_data_path, r'Movefile.ico')
-        sf_notice_title = sf_ltd["title_p1"][language_number]
-        sf_notice_content = sf_ltd["title_p2_1"][language_number] + path_1 + \
-            sf_ltd["title_p2_2"][language_number] + path_2 + \
-            sf_ltd["title_p2_3"][language_number]
+        sf_notice_title = sfdic["title_p1"][language_number]
+        sf_notice_content = sfdic["title_p2_1"][language_number] + path_1 + \
+            sfdic["title_p2_2"][language_number] + path_2 + \
+            sfdic["title_p2_3"][language_number]
         logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
         toaster.show_toast(sf_notice_title,
                            sf_notice_content,
@@ -754,9 +757,9 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                            threaded=False)
 
         if len(sf_error_name) > 0:
-            sf_error_title = sf_ltd["errtitle"][language_number]
+            sf_error_title = sfdic["errtitle"][language_number]
             sf_error_content = sf_error_name + \
-                sf_ltd['can_not_move_notice'][language_number]
+                sfdic['can_not_move_notice'][language_number]
             logging.warning("\n" + sf_error_title + "\n" + sf_error_content)
             toaster.show_toast(sf_error_title,
                                sf_error_content,
@@ -853,19 +856,19 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                 return
             sync_tasks.append([fileA, fileB, direct_apd])
             _bar_root.set_label1(
-                sf_ltd['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
+                sfdic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
 
         sync_tasks = []
         diff_item_data = diff_files_in(path1, path2)
         for a_only_item in diff_item_data[1]:
             sync_tasks.append([a_only_item[0], a_only_item[1], True])
             _bar_root.set_label1(
-                sf_ltd['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
+                sfdic['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
         if not single_sync:
             for b_only_item in diff_item_data[2]:
                 sync_tasks.append([b_only_item[0], b_only_item[1], True])
                 _bar_root.set_label1(
-                    sf_ltd['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
+                    sfdic['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
         for diff_item in diff_item_data[0]:
             judge_and_append_task(diff_item[0], diff_item[1], False)
 
@@ -880,7 +883,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         """
         baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
-            sf_ltd["current_file_label1"][language_number] + task[0].split('\\')[-1])
+            sfdic["current_file_label1"][language_number] + task[0].split('\\')[-1])
         source_file_path, dest_file_path, create_folder = task
         dest_path = Path(dest_file_path)
         # Create parent directories if needed
@@ -904,7 +907,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         tasks = get_task(baroot)
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
-            f'{sf_ltd["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_ltd["main_progress_label1"][language_number][1]}')
+            f'{sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sfdic["main_progress_label1"][language_number][1]}')
         with ThreadPoolExecutor() as executor:
             futures = [executor.submit(
                 synchronize_files, baroot, task) for task in tasks]
@@ -916,7 +919,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
 
                 baroot.main_progress_bar['value'] += 1
                 baroot.set_label1(
-                    f'{sf_ltd["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sf_ltd["main_progress_label1"][language_number][1]}')
+                    f'{sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {sfdic["main_progress_label1"][language_number][1]}')
                 baroot.progress_root.update_idletasks()
 
         baroot.progress_root.withdraw()
@@ -928,8 +931,8 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         sf_progress_done = True
 
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
-                                sf_ltd["main_progress_label2"][language_number],
-                                sf_ltd["current_file_label"][language_number],
+                                sfdic["main_progress_label2"][language_number],
+                                sfdic["current_file_label"][language_number],
                                 language_number)
     sync_bar_root_task = Thread(
         target=lambda: sync_bar_root.launch(), daemon=True)
@@ -1012,7 +1015,6 @@ def make_ui(first_visit=False, startup_visit=False):
     :param startup_visit: A boolean parameter that indicates whether it is the first time the user is visiting the application after booting the computer, defaults to False (optional)
     """
 
-    from LT_Dic import r_label_text_dic
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
@@ -1553,49 +1555,41 @@ def make_ui(first_visit=False, startup_visit=False):
     class ZFunc:
         @staticmethod
         def help_main():
-            from LT_Dic import help_main_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=help_main_text[lang_num])
 
         @staticmethod
         def help_before_use():
-            from LT_Dic import help_before_use_text
             tkinter.messagebox.showinfo(title='Movefile',
                                         message=help_before_use_text[lang_num])
 
         @staticmethod
         def cf_help():
-            from LT_Dic import cf_help_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=cf_help_text[lang_num])
 
         @staticmethod
         def cf_help_keep():
-            from LT_Dic import cf_help_keep_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=cf_help_keep_text[lang_num])
 
         @staticmethod
         def cf_help_timeset():
-            from LT_Dic import cf_help_timeset_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=cf_help_timeset_text[lang_num])
 
         @staticmethod
         def sf_help():
-            from LT_Dic import sf_help_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=sf_help_text[lang_num])
 
         @staticmethod
         def sf_removable_help():
-            from LT_Dic import sf_removable_help_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=sf_removable_help_text[lang_num])
 
         @staticmethod
         def sf_lock_help():
-            from LT_Dic import sf_lock_help_text
             tkinter.messagebox.showinfo(
                 title='Movefile', message=sf_lock_help_text[lang_num])
 
@@ -2269,10 +2263,10 @@ def main():
     initial_data = Initialization()
     time.sleep(0.1)
     visits_today = initial_data.ask_time_today
-    boot_visit = initial_data.boot_time <= 120
+    boot_visit = initial_data.startup_visit
     first_visit = initial_data.first_visit
     logging.info(
-        f"Movefile Start\nVisits today: {visits_today}\nTime since startup: {initial_data.boot_time}\nStartup visit: {str(boot_visit)}")
+        f"\n{sys.argv}\nMovefile Start\nVisits today: {visits_today}\nTime since startup: {boot_visit}\nStartup visit: {str(boot_visit)}")
 
     if visits_today == 1 and boot_visit:
         autorun_options = Thread(
