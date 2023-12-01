@@ -60,7 +60,7 @@ class Initialization:
             self.load_icon()
 
         self.ask_time_today = 0
-        self.asktime_plus()
+        self.init_config()
 
         self.first_visit = False
         if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
@@ -114,7 +114,7 @@ class Initialization:
         if 'Syncfile' not in os.listdir(mf_data_path):
             os.mkdir(sf_data_path)
 
-    def asktime_plus(self):
+    def init_config(self):
         """
         The function "asktime_plus" is not defined in the code provided.
         """
@@ -159,9 +159,13 @@ class Initialization:
         startup_path = os.path.join(
             roaming_path, r"Microsoft\Windows\Start Menu\Programs\StartUp")
 
-        if not os.path.exists(os.path.join(desktop_path, r"Movefile.lnk")):
+        if os.path.exists(os.path.join(desktop_path, r"Movefile.lnk")):
+            self.mf_data.set('General', 'desktop_path', 'True')
+        else:
             self.mf_data.set('General', 'desktop_path', 'False')
-        if not os.path.exists(os.path.join(startup_path, r"Movefile.lnk")):
+        if os.path.exists(os.path.join(startup_path, r"Movefile.lnk")):
+            self.mf_data.set('General', 'autorun', 'True')
+        else:
             self.mf_data.set('General', 'autorun', 'False')
 
         self.mf_data.write(
@@ -260,10 +264,10 @@ class CheckMFProgress:
         self.continue_this_progress = True
         self.pl = pids()
         self.classname = None
-        if self.opened_proc_root():
+        if self.proc_root_on():
             self.continue_this_progress = False
 
-    def opened_proc_root(self):
+    def proc_root_on(self):
         hwnd = FindWindow(self.classname, 'Movefile Setting')
         if hwnd:
             temp_root = tk.Tk()
@@ -523,7 +527,7 @@ def detect_removable_disks_thread():
                         area_data_list.append(area_number)
                         number_book[pf] = area_number
                         new_areas_data.append([pf, area_name, area_number])
-        time.sleep(2)
+        time.sleep(0.1)
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹
@@ -1360,6 +1364,8 @@ def make_ui(first_visit=False, startup_visit=False):
 
     global root
     root = tk.Tk()
+    if startup_visit:
+        root.withdraw()
     root.iconbitmap(os.path.join(mf_data_path, r'Movefile.ico'))
     root.title('Movefile Setting')
     root.geometry("800x287")
@@ -2227,7 +2233,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 new_areas_data.remove(new_area_data)
             if run_list:
                 sf_autorun_operation('movable', run_list)
-            time.sleep(2)
+            time.sleep(0.2)
 
     if first_visit:
         initial_entry()
@@ -2242,8 +2248,6 @@ def make_ui(first_visit=False, startup_visit=False):
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
             Place('cf')
-        if startup_visit:
-            root.withdraw()
 
     butt_icon = Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
