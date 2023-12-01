@@ -1,4 +1,4 @@
-vision = 'v2.3.4'
+vision = 'v2.3.5'
 update_time = '2023/11/30'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],

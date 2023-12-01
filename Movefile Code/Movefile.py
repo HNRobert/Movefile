@@ -335,7 +335,7 @@ def set_startup(state=True, lang_n=0):
 
 def put_desktop_shortcut(state=True, lang_n=0):
     """
-    The function `put_desktop_shortcut` allows you to put the shortcut of this program into Windows Start Menu.
+    The function `put_desktop_shortcut` allows you to put the shortcut of this program on Desktop.
 
     :param state: The state parameter is a boolean value that determines whether the start menu should be displayed or not. If state is set to True, the start menu will be displayed. If state is set to False, the start menu will not be displayed, defaults to True (optional)
     :param lang_n: The `lang_n` parameter is used to specify the language for the start menu. It is an integer value that represents the language code, defaults to 1 (optional)
@@ -527,7 +527,7 @@ def detect_removable_disks_thread():
                         area_data_list.append(area_number)
                         number_book[pf] = area_number
                         new_areas_data.append([pf, area_name, area_number])
-        time.sleep(0.1)
+        time.sleep(0.5)
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹
@@ -2233,7 +2233,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 new_areas_data.remove(new_area_data)
             if run_list:
                 sf_autorun_operation('movable', run_list)
-            time.sleep(0.2)
+            time.sleep(1)
 
     if first_visit:
         initial_entry()
