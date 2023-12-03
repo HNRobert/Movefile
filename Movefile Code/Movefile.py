@@ -817,10 +817,17 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
                         [os.path.join(folderA_path, item), os.path.join(folderB_path, item)])
 
         diff_data = [[], [], []]
-        cmp_data = dircmp(folderA_path, folderB_path)
+        cmp_data = dircmp(folderA_path, folderB_path, ignore=[])
         add_diff_data(0, cmp_data.diff_files)
         add_diff_data(1, cmp_data.left_only)
         add_diff_data(2, cmp_data.right_only, True)
+        """
+        print("--------------------------------\n" + folderA_path + "\n" + folderB_path)
+        print(cmp_data.diff_files)
+        print(cmp_data.left_only)
+        print(cmp_data.right_only)
+        print("\n")
+        """
         for com_dir in cmp_data.common_dirs:
             dir_data = diff_files_in(os.path.join(
                 folderA_path, com_dir), os.path.join(folderB_path, com_dir))

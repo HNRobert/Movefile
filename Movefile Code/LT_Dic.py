@@ -1,5 +1,5 @@
 vision = 'v2.3.5'
-update_time = '2023/11/30'
+update_time = '2023/12/3'
 r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
