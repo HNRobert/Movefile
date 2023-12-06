@@ -4,6 +4,7 @@ r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
     'savefile_menu': ['保存', 'Save config'],
+    'exit_menu': ['退出', 'Exit'],
     'option_menu': ['选项', 'Option'],
     'autorun_menu': ['开机自动启动本软件', 'Start automatically'],
     'desktop_shortcut': ['添加快捷方式到桌面', 'Add a shortcut to Desktop'],
@@ -78,12 +79,14 @@ r_label_text_dic = {
 cannot have a containing relationship！'''],
     'in_disk_path_warning': ['警告：不能将一个分区与位于该分区内的文件夹同步！', '''Warning：Cannot synchronize a partition 
 with a folder located within that partition！'''],
-    'ini_error': ['''错误：配置信息无效
-请尽量不要手动更改ini配置文件''', """Error：Config File invalid, 
+    'ini_error': ['''错误：配置信息有误
+请尽量不要手动更改配置文件''', """Error：Config invalid, 
 please don't edit the config file directly"""],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software
-to make the language of some labels changed''']
+to make the language of some labels changed'''],
+    'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
+    'create_path_notice': ['\n选择 "是" 来创建该路径', '\nChoose "Yes" to create this path'],
 }
 
 
@@ -156,7 +159,7 @@ Movefile文件夹的Movefile.log记录
 或者阅读 Github 中的其他注意事项和运行机制说明
 地址：https://github.com/HNRobert/Movefile
 
-在创建一个配置存档后本窗口将不再自动弹出""", """Software name： Movefile
+本窗口将不再自动弹出""", """Software name： Movefile
 Vision： """ + vision + """               Update time： """ + update_time + """
 
 Function overview:
@@ -179,7 +182,7 @@ please visit Github first to check whether there is a new version,
 Or read other precautions and operating mechanism instructions in Github.
 Address: https://github.com/HNRobert/Movefile
 
-This notice won't be shown automatically once a config file is saved"""]
+This notice won't be shown automatically anymore"""]
 
 help_before_use_text = ["""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，

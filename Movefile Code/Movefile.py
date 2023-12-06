@@ -45,8 +45,9 @@ from win10toast_edited import ToastNotifier
 
 class Initialization:
     def __init__(self):
-        self.startup_visit = self.get_startup_statue()
+        self.startup_visit = self.get_startup_state()
         self.roaming_path = None
+        self.first_visit = False
         self.set_data_path()
 
         self.mf_data = configparser.ConfigParser()
@@ -62,39 +63,20 @@ class Initialization:
         self.ask_time_today = 0
         self.init_config()
 
-        self.first_visit = False
-        if list_saving_data() == ['', '', '']:  # 判断是否为首次访问
-            self.first_visit = True
+        if self.first_visit:  # 判断是否为首次访问
             logging.info("\nThis is the first visit of this program.")
 
-    def get_startup_statue(self):
+    def get_startup_state(self):
         if "--startup_visit" in sys.argv:
             return True
         return False
-
-    """
-    def get_system_uptime(self):
-        # Call the GetTickCount64 function from the kernel32 library
-        tick_count = windll.kernel32.GetTickCount64()
-        # Calculate the uptime in seconds
-        uptime_seconds = tick_count / 1000.0
-        return uptime_seconds        
-
-    def psutil_get_boot_time(self):
-        boot_t = psutil_boot_time()
-        boot_time_obj = datetime.fromtimestamp(boot_t)
-        now_time = datetime.now()
-        delta_time = now_time - boot_time_obj
-        time_since_boot = delta_time.days * 3600 * 24 + delta_time.seconds
-        return time_since_boot
-    """
 
     def set_data_path(self):
         """
         The function globalize the route where previous data of this program can be found.
         """
 
-        global mf_data_path, cf_data_path, cf_config_path, sf_data_path, sf_config_path, toaster
+        global mf_data_path, cf_data_path, cf_config_path, sf_data_path, sf_config_path, toaster, program_finished
         toaster = ToastNotifier()
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
@@ -105,19 +87,18 @@ class Initialization:
         cf_config_path = os.path.join(cf_data_path, r'Cleanfile_data.ini')
         sf_data_path = os.path.join(mf_data_path, r'Syncfile')
         sf_config_path = os.path.join(sf_data_path, r'Syncfile_data.ini')
+        program_finished = False
 
         if 'Movefile' not in os.listdir(self.roaming_path):
+            self.first_visit = True
             os.mkdir(mf_data_path)
-            time.sleep(0.5)
+            time.sleep(0.1)
         if 'Cleanfile' not in os.listdir(mf_data_path):
             os.mkdir(cf_data_path)
         if 'Syncfile' not in os.listdir(mf_data_path):
             os.mkdir(sf_data_path)
 
     def init_config(self):
-        """
-        The function "asktime_plus" is not defined in the code provided.
-        """
 
         time_now = datetime.today()
         date = str(time_now.date())
@@ -130,7 +111,7 @@ class Initialization:
         if not self.mf_data.has_section("General"):
             self.mf_data.add_section("General")
 
-        if not self.mf_data.has_section("General") or self.mf_data.get("General", "date") != str(date):
+        if not self.mf_data.has_option("General", "date") or self.mf_data.get("General", "date") != str(date):
             self.ask_time_today = 1
             self.mf_data.set("General", "date", date)
             self.mf_data.set("General", "asktime_today", '1')
@@ -414,50 +395,6 @@ def list_saving_data():
     return last_saving_data
 
 
-def data_error(mode_, name_):
-    if mode_ == 'cf':
-        try:
-            cf = configparser.ConfigParser()
-            cf.read(cf_config_path)  # 获取配置文件
-            old_path_ = cf.get(name_, 'old_path')  # 旧文件夹
-            new_path_ = cf.get(name_, 'new_path')  # 新文件夹
-            move_folder = cf.get(name_, 'move_folder')
-            autorun_ = cf.get(name_, 'autorun')
-            cf.getint(name_, 'set_hour')  # 过期时间
-            cf.getint(name_, 'mode')
-            right_path = False
-            if os.path.exists(old_path_) and os.path.exists(new_path_) or new_path_ == '':
-                right_path = True
-            right_option = False
-            if (move_folder == 'True' or move_folder == 'False') and (autorun_ == 'True' or autorun_ == 'False'):
-                right_option = True
-            if right_path and right_option:
-                return False
-            else:
-                return True
-        except:
-            return True
-    elif mode_ == 'sf':
-        try:
-            cf = configparser.ConfigParser()
-            cf.read(sf_config_path)
-            if cf.has_option(name_, 'path_1'):
-                path_1_ = cf.get(name_, 'path_1')
-                usb_mode = False
-            else:
-                path_1_ = cf.get(name_, 'disk_number')
-                usb_mode = True
-            path_2_ = cf.get(name_, 'path_2')
-            mode_s = cf.get(name_, 'mode')
-            if not usb_mode:
-                os.listdir(path_1_)
-            os.listdir(path_2_)
-            if not (mode_s == 'double' or mode_s == 'single'):
-                return True
-        except:
-            return True
-
-
 def scan_removable_disks(s_uuid=None):
     """
     This function scans for removable disks and returns their UUIDs.
@@ -494,7 +431,7 @@ def scan_removable_disks(s_uuid=None):
         else:
             for pair in uuid_disk_pairs:
                 if pair[0] == s_uuid:
-                    return [pair[1]]
+                    return pair[1]
     return []
 
 
@@ -507,7 +444,7 @@ def detect_removable_disks_thread():
     area_data_list = []
     number_book = {}
     new_areas_data = []
-    while True:
+    while not program_finished:
         for item in disk_partitions():
             # 判断是不是可移动磁盘
             if "removable" in item.opts:
@@ -705,6 +642,8 @@ def cf_move_dir(old__path, new__path, pass__file, pass__format, overdue_time, ch
         baroot.progress_root.withdraw()
 
     global clean_bar_root, clean_bar_root_task
+    if new__path != '' and not os.path.exists(new__path):
+        os.mkdir(new__path)
     clean_bar_root = ProgressBar('Movefile  -Syncfile Progress',
                                  cfdic["main_progress_label2"][lang_num],
                                  cfdic["current_file_label"][lang_num],
@@ -941,6 +880,10 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         baroot.progress_root.destroy()
         sf_progress_done = True
 
+    if path1[-1] != ':' and not os.path.exists(path1):
+        os.mkdir(path1)
+    if not os.path.exists(path2):
+        os.mkdir(path2)
     sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
                                 sfdic["main_progress_label2"][language_number],
                                 sfdic["current_file_label"][language_number],
@@ -1030,7 +973,6 @@ def make_ui(first_visit=False, startup_visit=False):
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
     general_data.read(os.path.join(mf_data_path, r'Movefile_data.ini'))
-    normal_paused = False
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
@@ -1067,13 +1009,13 @@ def make_ui(first_visit=False, startup_visit=False):
 
         item_names.close()
 
-    def sf_refresh_disk_list(none_disk=False):
+    def sf_refresh_disk_list(blank_entry=False):
         disk_list = scan_removable_disks()
         if disk_list:
             sf_entry_select_removable['values'] = disk_list
         else:
             sf_entry_select_removable['values'] = [sf_no_disk_text.get()]
-            if none_disk:
+            if blank_entry:
                 sf_entry_select_removable.delete(0, 'end')
 
     def select_path(place, ori_content):
@@ -1175,6 +1117,7 @@ def make_ui(first_visit=False, startup_visit=False):
         file_menu_text.set(r_label_text_dic['file_menu'][lang_number])
         readfile_menu_text.set(r_label_text_dic['readfile_menu'][lang_number])
         savefile_menu_text.set(r_label_text_dic['savefile_menu'][lang_number])
+        exit_menu_text.set(r_label_text_dic['exit_menu'][lang_number])
         option_menu_text.set(r_label_text_dic['option_menu'][lang_number])
         autorun_menu_text.set(r_label_text_dic['autorun_menu'][lang_number])
         desktop_shortcut_text.set(
@@ -1425,6 +1368,7 @@ def make_ui(first_visit=False, startup_visit=False):
     file_menu_text = tk.StringVar()
     readfile_menu_text = tk.StringVar()
     savefile_menu_text = tk.StringVar()
+    exit_menu_text = tk.StringVar()
     option_menu_text = tk.StringVar()
     autorun_menu_text = tk.StringVar()
     desktop_shortcut_text = tk.StringVar()
@@ -1565,46 +1509,40 @@ def make_ui(first_visit=False, startup_visit=False):
                                         textvariable=sf_option_autorun_text,
                                         variable=sf_entry_is_autorun)
 
-    class ZFunc:
-        @staticmethod
-        def help_main():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=help_main_text[lang_num])
+    class MF_Help:
+        def __init__(self):
+            pass
 
-        @staticmethod
-        def help_before_use():
-            tkinter.messagebox.showinfo(title='Movefile',
-                                        message=help_before_use_text[lang_num])
+        def show_help(self, mf_message):
+            tkinter.messagebox.showinfo(title='Movefile', message=mf_message)
 
-        @staticmethod
-        def cf_help():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=cf_help_text[lang_num])
+        def help_main(self):
+            self.show_help(help_main_text[lang_num])
 
-        @staticmethod
-        def cf_help_keep():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=cf_help_keep_text[lang_num])
+        def help_before_use(self):
+            self.show_help(help_before_use_text[lang_num])
 
-        @staticmethod
-        def cf_help_timeset():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=cf_help_timeset_text[lang_num])
+        def cf_help(self):
+            self.show_help(cf_help_text[lang_num])
 
-        @staticmethod
-        def sf_help():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=sf_help_text[lang_num])
+        def cf_help_keep(self):
+            self.show_help(cf_help_keep_text[lang_num])
 
-        @staticmethod
-        def sf_removable_help():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=sf_removable_help_text[lang_num])
+        def cf_help_timeset(self):
+            self.show_help(cf_help_timeset_text[lang_num])
 
-        @staticmethod
-        def sf_lock_help():
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=sf_lock_help_text[lang_num])
+        def sf_help(self):
+            self.show_help(sf_help_text[lang_num])
+
+        def sf_removable_help(self):
+            self.show_help(sf_removable_help_text[lang_num])
+
+        def sf_lock_help(self):
+            self.show_help(sf_lock_help_text[lang_num])
+
+    class MF_Info_Checker:
+        def __init__(self):
+            pass
 
         @staticmethod
         def cf_is_num():
@@ -1630,13 +1568,27 @@ def make_ui(first_visit=False, startup_visit=False):
                 return True
 
         @staticmethod
-        def cf_path_error():
+        def try_create_path(noexist_path):
+            if tkinter.messagebox.askokcancel(title="Movefile",
+                                              message=r_label_text_dic["path_not_exist_notice"][lang_num] + noexist_path + r_label_text_dic["create_path_notice"][lang_num]):
+                try:
+                    os.makedirs(noexist_path)
+                except:
+                    return True
+                else:
+                    return False
+            return None  # if cancelled
+
+        def cf_path_error(self):
             try:
                 os.listdir(cf_entry_old_path.get())
-                if cf_entry_new_path.get() != '':
-                    os.listdir(cf_entry_new_path.get())
+                if cf_entry_new_path.get() == '':
+                    return False
                 if cf_entry_old_path.get() == cf_entry_new_path.get():
                     return 'same_path_error'
+                if not os.path.isdir(cf_entry_new_path.get()):
+                    return self.try_create_path(cf_entry_new_path.get())
+                os.listdir(cf_entry_new_path.get())
             except:
                 return True
             else:
@@ -1656,82 +1608,106 @@ def make_ui(first_visit=False, startup_visit=False):
             else:
                 return True
 
-        @staticmethod
-        def sf_path_error():
-            try:
-                if sf_place_mode.get() == 'movable':
+        def sf_path_error(self):
+            has_cancelled = False
+            if sf_place_mode.get() == 'movable':  # moveable check
+                try:
                     os.listdir(sf_entry_select_removable.get().split(
                         ':')[0][-1] + ':')
-                else:
-                    os.listdir(sf_entry_path_1.get())
-                os.listdir(sf_entry_path_2.get())
-                if sf_entry_path_1.get() == sf_entry_path_2.get() and sf_place_mode.get() != 'movable':
-                    return 'same_path_error'
-                elif (sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get()) \
-                        and sf_place_mode.get() != 'movable':
-                    return 'in_path_error'
-                elif sf_place_mode.get() == 'movable':
-                    if (sf_entry_select_removable.get().split(':')[0][-1] + ':') in sf_entry_path_2.get():
-                        return 'in_disk_path_error'
-            except:
-                return True
+                except:
+                    return True
+            elif not os.path.isdir(sf_entry_path_1.get()):  # local route A check
+                result = self.try_create_path(sf_entry_path_1.get())
+                if not (result is None):
+                    return result
+                has_cancelled = True  # passed
             else:
-                return False
+                try:
+                    os.listdir(sf_entry_path_1.get())
+                except:
+                    return True
 
-        @staticmethod
-        def cf_has_error():
-            if not ZFunc.cf_is_num():
+            if not os.path.isdir(sf_entry_path_2.get()):  # local route B Check
+                result = self.try_create_path(sf_entry_path_2.get())
+                if has_cancelled or (result is None):
+                    return None
+                return result
+            else:
+                try:
+                    os.listdir(sf_entry_path_2.get())
+                except:
+                    return True
+
+            if sf_entry_path_1.get() == sf_entry_path_2.get() and sf_place_mode.get() != 'movable':
+                return 'same_path_error'
+            elif (sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get()) \
+                    and sf_place_mode.get() != 'movable':
+                return 'in_path_error'
+            elif sf_place_mode.get() == 'movable':
+                if (sf_entry_select_removable.get().split(':')[0][-1] + ':') in sf_entry_path_2.get():
+                    return 'in_disk_path_error'
+            return False
+
+        def get_cf_error_state(self):
+            cf_path_error_info = self.cf_path_error()
+            if not self.cf_is_num():
                 tkinter.messagebox.showwarning(
                     'Movefile', r_label_text_dic['num_warning'][lang_num])
                 return True
-            elif ZFunc.cf_has_blank():
+            elif self.cf_has_blank():
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
                 return True
-            elif ZFunc.cf_path_error() == 'same_path_error':
+            elif cf_path_error_info == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=r_label_text_dic['same_path_warning'][lang_num])
                 return True
-            elif ZFunc.cf_path_error():
+            elif cf_path_error_info is None:
+                return True
+            elif cf_path_error_info:
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
                 return True
             else:
                 return False
 
-        @staticmethod
-        def sf_has_error():
-            path_error_data = ZFunc.sf_path_error()
-            if ZFunc.sf_has_blank():
+        def get_sf_error_state(self):
+            sf_path_error_info = self.sf_path_error()
+            if self.sf_has_blank():
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=r_label_text_dic['blank_warning'][lang_num])
                 return True
-            elif path_error_data == 'same_path_error':
+            elif sf_path_error_info == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=r_label_text_dic['same_path_warning'][lang_num])
                 return True
-            elif path_error_data == 'in_path_error':
+            elif sf_path_error_info == 'in_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=r_label_text_dic['in_path_warning'][lang_num])
                 return True
-            elif path_error_data == 'in_disk_path_error':
+            elif sf_path_error_info == 'in_disk_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=r_label_text_dic['in_disk_path_warning'][lang_num])
                 return True
-            elif path_error_data:
+            elif sf_path_error_info is None:
+                return True
+            elif sf_path_error_info:
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=r_label_text_dic['path_warning'][lang_num])
                 return True
             else:
                 return False
 
-    def initial_entry():
+    def initial_entry(set_cf_dest=False):
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                              r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
         desktop_path = winreg.QueryValueEx(key, "Desktop")[0]
+        default_dest_path = os.path.join(desktop_path, r'Previous Files')
         if not cf_entry_old_path.get():
             cf_entry_old_path.insert(0, desktop_path)
             cf_refresh_whitelist_entry()
+        if set_cf_dest and not cf_entry_new_path.get():
+            cf_entry_new_path.insert(0, default_dest_path)
         if not cf_entry_mode.get():
             cf_entry_mode.set(1)
         if not cf_entry_time.get():
@@ -1834,15 +1810,15 @@ def make_ui(first_visit=False, startup_visit=False):
 
         mode = cf_or_sf.get()
         if mode == 'cf':
-            has_error = ZFunc.cf_has_error()
+            error_state = root_info_checker.get_cf_error_state()
             pri_save_names = cf_save_names
         elif mode == 'sf':
-            has_error = ZFunc.sf_has_error()
+            error_state = root_info_checker.get_sf_error_state()
             pri_save_names = sf_save_names
         else:
-            has_error = True
+            error_state = True
             pri_save_names = []
-        if not has_error:
+        if not error_state:
             ask_name_window = tk.Toplevel(root)
             ask_name_window.iconbitmap(
                 os.path.join(mf_data_path, r'Movefile.ico'))
@@ -1913,9 +1889,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 setting_name, 'move_folder') == 'True')
             Place('cf')
             cf_or_sf.set('cf')
-            if data_error('cf', setting_name):
-                tkinter.messagebox.showwarning(
-                    title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
+            root_info_checker.get_cf_error_state()
 
         def open_sf_saving(setting_name):
             if sf_entry_path_1.get() != '':
@@ -1932,6 +1906,8 @@ def make_ui(first_visit=False, startup_visit=False):
             if place_mode == 'local':
                 sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
             else:
+                sf_refresh_disk_list()
+                time.sleep(0.1)
                 area_number = sf_file.get(setting_name, 'disk_number')
                 sf_entry_select_removable.delete(0, 'end')
                 sf_last_data = scan_removable_disks(area_number)
@@ -1951,9 +1927,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 setting_name, 'autorun') == 'True')
             Place('sf', place_mode)
             cf_or_sf.set('sf')
-            if data_error('sf', setting_name):
-                tkinter.messagebox.showwarning(
-                    title='Movefile', message=r_label_text_dic['ini_error'][lang_num])
+            root_info_checker.get_sf_error_state()
 
         def refresh_saving():
             nonlocal new_values
@@ -2058,7 +2032,10 @@ def make_ui(first_visit=False, startup_visit=False):
             open_sf_saving(save_name)
             current_save_name.set(
                 r_label_text_dic['current_save_name'][lang_num] + save_name)
-        initial_entry()
+        empty_config = False
+        if mode == "" or mode == 'sf':
+            empty_config = True
+        initial_entry(set_cf_dest=empty_config)
 
     def cf_operate_from_root():
         old_path = cf_entry_old_path.get()  # 旧文件夹
@@ -2075,7 +2052,7 @@ def make_ui(first_visit=False, startup_visit=False):
 
     def sf_operate_from_root():
         if sf_place_mode.get() == 'movable':
-            path1 = sf_entry_select_removable.get().split(':')[0][-1] + ':\\'
+            path1 = sf_entry_select_removable.get().split(':')[0][-1] + ':'
         else:
             path1 = sf_entry_path_1.get()
         path2 = sf_entry_path_2.get()
@@ -2104,12 +2081,12 @@ def make_ui(first_visit=False, startup_visit=False):
             title='Movefile', message=r_label_text_dic['change_language'][lang_num])
 
     def continue_going():
-        if cf_or_sf.get() == 'cf' and not ZFunc.cf_has_error():
+        if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
             cf_operator = Thread(
                 target=lambda: cf_operate_from_root(), daemon=True)
             cf_operator.start()
             root.withdraw()
-        elif cf_or_sf.get() == 'sf' and not ZFunc.sf_has_error():
+        elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             sf_operator = Thread(
                 target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
@@ -2117,27 +2094,28 @@ def make_ui(first_visit=False, startup_visit=False):
 
     # @atexit.register
     def exit_program():
-        nonlocal normal_paused
-        if not normal_paused:
-            normal_paused = True
-            task_menu.stop()
-            toaster.stop_notification_thread()
-            if 'clean_bar_root' in globals().keys():
-                clean_bar_root.progress_root_destruction()
-                clean_bar_root_task.join()
-            if 'ask_saving_root' in globals().keys():
-                ask_saving_root.quit()
-                ask_saving_root.destroy()
-            if 'ask_name_window' in globals().keys():
-                ask_name_window.quit()
-                ask_name_window.destroy()
+        global program_finished
+        program_finished = True
+        root.withdraw()
+        toaster.stop_notification_thread()
+        if 'clean_bar_root' in globals().keys():
+            clean_bar_root.progress_root_destruction()
+            clean_bar_root_task.join()
+        if 'ask_saving_root' in globals().keys():
+            ask_saving_root.quit()
+            ask_saving_root.destroy()
+        if 'ask_name_window' in globals().keys():
+            ask_name_window.quit()
+            ask_name_window.destroy()
 
-            root.quit()
-            root.destroy()
-            logging.info("\nMovefile Quit\n")
-            ask_permit.join()
-            butt_icon.join()
-            background_detect.join()
+        task_menu.stop()
+        root.quit()
+        root.destroy()
+
+        logging.info("\nMovefile Quit\n")
+        butt_icon.join()
+        ask_permit.join()
+        background_detect.join()
 
     # 创建按键
     blank_pix = ttk.Label(root, text=' ')
@@ -2155,6 +2133,9 @@ def make_ui(first_visit=False, startup_visit=False):
                           accelerator="Ctrl+O")
     file_menu.add_command(label=savefile_menu_text.get(
     ), command=lambda: ask_save_name(), accelerator="Ctrl+S")
+    file_menu.add_separator()
+    file_menu.add_command(label=exit_menu_text.get(),
+                          command=lambda: exit_program())
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
@@ -2173,22 +2154,24 @@ def make_ui(first_visit=False, startup_visit=False):
     language_menu.add_radiobutton(label='English', variable=root_language, value='English',
                                   command=lambda: change_language('English'))
 
+    help_shower = MF_Help()
     help_menu = tk.Menu(main_menu, tearoff=False)
-    help_menu.add_command(label=about_menu_text.get(), command=ZFunc.help_main)
+    help_menu.add_command(label=about_menu_text.get(),
+                          command=help_shower.help_main)
     help_menu.add_command(label=precautions_menu_text.get(),
-                          command=ZFunc.help_before_use)
+                          command=help_shower.help_before_use)
     help_menu.add_separator()
-    help_menu.add_command(label='Cleanfile', command=ZFunc.cf_help)
+    help_menu.add_command(label='Cleanfile', command=help_shower.cf_help)
     help_menu.add_command(label=cf_keep_menu_text.get(),
-                          command=ZFunc.cf_help_keep)
+                          command=help_shower.cf_help_keep)
     help_menu.add_command(label=cf_expire_menu_text.get(),
-                          command=ZFunc.cf_help_timeset)
+                          command=help_shower.cf_help_timeset)
     help_menu.add_separator()
-    help_menu.add_command(label='Syncfile', command=ZFunc.sf_help)
+    help_menu.add_command(label='Syncfile', command=help_shower.sf_help)
     help_menu.add_command(label=sf_removable_menu_text.get(),
-                          command=ZFunc.sf_removable_help)
+                          command=help_shower.sf_removable_help)
     help_menu.add_command(label=sf_lock_menu_text.get(),
-                          command=ZFunc.sf_lock_help)
+                          command=help_shower.sf_lock_help)
 
     main_menu.add_cascade(label=file_menu_text.get(), menu=file_menu)
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
@@ -2200,7 +2183,7 @@ def make_ui(first_visit=False, startup_visit=False):
     menu = (
         MenuItem(taskbar_setting_text.get(),
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
-        MenuItem(taskbar_exit_text.get(), lambda event: exit_program()))
+        MenuItem(taskbar_exit_text.get(), action=lambda: exit_program()))
     image = Image.open(os.path.join(mf_data_path, r'Movefile.ico'))
     task_menu = Icon("icon", image, "Movefile", menu)
 
@@ -2209,6 +2192,8 @@ def make_ui(first_visit=False, startup_visit=False):
     root.bind("<Control-s>", lambda event: ask_save_name())
     root.bind("<Control-S>", lambda event: ask_save_name())
     # root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
+
+    root_info_checker = MF_Info_Checker()
 
     root.protocol('WM_DELETE_WINDOW', root.withdraw)
     # 重新定义点击关闭按钮的处理
@@ -2228,7 +2213,7 @@ def make_ui(first_visit=False, startup_visit=False):
         The function "ask_sync_disk" is used to prompt the user to input whether they want to
         synchronize their disk.
         """
-        while True:
+        while not program_finished:
             run_list = []
             for new_area_data in new_areas_data:
                 for autorun_id in get_movable_autorun_ids():
@@ -2243,11 +2228,11 @@ def make_ui(first_visit=False, startup_visit=False):
             time.sleep(1)
 
     if first_visit:
-        initial_entry()
+        initial_entry(set_cf_dest=True)
         cf_or_sf.set('cf')
         Place('cf')
-        ZFunc.help_main()
-        ZFunc.help_before_use()
+        help_shower.help_main()
+        help_shower.help_before_use()
     else:
         read_saving()
         cf_refresh_whitelist_entry()
