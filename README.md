@@ -436,4 +436,12 @@ Movefile v2.3.5
 开机自启时提前隐藏窗口使其彻底不会被显示（而不是闪一下）
 修复Syncfile同步时会忽略一些缓存文件的问题
 修复其他一些小Bug，完善安装包
+
+21:40 2023/12/6
+Movefile v2.3.6
+Update Content:
+Enhanced error capture capability
+Add exit button on menu
+Optimized structure and logic
+Bugs Fixed, More stable
 ```
