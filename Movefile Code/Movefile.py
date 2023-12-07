@@ -976,16 +976,6 @@ def make_ui(first_visit=False, startup_visit=False):
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
-        def update_values(values_in: list, entry_in: Combopicker, ):
-            entry_in.values = values_in
-            previous_values = entry_in.get().split(',')
-            result = ''
-            for pre_value in previous_values:
-                if pre_value in values_in:
-                    result += pre_value + ','
-            entry_in.delete(0, 'end')
-            entry_in.insert(0, result)
-
         nonlocal cf_ori_old_path
         all_ends = []
         file_names = []
@@ -1004,8 +994,8 @@ def make_ui(first_visit=False, startup_visit=False):
                 folder_names.append(item.name)
         exist_ends = sorted(set(all_ends))
 
-        update_values(['全选'] + folder_names + file_names, cf_entry_keep_files)
-        update_values(['全选'] + exist_ends, cf_entry_keep_formats)
+        cf_entry_keep_files.update_values(folder_names + file_names)
+        cf_entry_keep_formats.update_values(exist_ends)
 
         item_names.close()
 
@@ -1110,6 +1100,8 @@ def make_ui(first_visit=False, startup_visit=False):
             r_label_text_dic['sf_label_autorun'][lang_number])
         sf_option_autorun_text.set(
             r_label_text_dic['sf_option_autorun'][lang_number])
+        select_all_text.set(r_label_text_dic['select_all'][lang_number])
+        
         save_button_text.set(r_label_text_dic['save_button'][lang_number])
         continue_button_text.set(
             r_label_text_dic['continue_button'][lang_number])
@@ -1362,6 +1354,7 @@ def make_ui(first_visit=False, startup_visit=False):
     sf_label_lock_file_text = tk.StringVar()
     sf_label_autorun_text = tk.StringVar()
     sf_option_autorun_text = tk.StringVar()
+    select_all_text = tk.StringVar()
 
     save_button_text = tk.StringVar()
     continue_button_text = tk.StringVar()
@@ -1430,7 +1423,7 @@ def make_ui(first_visit=False, startup_visit=False):
     cf_label_keep_files = ttk.Label(
         root, textvariable=cf_label_keep_files_text)
     cf_entry_keep_files = Combopicker(
-        master=cf_entry_frame_keep_files, values='', frameheight=120)
+        master=cf_entry_frame_keep_files, frameheight=120, allname_textvariable=select_all_text)
     cf_entry_keep_files.bind(
         '<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
@@ -1438,7 +1431,7 @@ def make_ui(first_visit=False, startup_visit=False):
     cf_label_keep_formats = ttk.Label(
         root, textvariable=cf_label_keep_formats_text)
     cf_entry_keep_formats = Combopicker(
-        master=cf_entry_frame_keep_formats, values='', frameheight=90)
+        master=cf_entry_frame_keep_formats, frameheight=90, allname_textvariable=select_all_text)
     cf_entry_keep_formats.bind(
         '<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
@@ -1492,14 +1485,14 @@ def make_ui(first_visit=False, startup_visit=False):
         root, textvariable=sf_label_lock_folder_text)
     sf_entry_frame_lock_folder = tk.Frame(root)
     sf_entry_lock_folder = Combopicker(
-        master=sf_entry_frame_lock_folder, values=['全选'], frameheight=90)
+        master=sf_entry_frame_lock_folder, frameheight=90, allname_textvariable=select_all_text)
     sf_browse_lockfolder_button = ttk.Button(root, textvariable=sf_browse_lockfolder_button_text,
                                              command=lambda: choose_lock_items('lockfolder'))
 
     sf_label_lock_file = ttk.Label(root, textvariable=sf_label_lock_file_text)
     sf_entry_frame_lock_file = tk.Frame(root)
     sf_entry_lock_file = Combopicker(
-        master=sf_entry_frame_lock_file, values=['全选'], frameheight=50)
+        master=sf_entry_frame_lock_file, frameheight=50, allname_textvariable=select_all_text)
     sf_browse_lockfile_button = ttk.Button(root, textvariable=sf_browse_lockfile_button_text,
                                            command=lambda: choose_lock_items('lockfile'))
 

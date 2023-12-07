@@ -1,11 +1,14 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import StringVar, ttk
+import comm
+
+from torch import NoneType
 
 
 class Picker(ttk.Frame):
 
     def __init__(self, master=None, activebackground='#b1dcfb', values=None, entry_wid=None, activeforeground='black',
-                 selectbackground='#003eff', selectforeground='white', command=None, borderwidth=1, relief="solid",
+                 selectbackground='#003eff', selectforeground='white', command=None, borderwidth=1, relief=['solid'],
                  frameheight=120):
 
         if values is None:
@@ -22,20 +25,34 @@ class Picker(ttk.Frame):
         self._act_bg = activebackground
         self._act_fg = activeforeground
 
-        self._command = command
+        if not command is None:
+            self._command = command
+        else:
+            raise ValueError
+        
+        if not entry_wid is None:
+            self._entry_wid = entry_wid
+        else:
+            raise ValueError
+        
         self.index = 0
-        ttk.Frame.__init__(self, master, borderwidth=borderwidth, height=10, relief=relief)
+        ttk.Frame.__init__(
+            self, master, borderwidth=borderwidth, height=10, relief=relief)
 
-        self.bind("<FocusIn>", lambda event: self.event_generate('<<PickerFocusIn>>'))
-        self.bind("<FocusOut>", lambda event: self.event_generate('<<PickerFocusOut>>'))
+        self.bind("<FocusIn>", lambda event: self.event_generate(
+            '<<PickerFocusIn>>'))
+        self.bind("<FocusOut>", lambda event: self.event_generate(
+            '<<PickerFocusOut>>'))
         f = tk.LabelFrame(self)
         f.pack(fill='x')
-        self.canvas = tk.Canvas(f, scrollregion=(0, 0, 500, (len(self._values) * 23 + 3)))
+        self.canvas = tk.Canvas(f, scrollregion=(
+            0, 0, 500, (len(self._values) * 23 + 3)))
         vbar = tk.Scrollbar(f, orient=tk.VERTICAL)
         vbar.pack(side=tk.RIGHT, fill=tk.Y)
         frame = tk.Frame(self.canvas)
         vbar.config(command=self.canvas.yview)
-        self.canvas.create_window((0, 0,), window=frame, anchor='nw', tags='frame')
+        self.canvas.create_window(
+            (0, 0,), window=frame, anchor='nw', tags='frame')
 
         self.canvas.config(highlightthickness=0)  # 去掉选中边框
         vbar.config(command=self.canvas.yview)
@@ -48,7 +65,8 @@ class Picker(ttk.Frame):
             self.dict_intvar_item[item] = tk.IntVar()
             self.dict_checkbutton[item] = ttk.Checkbutton(frame, text=item, variable=self.dict_intvar_item[item],
                                                           command=lambda ITEM=item: self._command(ITEM))
-            self.dict_checkbutton[item].grid(row=index, column=0, sticky=tk.NSEW, padx=5)
+            self.dict_checkbutton[item].grid(
+                row=index, column=0, sticky=tk.NSEW, padx=5)
             self.dict_intvar_item[item].set(0)
             if item in self._entry_wid.get().split(','):
                 self.dict_intvar_item[item].set(1)
@@ -71,13 +89,19 @@ class Combopicker(ttk.Entry, Picker):
 
     def __init__(self, master, values=None, entryvar=None, entrywidth=None, entrystyle=None, onselect=None,
                  activebackground='#b1dcfb', activeforeground='black', selectbackground='#003eff',
-                 selectforeground='white', borderwidth=1, relief="solid", frameheight=50):
+                 selectforeground='white', borderwidth=1, relief="solid", frameheight=50, allname_textvariable=None):
         self.onselect = onselect
         self.relief = relief
         self.borderwidth = borderwidth
         if values is None:
             values = []
         self.values = values
+        if not allname_textvariable is None:
+            self.allname_var = allname_textvariable
+        else:
+            raise ValueError
+        self.previous_allname = self.allname_var.get()
+        self.values.append(self.previous_allname)
         self.master = master
         self.activeforeground = activeforeground
         self.activebackground = activebackground
@@ -96,7 +120,8 @@ class Combopicker(ttk.Entry, Picker):
         if entrystyle is not None:
             entry_config["style"] = entrystyle
 
-        ttk.Entry.__init__(self, master, textvariable=self.show_var, **entry_config, state="")
+        ttk.Entry.__init__(
+            self, master, textvariable=self.show_var, **entry_config, state="")
 
         self._is_menuoptions_visible = False
 
@@ -121,11 +146,34 @@ class Combopicker(ttk.Entry, Picker):
 
     @current_value.setter
     def current_value(self, INDEX):
-        self.entry_var.set(self.values.index(INDEX))
+        self.entry_var.set(str(self.values.index(INDEX)))
 
+    def change_language(self, label_name):
+        self.allname_var.set(label_name)
+        self.values[0] = label_name
+
+    def all_selected(self, _values):
+        for item in self.values[1:]:
+            if not item in _values:
+                return False
+        return True
+    
+    def update_values(self, values_in):
+        self.values = [self.allname_var.get()] + values_in
+        previous_values = self.get().split(',')
+        result = ''
+        for pre_value in previous_values:
+            if pre_value in values_in:
+                result += pre_value + ','
+        if not result == '' and result[-1] == ',':
+            result = result[:-1]
+        self.delete(0, 'end')
+        self.insert(0, result)
+    
     def _on_selected_check(self, SELECTED):
         value = []
-        all_name = '全选'
+        all_name = self.allname_var.get()
+        need_refresh = False
 
         if self.entry_var.get() != "" and self.entry_var.get() is not None:
             temp_value = self.entry_var.get()
@@ -133,30 +181,35 @@ class Combopicker(ttk.Entry, Picker):
         if str(SELECTED) in value:
             if all_name == str(SELECTED):
                 value.clear()  # 清空选项
+                need_refresh = True
             else:
                 if all_name in value:
                     value.remove(all_name)
+                    need_refresh = True
                 value.remove(str(SELECTED))
                 value.sort()
         else:
             if all_name == str(SELECTED):
                 value = self.values
+                need_refresh = True
             else:
                 value.append(str(SELECTED))
                 value.sort()
+                if self.all_selected(value):
+                    value = self.values
+                    need_refresh = True
         temp_value = ""
         for index, item in enumerate(value):
-            if item != "":
-                if index != 0:
-                    temp_value += ","
-                temp_value += str(item)
+            if item != "" and index > 0:
+                temp_value += ","
+            temp_value += str(item)
         self.entry_var.set(temp_value)
-        if '全选' in self.entry_var.get().split(','):
-            self.show_var.set(self.entry_var.get()[3::])
+        if all_name in self.entry_var.get().split(','):
+            self.show_var.set(self.entry_var.get()[len(all_name)+1:])
         else:
             self.show_var.set(self.entry_var.get())
         # 全选刷新
-        if all_name == str(SELECTED):
+        if need_refresh:
             self.hide_picker()
             self.show_picker()
 
@@ -171,7 +224,9 @@ class Combopicker(ttk.Entry, Picker):
                 self.hide_picker()
 
     def show_picker(self):
-
+        if self.previous_allname != self.allname_var.get():  # Check Select_All label
+            self.change_language(self.allname_var.get())
+            self.previous_allname = self.allname_var.get()
         if not self._is_menuoptions_visible:
             self.picker_frame = Picker(self.winfo_toplevel(), values=self.values, entry_wid=self.entry_var,
                                        frameheight=self.frameheight, activebackground=self.activebackground,

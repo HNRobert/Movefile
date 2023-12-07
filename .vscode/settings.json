@@ -5,5 +5,24 @@
   "python.formatting.provider": "none",
   "python.analysis.typeCheckingMode": "basic",
   "python.analysis.autoImportCompletions": true,
-  "cSpell.words": ["levelname", "sfdic"]
+  "cSpell.words": [
+    "activebackground",
+    "activeforeground",
+    "allname",
+    "borderwidth",
+    "entrystyle",
+    "entryvar",
+    "entrywidth",
+    "highlightthickness",
+    "levelname",
+    "menuoptions",
+    "onselect",
+    "processwheel",
+    "relwidth",
+    "relx",
+    "scrollregion",
+    "selectforeground",
+    "sfdic",
+    "yscrollcommand"
+  ]
 }
