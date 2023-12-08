@@ -131,7 +131,8 @@ Are you sure to interrupt the process and exit?'''],
     'can_not_move_notice': ["""
 无法被同步，请在关闭文件或移除重名文件后重试""", """
 Couldn't be synchronized, Please try again after closing the file
-or removing the duplicate file """]
+or removing the duplicate file """],
+    'new_disk_detected': [['检测到可移动磁盘 "', '" 接入,\n', '确定按配置 "', '" 进行同步?'], ['Removable partition "', '" detected,\n', 'Synchronize as config "', '" ?']]
 }
 
 progress_root_label_dic = {

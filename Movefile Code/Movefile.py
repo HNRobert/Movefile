@@ -1101,7 +1101,7 @@ def make_ui(first_visit=False, startup_visit=False):
         sf_option_autorun_text.set(
             r_label_text_dic['sf_option_autorun'][lang_number])
         select_all_text.set(r_label_text_dic['select_all'][lang_number])
-        
+
         save_button_text.set(r_label_text_dic['save_button'][lang_number])
         continue_button_text.set(
             r_label_text_dic['continue_button'][lang_number])
@@ -2210,9 +2210,10 @@ def make_ui(first_visit=False, startup_visit=False):
             run_list = []
             for new_area_data in new_areas_data:
                 for autorun_id in get_movable_autorun_ids():
+                    msg_ps = sfdic['new_disk_detected'][lang_num]
+                    msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_id[1]}{msg_ps[3]}'
                     if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
-                                                                                                 message=f'检测到可移动磁盘{new_area_data[1]} ({new_area_data[0][:-1]})接入，' + '\n' +
-                                                                                                         f'确定按配置 "{autorun_id[1]}" 进行同步?'):
+                                                                                                 message=msg_content):
                         run_list.append(
                             [new_area_data[0], new_area_data[1], autorun_id[1]])
                 new_areas_data.remove(new_area_data)
