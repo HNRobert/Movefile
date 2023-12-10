@@ -1,8 +1,5 @@
 import tkinter as tk
-from tkinter import StringVar, ttk
-import comm
-
-from torch import NoneType
+from tkinter import ttk
 
 
 class Picker(ttk.Frame):

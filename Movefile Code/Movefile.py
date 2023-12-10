@@ -10,7 +10,6 @@ QQ: 2567466856
 GitHub address: https://github.com/HNRobert/Movefile
 """
 
-import base64
 import configparser
 import logging
 import os
@@ -20,6 +19,7 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.ttk as ttk
 import winreg
+from base64 import b64decode
 from ctypes import windll
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -154,7 +154,7 @@ class Initialization:
 
     def load_icon(self):
         self.mf_ico = open(os.path.join(mf_data_path, r'Movefile.ico'), 'wb')
-        self.mf_ico.write(base64.b64decode(icon.Movefile_ico))
+        self.mf_ico.write(b64decode(icon.Movefile_ico))
         self.mf_ico.close()
 
     def set_log_writer(self):
