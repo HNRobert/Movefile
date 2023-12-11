@@ -263,13 +263,9 @@ class CheckMFProgress:
 
 
 def startup_autorun():
-    pile = 0
-    while "root" not in globals().keys() and pile < 100:
-        time.sleep(0.1)
-        pile += 1
-    if pile < 100:
-        cf_autorun_operation()
-        sf_autorun_operation('local')
+    time.sleep(1)
+    cf_autorun_operation()
+    sf_autorun_operation('local')
 
 
 def get_start_menu_path():
@@ -364,35 +360,25 @@ def language_num(language_name):
 
 
 def list_saving_data():
-    global last_saving_data, all_save_names, cf_save_names, sf_save_names
+
+    def get_last_edit_in(configer, savings):
+        for saving_name in savings:
+            if configer.get(saving_name, '_last_edit_') == 'True':
+                return saving_name
+        return ''
+    
     cf_file = configparser.ConfigParser()
     cf_file.read(cf_config_path)
     cf_save_names = cf_file.sections()
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_config_path)
     sf_save_names = sf_file.sections()
-    all_save_names = cf_save_names + sf_save_names
-    for cf_save_name in cf_save_names:
-        if cf_file.get(cf_save_name, '_last_edit_') == 'True':
-            last_saving_data = ['cf', cf_save_name, '']
-            if sf_save_names:
-                last_saving_data[2] = sf_save_names[0]
-            break
-    else:
-        for sf_save_name in sf_save_names:
-            if sf_file.get(sf_save_name, '_last_edit_') == 'True':
-                last_saving_data = ['sf', sf_save_name, '']
-                if cf_save_names:
-                    last_saving_data[2] = cf_save_names[0]
-                break
-        else:
-            if cf_save_names:
-                last_saving_data = ['cf', cf_save_names[0], '']
-            elif sf_save_names:
-                last_saving_data = ['sf', sf_save_names[0], '']
-            else:
-                last_saving_data = ['', '', '']
-    return last_saving_data
+    
+    cf_latest_saving = get_last_edit_in(cf_file, cf_save_names)
+    sf_latest_saving = get_last_edit_in(sf_file, sf_save_names)
+    last_saving_data = ['cf', cf_latest_saving, sf_latest_saving]
+
+    return last_saving_data, cf_save_names, sf_save_names
 
 
 def scan_removable_disks(s_uuid=None):
@@ -666,7 +652,7 @@ def cf_autorun_operation():
     cf_file.read(cf_config_path)
 
     autorun_savings = []
-    for cf_name in cf_save_names:
+    for cf_name in cf_file.sections():
         if cf_file.get(cf_name, 'autorun') == 'True':
             autorun_savings.append(cf_name)
 
@@ -1242,6 +1228,9 @@ def make_ui(first_visit=False, startup_visit=False):
             cf_label_time.grid(row=6, column=0, sticky='E')
             cf_label_start_options.grid(row=7, column=0, sticky='E')
 
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + current_cf_save_name.get())
+
         @staticmethod
         def sf_state(placemode=None):
             cf_entry_old_path.grid_forget()
@@ -1304,6 +1293,9 @@ def make_ui(first_visit=False, startup_visit=False):
             sf_label_autorun.grid(row=7, column=0, sticky='E')
             sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
 
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + current_sf_save_name.get())
+
     global root
     root = tk.Tk()
     if startup_visit:
@@ -1317,6 +1309,8 @@ def make_ui(first_visit=False, startup_visit=False):
     root.update_idletasks()
 
     current_save_name = tk.StringVar()
+    current_cf_save_name = tk.StringVar()
+    current_sf_save_name = tk.StringVar()
     source_path = tk.StringVar()
     dest_path = tk.StringVar()
     path_1 = tk.StringVar()
@@ -1710,31 +1704,25 @@ def make_ui(first_visit=False, startup_visit=False):
 
     def ask_save_name():
         global ask_name_window
-        list_saving_data()
+        last_saving_data, cf_save_names, sf_save_names = list_saving_data()
+
+        def remove_last_edit(mode_data: configparser.ConfigParser, config_file_path):
+            if not mode_data.sections():  # 更改上次修改项
+                return
+            for save_name in mode_data.sections():
+                try:
+                    mode_data.set(save_name, '_last_edit_', 'False')
+                    mode_data.write(
+                        open(config_file_path, 'w+', encoding='ANSI'))
+                except:
+                    logging.info(f'remove_last_edit error: {save_name}')
 
         def savefile(function, save_name='New_Setting'):  # 保存文件
             cf_data.read(cf_config_path)
             sf_data.read(sf_config_path)
-            list_saving_data()
-
-            if len(cf_save_names) != 0:  # 更改上次修改项
-                for cf_save in cf_save_names:
-                    try:
-                        cf_data.set(cf_save, '_last_edit_', 'False')
-                        cf_data.write(
-                            open(cf_config_path, 'w+', encoding='ANSI'))
-                    except:
-                        pass
-            if len(sf_save_names) != 0:
-                for sf_save in sf_save_names:
-                    try:
-                        sf_data.set(sf_save, '_last_edit_', 'False')
-                        sf_data.write(
-                            open(sf_config_path, 'w+', encoding='ANSI'))
-                    except:
-                        pass
 
             if function == 'cf':  # 如果当前界面为cf
+                remove_last_edit(cf_data, cf_config_path)
                 if not os.path.exists(cf_config_path):
                     file = open(cf_config_path,
                                 'w', encoding='ANSI')
@@ -1757,7 +1745,8 @@ def make_ui(first_visit=False, startup_visit=False):
                 cf_data.write(
                     open(cf_config_path, "w+", encoding='ANSI'))
 
-            if function == 'sf':  # 如果当前界面为sf
+            elif function == 'sf':  # 如果当前界面为sf
+                remove_last_edit(sf_data, sf_config_path)
                 if not os.path.exists(sf_config_path):
                     file = open(sf_config_path,
                                 'w', encoding='ANSI')
@@ -1802,15 +1791,16 @@ def make_ui(first_visit=False, startup_visit=False):
             ask_name_window.destroy()
 
         mode = cf_or_sf.get()
+        current_mode_savings = []
         if mode == 'cf':
             error_state = root_info_checker.get_cf_error_state()
-            pri_save_names = cf_save_names
+            current_mode_savings = cf_save_names
         elif mode == 'sf':
             error_state = root_info_checker.get_sf_error_state()
-            pri_save_names = sf_save_names
+            current_mode_savings = sf_save_names
         else:
             error_state = True
-            pri_save_names = []
+
         if not error_state:
             ask_name_window = tk.Toplevel(root)
             ask_name_window.iconbitmap(
@@ -1819,18 +1809,22 @@ def make_ui(first_visit=False, startup_visit=False):
             ask_name_window.title(
                 r_label_text_dic['ask_name_window'][lang_num])
             ask_name_window.focus_force()
-            last_edit_name = 'New_Setting'
-            if last_saving_data:
+            autofill_name = 'New_Setting'
+            if mode == 'cf' and current_cf_save_name.get() != '':
+                autofill_name = current_cf_save_name.get()
+            elif mode == 'sf' and current_sf_save_name.get() != '':
+                autofill_name = current_sf_save_name.get()
+            elif last_saving_data != ['', '', '']:
                 if last_saving_data[0] == mode:
-                    last_edit_name = last_saving_data[1]
+                    autofill_name = last_saving_data[1]
                 else:
-                    last_edit_name = last_saving_data[2]
+                    autofill_name = last_saving_data[2]
             name_label = ttk.Label(
                 ask_name_window, text=r_label_text_dic['name_label'][lang_num])
             name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
 
-            name_entry = ttk.Combobox(ask_name_window, values=pri_save_names)
-            name_entry.insert(0, last_edit_name)
+            name_entry = ttk.Combobox(ask_name_window, values=current_mode_savings)
+            name_entry.insert(0, autofill_name)
             name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
             sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num],
                                           command=lambda: sure_save())
@@ -1846,13 +1840,15 @@ def make_ui(first_visit=False, startup_visit=False):
         sf_file.read(sf_config_path)
         new_values = []
 
-        last_data = ['', '']
-        if list_saving_data():
-            last_data = list_saving_data()
-        mode = last_data[0]
-        save_name = last_data[1]
+        last_data = list_saving_data()[0]
+        cf_save_name = last_data[1]
+        sf_save_name = last_data[2]
 
         def open_cf_saving(setting_name):
+            if setting_name == '':
+                return
+            if not cf_file.has_section(setting_name):
+                return
             nonlocal cf_ori_old_path
             if cf_entry_old_path.get() != '':
                 cf_entry_old_path.delete(0, 'end')
@@ -1882,9 +1878,17 @@ def make_ui(first_visit=False, startup_visit=False):
                 setting_name, 'move_folder') == 'True')
             Place('cf')
             cf_or_sf.set('cf')
+            current_cf_save_name.set(setting_name)
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + setting_name)
             root_info_checker.get_cf_error_state()
 
         def open_sf_saving(setting_name):
+            if setting_name == '':
+                return
+            if not sf_file.has_section(setting_name):
+                return
+            
             if sf_entry_path_1.get() != '':
                 sf_entry_path_1.delete(0, 'end')
             if sf_entry_path_2.get() != '':
@@ -1920,12 +1924,15 @@ def make_ui(first_visit=False, startup_visit=False):
                 setting_name, 'autorun') == 'True')
             Place('sf', place_mode)
             cf_or_sf.set('sf')
+            current_sf_save_name.set(setting_name)
+            current_save_name.set(
+                r_label_text_dic['current_save_name'][lang_num] + setting_name)
             root_info_checker.get_sf_error_state()
 
         def refresh_saving():
             nonlocal new_values
             try:
-                list_saving_data()
+                last_saving_data, cf_save_names, sf_save_names = list_saving_data()
                 if read_mode_entry.get() in ['清理文件(Cleanfile)', 'Cleanfile']:
                     new_values = cf_save_names
                     read_name_entry['value'] = new_values
@@ -1987,6 +1994,7 @@ def make_ui(first_visit=False, startup_visit=False):
             last_edit_mode = ''
             last_edit_name = ''
             save_names = []
+            last_saving_data = list_saving_data()[0]
             if last_saving_data:
                 last_edit_mode = last_saving_data[0]
                 last_edit_name = last_saving_data[1]
@@ -2014,21 +2022,15 @@ def make_ui(first_visit=False, startup_visit=False):
             sure_name_bottom = ttk.Button(ask_saving_root, text=r_label_text_dic['sure_name_bottom'][lang_num],
                                           command=lambda: sure_open())
             sure_name_bottom.grid(row=0, column=4, pady=5)
-            ask_saving_root.bind('<Enter>', lambda event: refresh_saving())
+            read_mode_entry.bind('<<ComboboxSelected>>',
+                                 lambda event: refresh_saving())
             ask_saving_root.bind('<Return>', lambda event: sure_open())
             ask_saving_root.protocol('WM_DELETE_WINDOW', exit_asr)
-        elif mode == 'cf':
-            open_cf_saving(save_name)
-            current_save_name.set(
-                r_label_text_dic['current_save_name'][lang_num] + save_name)
-        elif mode == 'sf':
-            open_sf_saving(save_name)
-            current_save_name.set(
-                r_label_text_dic['current_save_name'][lang_num] + save_name)
-        empty_config = False
-        if mode == "" or mode == 'sf':
-            empty_config = True
-        initial_entry(set_cf_dest=empty_config)
+        else:
+            open_sf_saving(sf_save_name)
+            open_cf_saving(cf_save_name)
+
+        initial_entry(set_cf_dest=cf_save_name=='')
 
     def cf_operate_from_root():
         old_path = cf_entry_old_path.get()  # 旧文件夹
