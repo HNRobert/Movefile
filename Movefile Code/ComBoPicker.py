@@ -56,7 +56,6 @@ class Picker(ttk.Frame):
         self.canvas.config(width=300, height=self._frameheight)
         self.canvas.config(yscrollcommand=vbar.set)
         self.dict_checkbutton = {}
-        self.dict_checkbutton_var = {}
         self.dict_intvar_item = {}
         for index, item in enumerate(self._values):
             self.dict_intvar_item[item] = tk.IntVar()
@@ -125,7 +124,7 @@ class Combopicker(ttk.Entry, Picker):
         self.picker_frame = Picker(self.winfo_toplevel(), values=self.values, entry_wid=self.entry_var,
                                    activebackground=activebackground,
                                    activeforeground=activeforeground, selectbackground=selectbackground,
-                                   selectforeground=selectforeground, command=self._on_selected_check,
+                                   selectforeground=selectforeground, command=self.on_selected_check,
                                    frameheight=self.frameheight)
 
         self.bind_all("<1>", self._on_click, "+")
@@ -166,8 +165,15 @@ class Combopicker(ttk.Entry, Picker):
             result = result[:-1]
         self.delete(0, 'end')
         self.insert(0, result)
+
+    def append_value(self, new_value):
+        if not new_value in self.values:
+            self.values.append(new_value)
+            self.update_values(self.values[1:])
+        self.on_selected_check(new_value)
+        self.hide_picker()
     
-    def _on_selected_check(self, SELECTED):
+    def on_selected_check(self, SELECTED):
         value = []
         all_name = self.allname_var.get()
         need_refresh = False
@@ -228,7 +234,7 @@ class Combopicker(ttk.Entry, Picker):
             self.picker_frame = Picker(self.winfo_toplevel(), values=self.values, entry_wid=self.entry_var,
                                        frameheight=self.frameheight, activebackground=self.activebackground,
                                        activeforeground=self.activeforeground, selectbackground=self.selectbackground,
-                                       selectforeground=self.selectforeground, command=self._on_selected_check)
+                                       selectforeground=self.selectforeground, command=self.on_selected_check)
 
             self.bind_all("<1>", self._on_click, "+")
 

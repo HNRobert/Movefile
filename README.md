@@ -444,4 +444,10 @@ Enhanced error capture capability
 Add exit button on menu
 Optimized structure and logic
 Bugs Fixed, More stable
+
+17:20 2023/12/12
+Movefile v2.3.7
+Update Content:
+More stable ComBoPicker
+
 ```

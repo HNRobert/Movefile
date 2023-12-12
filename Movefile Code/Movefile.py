@@ -1012,13 +1012,13 @@ def make_ui(first_visit=False, startup_visit=False):
         if mode == 'lockfolder':
             folder_path_ = tkinter.filedialog.askdirectory()
             if folder_path_ != '':
-                sf_entry_lock_folder.values.append(
+                sf_entry_lock_folder.append_value(
                     folder_path_.replace('/', '\\'))
         elif mode == 'lockfile':
             file_path_ = tkinter.filedialog.askopenfilenames()
             if file_path_ != '':
                 for file in file_path_:
-                    sf_entry_lock_file.values.append(file.replace('/', '\\'))
+                    sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
     def set_language(lang_number):
         label_choose_state_text.set(
@@ -1866,10 +1866,12 @@ def make_ui(first_visit=False, startup_visit=False):
                 cf_entry_keep_formats.delete(0, 'end')
             if cf_entry_time.get() != '':
                 cf_entry_time.delete(0, 'end')
-            cf_entry_keep_files.insert(0, cf_file.get(
-                setting_name, 'pass_filename'))  # 设置跳过白名单
-            cf_entry_keep_formats.insert(0, cf_file.get(
-                setting_name, 'pass_format'))  # 设置跳过格式
+            for file in cf_file.get(setting_name, 'pass_filename').split(','):
+                if file != '':
+                    cf_entry_keep_files.append_value(file)  # 设置跳过白名单
+            for format in cf_file.get(setting_name, 'pass_format').split(','):
+                if format != '':
+                    cf_entry_keep_formats.append_value(format)  # 设置跳过格式
             cf_entry_time.insert(0, cf_file.get(
                 setting_name, 'set_hour'))  # 设置过期时间(hour)
             cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # 设置判断模式
@@ -1916,10 +1918,12 @@ def make_ui(first_visit=False, startup_visit=False):
                     count_i += 1
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
-            sf_entry_lock_folder.insert(
-                0, sf_file.get(setting_name, 'lock_folder'))
-            sf_entry_lock_file.insert(
-                0, sf_file.get(setting_name, 'lock_file'))
+            for folder in sf_file.get(setting_name, 'lock_folder').split(','):
+                if folder != '':
+                    sf_entry_lock_folder.append_value(folder)
+            for file in sf_file.get(setting_name, 'lock_file').split(','):
+                if file != '':
+                    sf_entry_lock_file.append_value(file)
             sf_entry_is_autorun.set(sf_file.get(
                 setting_name, 'autorun') == 'True')
             Place('sf', place_mode)
