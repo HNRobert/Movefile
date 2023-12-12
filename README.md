@@ -34,21 +34,21 @@ First install the python environment. After the installation of python, open cmd
 
 If you want to package it as 32-bit exe, you should package it in 32-bit Python.
 
-After installation, open the **Movefile Code** folder, enter **cmd** in the path box of the folder, and then enter ```pyinstaller - i Movefile.ico - noupx Movefile.py -- onefile -w``` in the pop-up command prompt window ,then get the packed file in the output **dist** folder.
+After installation, open the **Movefile Code** folder, enter **cmd** in the path box of the folder, and then enter ```pyinstaller -i Movefile.ico -noupx Movefile.py --clean -w -n Movefile``` in the pop-up command prompt window ,then get the packed file in the output **dist** folder.
 
-***Note: The Win10toast module used in this program has been modified. The modified version adds thread pool and notification queue management functions to improve notification display logic***
+***Note: The notification module used in this program is a modified win10toast. The modified version adds thread pool and notification queue management functions to improve notification display logic***
 
 ### Precautions before use
 
-1.Please do not change the name of this exe file："Movefile vX.X.X.exe",
+1. Please do not change the name of this exe file："Movefile.exe",
    or the startup function will be affected.
 
-2.Please open the option in the windows setting:
+2. Please open the option in the windows setting:
    System/notification and operation/notification/
    "Get notifications from apps and other senders",
    otherwise the notification function will be affected.
 
-3.Please put the software into the
+3. Please put the software into the
    'Antivirus scanning exclusion item' of Windows Security Center.
    otherwise, it might be deleted directly at runtime.
    That is because this software involves changing the Startup item.
@@ -57,10 +57,10 @@ After installation, open the **Movefile Code** folder, enter **cmd** in the path
    of virus threat and protection in Windows Security Center,
    Or other security software
 
-4.If the software cannot run after the new version,
+4. If the software cannot run after the new version,
    you can try to delete the profile located in the Roaming folder.
 
-5.If the software fails to run normally due to other reasons, and
+5. If the software fails to run normally due to other reasons, and
    also can't be repaired as explained above,
    you can contact the author directly,
    I will try to repair it for you as soon as possible.
@@ -187,35 +187,35 @@ PS: 从2.3.4版本开始将提供软件安装包，而非打包好的单文件�
 
 如果想打包为32为的exe，那就要在32位的Python下打包
 
-安装完成后，打开 **Movefile Code** 文件夹，文件夹的索引框内输入 **cmd** ，然后在弹出的命令提示框内输入`pyinstaller -i Movefile.ico -noupx Movefile.py --onefile -w`，就可以在产出的 **dist** 文件夹内得到打包好的exe文件。
+安装完成后，打开 **Movefile Code** 文件夹，文件夹的索引框内输入 **cmd** ，然后在弹出的命令提示框内输入`pyinstaller -i Movefile.ico -noupx Movefile.py --clean -w -n Movefile`，就可以在产出的 **dist** 文件夹内得到打包好的文件。
 
-***注意：本程序使用的 win10toast 模块是被魔改过的，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑***
+***注意：本程序使用的通知模组是被魔改过的 win10toast，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑***
 
 ### 使用前特别注意事项
 
-*1.本exe文件的名称请不要改变："Movefile vX.X.X.exe"，否则会影响开机自启功能
-  如果想更改名称，可以将exe文件移至别处后创建快捷方式
+1. 本exe文件的名称请不要改变："Movefile.exe"，否则会影响开机自启功能
+   如果想更改名称，可以将exe文件移至别处后创建快捷方式
 
-*2.使用本软件前请打开Windows设置中的
-  系统/通知和操作/通知/
-  “获取来自应用和其他发送者的通知” 选项，
-  否则会影响操作结果通知功能
+2. 使用本软件前请打开Windows设置中的
+   系统/通知和操作/通知/
+   “获取来自应用和其他发送者的通知” 选项，
+   否则会影响操作结果通知功能
   
-*3.使用本软件前请先将本软件放入
-  Windows安全中心的防病毒扫描排除项中，
-  否则在运行时会被直接删除。
-  这是因为本软件涉及更改开机启动项。
-  如果本软件在使用中被意外删除，
-  可以在Windows安全中心中
-  病毒威胁和防护的 "保护历史记录"
-  或其他安全软件中找回本软件
+3. 使用本软件前请先将本软件放入
+   Windows安全中心的防病毒扫描排除项中，
+   否则在运行时会被直接删除。
+   这是因为本软件涉及更改开机启动项。
+   如果本软件在使用中被意外删除，
+   可以在Windows安全中心中
+   病毒威胁和防护的 "保护历史记录"
+   或其他安全软件中找回本软件
   
-4.如果经过版本新后软件无法运行，
-  可以尝试删除位于Roaming文件夹中的配置文件
+4. 如果经过版本新后软件无法运行，
+   可以尝试删除位于Roaming文件夹中的配置文件
   
-5.若有其他原因导致软件功能无法正常运行，
-  且无法按上面的解释修复，
-  请联系作者,我会尽快尝试帮你修复
+5. 若有其他原因导致软件功能无法正常运行，
+   且无法按上面的解释修复，
+   请联系作者,我会尽快尝试帮你修复
 
 ## Cleanfile功能
 
@@ -449,5 +449,8 @@ Bugs Fixed, More stable
 Movefile v2.3.7
 Update Content:
 More stable ComBoPicker
-
+Startup autorun function fixed
+Current config label upgraded
+Translation complement
+Saving & Reading improvement
 ```
