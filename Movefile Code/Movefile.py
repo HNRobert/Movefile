@@ -366,14 +366,14 @@ def list_saving_data():
             if configer.get(saving_name, '_last_edit_') == 'True':
                 return saving_name
         return ''
-    
+
     cf_file = configparser.ConfigParser()
     cf_file.read(cf_config_path)
     cf_save_names = cf_file.sections()
     sf_file = configparser.ConfigParser()
     sf_file.read(sf_config_path)
     sf_save_names = sf_file.sections()
-    
+
     cf_latest_saving = get_last_edit_in(cf_file, cf_save_names)
     sf_latest_saving = get_last_edit_in(sf_file, sf_save_names)
     last_saving_data = ['cf', cf_latest_saving, sf_latest_saving]
@@ -768,7 +768,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         root node or starting point of a tree or hierarchy structure. It could be used to navigate or
         perform operations on the tree or hierarchy
         """
-        def judge_and_append_task(fileA: str, fileB: str, direct_apd: bool):
+        def judged_task(fileA: str, fileB: str, only_one: bool = False):
             """
             The function `judge_and_append` takes two file names as input and a boolean value indicating
             whether to append the contents of fileB to fileA or not.
@@ -778,36 +778,32 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
             :param fileB: The `fileB` parameter is a string that represents the file name or file path
             of the second file
             :type fileB: str
-            :param direct_apd: The `direct_apd` parameter is a boolean value that determines whether the
-            contents of `fileB` should be directly appended to `fileA` or if a judgment should be made
-            before appending
-            :type direct_apd: bool
             """
-            if int(os.stat(fileA).st_mtime) < int(os.stat(fileB).st_mtime):
+
+            if not only_one and int(os.stat(fileA).st_mtime) < int(os.stat(fileB).st_mtime):
                 if single_sync:
-                    return
+                    return None
                 fileA, fileB = fileB, fileA
-            if any(fileB.startswith(p_folder) and p_folder for p_folder in pass_folder_paths.split(',')) or any(
+            if any(fileB.startswith(p_folder) and p_folder != '' for p_folder in pass_folder_paths.split(',')) or any(
                     fileB == p_file for p_file in pass_file_paths.split(',')):
-                return
-            sync_tasks.append([fileA, fileB, direct_apd])
+                return None
             _bar_root.set_label1(
                 sfdic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
+            return [fileA, fileB]
 
-        sync_tasks = []
+        sync_tasks = []  # task items' format: [source_file_path, dest_file_path]
         diff_item_data = diff_files_in(path1, path2)
         for a_only_item in diff_item_data[1]:
-            sync_tasks.append([a_only_item[0], a_only_item[1], True])
-            _bar_root.set_label1(
-                sfdic['main_progress_label'][language_number] + a_only_item[0].split('\\')[-1])
+            sync_tasks.append(judged_task(
+                a_only_item[0], a_only_item[1], True))
         if not single_sync:
             for b_only_item in diff_item_data[2]:
-                sync_tasks.append([b_only_item[0], b_only_item[1], True])
-                _bar_root.set_label1(
-                    sfdic['main_progress_label'][language_number] + b_only_item[1].split('\\')[-1])
+                sync_tasks.append(judged_task(
+                    b_only_item[0], b_only_item[1], True))
         for diff_item in diff_item_data[0]:
-            judge_and_append_task(diff_item[0], diff_item[1], False)
+            sync_tasks.append(judged_task(diff_item[0], diff_item[1]))
 
+        sync_tasks = list(filter(None, sync_tasks))
         return sync_tasks
 
     def synchronize_files(baroot, task):
@@ -820,7 +816,7 @@ def sf_sync_dir(path1, path2, single_sync, language_number, area_name=None, pass
         baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
             sfdic["current_file_label1"][language_number] + task[0].split('\\')[-1])
-        source_file_path, dest_file_path, create_folder = task
+        source_file_path, dest_file_path = task
         dest_path = Path(dest_file_path)
         # Create parent directories if needed
         dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1777,6 +1773,7 @@ def make_ui(first_visit=False, startup_visit=False):
             continue_button.config(state=tk.NORMAL)
 
         def sure_save():
+            ask_name_window.withdraw()
             savefile(function=cf_or_sf.get(), save_name=name_entry.get())
             log_function = 'Syncfile'
             if cf_or_sf.get() == 'cf':
@@ -1823,7 +1820,8 @@ def make_ui(first_visit=False, startup_visit=False):
                 ask_name_window, text=r_label_text_dic['name_label'][lang_num])
             name_label.grid(row=0, column=0, pady=5, padx=5, sticky='E')
 
-            name_entry = ttk.Combobox(ask_name_window, values=current_mode_savings)
+            name_entry = ttk.Combobox(
+                ask_name_window, values=current_mode_savings)
             name_entry.insert(0, autofill_name)
             name_entry.grid(row=0, column=1, padx=5, pady=5, sticky='W')
             sure_name_button = ttk.Button(ask_name_window, text=r_label_text_dic['sure_name_button'][lang_num],
@@ -1890,7 +1888,7 @@ def make_ui(first_visit=False, startup_visit=False):
                 return
             if not sf_file.has_section(setting_name):
                 return
-            
+
             if sf_entry_path_1.get() != '':
                 sf_entry_path_1.delete(0, 'end')
             if sf_entry_path_2.get() != '':
@@ -2034,7 +2032,7 @@ def make_ui(first_visit=False, startup_visit=False):
             open_sf_saving(sf_save_name)
             open_cf_saving(cf_save_name)
 
-        initial_entry(set_cf_dest=cf_save_name=='')
+        initial_entry(set_cf_dest=cf_save_name == '')
 
     def cf_operate_from_root():
         old_path = cf_entry_old_path.get()  # 旧文件夹
