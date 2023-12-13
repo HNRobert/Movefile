@@ -449,6 +449,7 @@ Bugs Fixed, More stable
 Movefile v2.3.7
 Update Content:
 More stable ComBoPicker
+Syncfile Lockfolder function fixed
 Startup autorun function fixed
 Current config label upgraded
 Translation complement
