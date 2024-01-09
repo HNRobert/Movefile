@@ -1,12 +1,14 @@
-vision = 'v2.3.7'
-update_time = '2023/12/13'
+vision = 'v2.4.0'
+update_time = '2024/1/10'
 r_label_text_dic = {
+
+    # Menu options
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
     'savefile_menu': ['保存', 'Save config'],
     'exit_menu': ['退出', 'Exit'],
     'option_menu': ['选项', 'Option'],
-    'autorun_menu': ['开机自动启动本软件', 'Start automatically'],
+    'autorun_menu': ['开机自启', 'Start automatically'],
     'desktop_shortcut': ['添加快捷方式到桌面', 'Add a shortcut to Desktop'],
     'language_menu': ['语言', 'Language'],
     'help_menu': ['帮助', 'Help'],
@@ -17,26 +19,32 @@ r_label_text_dic = {
     'sf_removable_menu': ['可移动磁盘同步', 'Removable Volume mode'],
     'sf_lock_menu': ['锁定文件/文件夹选择', 'Lock folder/sile setting'],
 
+    # Taskbar options
     'taskbar_setting': ['设置界面', 'Setting Window'],
     'taskbar_exit': ['退出', 'Exit'],
 
+    # Function options
     'label_choose_state': ['功能选择：', 'Function：'],
-    'option_is_cleanfile': ['清理文件', 'Cleanfile'],
+    'option_is_cleanfile': ['清理桌面', 'Cleanfile'],
     'option_is_syncfile': ['同步文件', 'Syncfile'],
+
+    # Cleanfile labels
     'current_save_name': ['当前存档：', 'Current config：'],
-    'cf_label_old_path': ['原文件夹路径：', 'Source path：'],
+    'cf_label_old_path': ['源文件夹：', 'Source path：'],
     'cf_browse_old_path_button': ['浏览', 'Browse'],
     'cf_browse_new_path_button': ['浏览', 'Browse'],
-    'cf_label_new_path': ['目标文件夹路径：', 'Target path：'],
+    'cf_label_new_path': ['移动到：', 'Moving to：'],
     'cf_label_move_options': ['文件移动选项：', 'Expire Criteria：'],
     'cf_option_mode_1': ['以项目最后修改时间为过期判断依据', "Use Items' latest edit time"],
     'cf_option_mode_2': ['以项目最后访问时间为过期判断依据', "Use Items' latest ask time"],
-    'cf_option_folder_move': ['移动项目包括文件夹', 'Move items including Folders'],
+    'cf_option_folder_move': ['保留文件夹', 'Keep Folders remain'],
     'cf_label_keep_files': ['保留项目(选填)：', 'Reserved Files(opt)：'],
-    'cf_label_keep_formats': ['保留文件格式(选填)：', 'Reserved Fmts(opt)：'],
+    'cf_label_keep_formats': ['按文件格式保留(选填)：', 'Reserved Fmts(opt)：'],
     'cf_label_time': ['过期时间设定(小时)：', 'Expire Hours：'],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
-    'cf_option_is_auto': ['开机自动运行本存档(若保存)', 'Automatically run this config after Startup(if saved)'],
+    'cf_option_is_auto': ['开机自动运行上面配置', 'Automatically run this config after Startup(if saved)'],
+
+    # Syncfile labels
     'sf_label_place_mode': ['路径模式选择：', 'Sync-Path mode：'],
     'sf_option_mode_usb': ['可移动磁盘(卷)同步模式', 'Removable Volume mode'],
     'sf_option_mode_local': ['本地文件夹同步模式', 'Local Folder mode'],
@@ -56,19 +64,26 @@ r_label_text_dic = {
     'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动运行本存档(若保存)'],
                           ['Automatically run when this Removable Volume inserted',
                            'Automatically run this config after Startup(if saved)']],
+
+    # ComBoPicker select all label
     'select_all': ['全选', 'Select All'],
+
+    # About options
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行当前配置', 'Run current configuration'],
 
+    # Readfile options
     'read_name_label': ['     选择存档：', '   Pick a config：'],
     'read_mode_entry': [['清理文件(Cleanfile)', '同步文件(Syncfile)'], ['Cleanfile', 'Syncfile']],
     'del_save_button': ['删除存档', 'Delete'],
     'sure_name_bottom': ['读取存档', 'Read'],
 
+    # Savefile options
     'ask_name_window': ['设置配置存档名称', "Set Config's Name"],
     'name_label': ['  请输入存档的名称：', "     Enter a name："],
     'sure_name_button': ['确定保存', 'Confirm'],
 
+    # Warnings & Tips
     'num_warning': ['警告：请在时间设定栏内输入数字',
                     'Warning: Please enter a number in the time setting field'],
     'blank_warning': ['警告：请填写所有非选填项目',
@@ -76,16 +91,11 @@ r_label_text_dic = {
     'path_warning': ['警告：请填输入有效路径！（建议使用浏览）',
                      'Warning: Please input a path that exists (Browse suggested)'],
     'same_path_warning': ['警告：请输入两个不一样的路径！', 'Warning：Please input two different paths！'],
-    'in_path_warning': ['警告：两个待同步的文件夹不能为包含关系！', '''Warning：Two folders to be synchronized 
-cannot have a containing relationship！'''],
-    'in_disk_path_warning': ['警告：不能将一个分区与位于该分区内的文件夹同步！', '''Warning：Cannot synchronize a partition 
-with a folder located within that partition！'''],
-    'ini_error': ['''错误：配置信息有误
-请尽量不要手动更改配置文件''', """Error：Config invalid, 
-please don't edit the config file directly"""],
+    'in_path_warning': ['警告：两个待同步的文件夹不能为包含关系！', '''Warning：Two folders to be synchronized \ncannot have a containing relationship！'''],
+    'in_disk_path_warning': ['警告：不能将一个分区与位于该分区内的文件夹同步！', '''Warning：Cannot synchronize a partition \nwith a folder located within that partition！'''],
+    'ini_error': ['''错误：配置信息有误\n请尽量不要手动更改配置文件''', """Error：Config invalid, \nplease don't edit the config file directly"""],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
-    'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software
-to make the language of some labels changed'''],
+    'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software\nto make the language of some labels changed'''],
     'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
     'create_path_notice': ['\n选择 "是" 来创建该路径', '\nChoose "Yes" to create this path'],
 }
@@ -125,20 +135,13 @@ sfdic = {
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
     'current_file_label1': ['加入复制进程的文件：', 'File added into ThreadPool：'],
-    'exit_sync': ['''文件正在同步中，
-确定中断同步进程并退出?''', '''Synchronization is in progress,
-Are you sure to interrupt the process and exit?'''],
-    'can_not_move_notice': ["""
-无法被同步，请在关闭文件或移除重名文件后重试""", """
-Couldn't be synchronized, Please try again after closing the file
-or removing the duplicate file """],
+    'exit_sync': ['''文件正在同步中，\n确定中断同步进程并退出?''', '''Synchronization is in progress,\nAre you sure to interrupt the process and exit?'''],
+    'can_not_move_notice': ["""\n无法被同步，请在关闭文件或移除重名文件后重试""", """\nCouldn't be synchronized, Please try again after closing the file\nor removing the duplicate file """],
     'new_disk_detected': [['检测到可移动磁盘 "', '" 接入,\n', '确定按配置 "', '" 进行同步?'], ['Removable partition "', '" detected,\n', 'Synchronize as config "', '" ?']]
 }
 
 progress_root_label_dic = {
-    'confirm_exit_text': ['''文件正在复制中，
-确定中断进程并退出?''', '''The file is currently being copied,
-Are you sure to interrupt the process and exit?''']
+    'confirm_exit_text': ['''文件正在复制中，\n确定中断进程并退出?''', '''The file is currently being copied,\nAre you sure to interrupt the process and exit?''']
 }
 
 help_main_text = ["""软件名称： Movefile
