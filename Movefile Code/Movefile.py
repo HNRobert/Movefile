@@ -15,11 +15,10 @@ import logging
 import time
 import tkinter.messagebox
 
-from mttkinter import mtTkinter as tk
-from win32gui import FindWindow, ShowWindow
-
 from mf_mods import Initialization
 from mf_ui import make_ui
+from mttkinter import mtTkinter as tk
+from win32gui import FindWindow, ShowWindow
 
 
 class GlobalsVar:
@@ -39,10 +38,6 @@ class GlobalsVar:
 
 gvar = GlobalsVar()
 
-
-def close_programme():
-    global program_finished
-    program_finished = True
 
 
 # The CheckMFProgress class is used to check if the program is already running.

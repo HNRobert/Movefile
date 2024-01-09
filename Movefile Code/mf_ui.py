@@ -1,25 +1,27 @@
 
+
 import configparser
-from hmac import new
 import os
-from threading import Thread
 import time
-from tkinter import ttk
 import tkinter.filedialog
 import tkinter.messagebox
-
-from mttkinter import mtTkinter as tk
-from PIL import Image
-from pystray import MenuItem, Menu, Icon
-from win32api import GetVolumeInformation
+from threading import Thread
+from tkinter import ttk
 
 import LT_Dic
+from cleanfile import cf_autorun_operation, cf_move_dir
 from ComBoPicker import Combopicker
-from cleanfile import cf_move_dir, cf_autorun_operation
+from mf_const import CF_CONFIG_PATH, DESKTOP_PATH, MF_DATA_PATH, SF_CONFIG_PATH
+from mf_mods import (detect_removable_disks_thread, language_num,
+                     list_saving_data, mf_log, mf_toaster,
+                     put_desktop_shortcut, scan_removable_disks, set_startup)
+from mttkinter import mtTkinter as tk
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
+from syncfile import sf_autorun_operation, sf_sync_dir
+from win32api import GetVolumeInformation
+
 from Movefile import gvar
-from syncfile import sf_sync_dir, sf_autorun_operation
-from mf_mods import mf_log, scan_removable_disks, language_num, list_saving_data, set_startup, put_desktop_shortcut, detect_removable_disks_thread, mf_toaster
-from mf_const import MF_DATA_PATH, CF_CONFIG_PATH, SF_CONFIG_PATH, DESKTOP_PATH
 
 
 # The ProgressBar class generate a root used to display the progress of a task.
@@ -1252,8 +1254,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
     # @atexit.register
     def exit_program():
-        global program_finished
-        program_finished = True
+        gvar.set('program_finished', True)
         root.withdraw()
         mf_toaster.stop_notification_thread()
         if 'ask_saving_root' in globals().keys():
@@ -1352,38 +1353,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
     root.protocol('WM_DELETE_WINDOW', root.withdraw)
     # 重新定义点击关闭按钮的处理
-
-    def get_movable_autorun_ids():
-        sf_dat = configparser.ConfigParser()
-        sf_dat.read(SF_CONFIG_PATH)
-        savings = sf_dat.sections()
-        autorun_ids = []
-        for saving in savings:
-            if sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.get(saving, 'autorun') == 'True':
-                autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving])
-        return autorun_ids
-
-    def ask_sync_disk(master_root):
-        """
-        The function "ask_sync_disk" is used to prompt the user to input whether they want to
-        synchronize their disk.
-        """
-        while not program_finished:
-            run_list = []
-            new_areas_data = gvar.get('new_area_data')
-            for new_area_data in new_areas_data:
-                for autorun_id in get_movable_autorun_ids():
-                    msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
-                    msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_id[1]}{msg_ps[3]}'
-                    if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
-                                                                                                 message=msg_content):
-                        run_list.append(
-                            [new_area_data[0], new_area_data[1], autorun_id[1]])
-                new_areas_data.remove(new_area_data)
-                gvar.set('new_area_data', new_areas_data)
-            if run_list:
-                sf_autorun_operation(master_root, 'movable', run_list)
-            time.sleep(1)
 
     if first_visit:
         initial_entry(set_cf_dest=True)

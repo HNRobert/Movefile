@@ -1,23 +1,26 @@
 
 import configparser
-from base64 import b64decode
-from ctypes import windll
-from datetime import datetime
 import logging
 import os
 import sys
 import time
+import tkinter.messagebox
+from base64 import b64decode
+from ctypes import windll
+from datetime import datetime
 
+import LT_Dic
+import Movefile_icon as icon
+from mf_const import (CF_CONFIG_PATH, CF_DATA_PATH, DESKTOP_PATH, MF_DATA_PATH,
+                      ROAMING_PATH, SF_CONFIG_PATH, SF_DATA_PATH, STARTUP_PATH)
 from psutil import disk_partitions
+from syncfile import sf_autorun_operation
+from win10toast_edited import ToastNotifier
 from win32api import GetVolumeInformation
 from win32com.client import Dispatch
 from winshell import CreateShortcut
 
-import LT_Dic
 from Movefile import gvar
-from mf_const import ROAMING_PATH, MF_DATA_PATH, CF_DATA_PATH, SF_DATA_PATH, CF_CONFIG_PATH, SF_CONFIG_PATH, DESKTOP_PATH, START_MENU_PATH, STARTUP_PATH
-import Movefile_icon as icon
-from win10toast_edited import ToastNotifier
 
 mf_toaster = ToastNotifier()
 
@@ -141,9 +144,8 @@ def set_startup(state=True, lang_n=0):
     is `False`, the startup process will be disabled, defaults to True (optional)
     """
     # 将快捷方式添加到自启动目录
-    startup_path = os.path.join(START_MENU_PATH, r"StartUp")
     bin_path = r"Movefile.exe"
-    shortcut_path = os.path.join(startup_path, r"Movefile.lnk")
+    shortcut_path = os.path.join(STARTUP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
     icon_ = os.path.join(MF_DATA_PATH, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
@@ -271,7 +273,18 @@ def scan_removable_disks(s_uuid=None):
     return []
 
 
-def detect_removable_disks_thread():
+def get_movable_autorun_ids():
+    sf_dat = configparser.ConfigParser()
+    sf_dat.read(SF_CONFIG_PATH)
+    savings = sf_dat.sections()
+    autorun_ids = []
+    for saving in savings:
+        if sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.get(saving, 'autorun') == 'True':
+            autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving])
+    return autorun_ids
+
+
+def detect_removable_disks_thread(master_root, lang_num):
     """
     The function detects removable disks using threading.
     """
@@ -280,27 +293,41 @@ def detect_removable_disks_thread():
     number_book = {}
     while not gvar.get('program_finished'):
         for item in disk_partitions():
-            # 判断是不是可移动磁盘
-            if "removable" in item.opts:
-                # 获取可移动磁盘的盘符
-                if item.mountpoint not in disk_list:
-                    disk_list.append(item.mountpoint)
-        if disk_list:
-            for pf in disk_list:
-                if not os.path.exists(pf):
-                    disk_list.remove(pf)
-                    area_data_list.remove(number_book[pf])
-                else:
-                    seria_number = GetVolumeInformation(pf)
-                    area_name = seria_number[0]
-                    area_number = seria_number[1]
-                    if area_number not in area_data_list:
-                        area_data_list.append(area_number)
-                        number_book[pf] = area_number
-                        new_areas_data = gvar.get('new_areas_data')
-                        new_areas_data.append([pf, area_name, area_number])
-                        gvar.set('new_areas_data', new_areas_data)
+            # 判断是不是可移动磁盘 获取可移动磁盘的盘符
+            if "removable" in item.opts and item.mountpoint not in disk_list:
+                disk_list.append(item.mountpoint)
+        if not disk_list:
+            time.sleep(0.5)
+            continue
+        for pf in disk_list:
+            if not os.path.exists(pf):
+                disk_list.remove(pf)
+                area_data_list.remove(number_book[pf])
+            else:
+                seria_number = GetVolumeInformation(pf)
+                area_name = seria_number[0]
+                area_uuid = seria_number[1]
+                if area_uuid not in area_data_list:
+                    area_data_list.append(area_uuid)
+                    number_book[pf] = area_uuid
+                    ask_sync_disk(master_root, lang_num, [
+                                  pf, area_name, area_uuid])
         time.sleep(0.5)
+
+
+def ask_sync_disk(master_root, lang_num, new_area_data):
+    """
+        The function "ask_sync_disk" is used to prompt the user to input whether they want to
+        synchronize their disk.
+        """
+    for autorun_id in get_movable_autorun_ids():
+        msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
+        msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_id[1]}{msg_ps[3]}'
+        if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
+                                                                                     message=msg_content):
+            sf_autorun_operation(master_root, 'movable', [
+                                 new_area_data[0], new_area_data[1], autorun_id[1]])
+
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹

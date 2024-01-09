@@ -1,15 +1,14 @@
 
 
 import configparser
-import logging
 import os
 import time
+from shutil import move as shutil_move
 from threading import Thread
 
 import LT_Dic
-from shutil import move as shutil_move
-from mf_const import MF_DATA_PATH, CF_CONFIG_PATH
-from mf_mods import language_num, scan_items, mf_toaster
+from mf_const import CF_CONFIG_PATH, MF_DATA_PATH
+from mf_mods import language_num, mf_log, mf_toaster, scan_items
 from mf_ui import ProgressBar
 
 
@@ -45,7 +44,7 @@ def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, ove
             if new_path == '':
                 notice_title = LT_Dic.cfdic['title_p1'][lang_num] + \
                     old_folder + LT_Dic.cfdic['title_p2_2'][lang_num]
-            logging.info("\n" + notice_title + "\n" + move_name[:-3])
+            mf_log("\n" + notice_title + "\n" + move_name[:-3])
             mf_toaster.show_toast(notice_title, move_name[:-3],
                                   icon_path=mf_icon_path,
                                   duration=10,
@@ -53,7 +52,7 @@ def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, ove
         else:
             notice_title = old_folder + LT_Dic.cfdic['cltitle'][lang_num]
             notice_content = LT_Dic.cfdic['clcontent'][lang_num]
-            logging.info("\n" + notice_title + "\n" + notice_content)
+            mf_log("\n" + notice_title + "\n" + notice_content)
             mf_toaster.show_toast(notice_title, notice_content,
                                   icon_path=mf_icon_path,
                                   duration=10,
@@ -62,7 +61,7 @@ def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, ove
             notice_title = LT_Dic.cfdic['errtitle'][lang_num]
             notice_content = error_name[:-3] + \
                 '\n' + LT_Dic.cfdic['errcontent'][lang_num]
-            logging.warning("\n" + notice_title + "\n" + notice_content)
+            mf_log("\n" + notice_title + "\n" + notice_content)
             mf_toaster.show_toast(notice_title, notice_content,
                                   icon_path=mf_icon_path,
                                   duration=10,
@@ -212,5 +211,5 @@ def cf_autorun_operation(master):
                     overdue_time=cf_file.getint(save_name, 'set_hour') * 3600,
                     check__mode=cf_file.getint(save_name, 'mode'),
                     is__move__folder=cf_file.get(save_name, 'move_folder'))
-        logging.info(
+        mf_log(
             f'\nAutomatically ran Cleanfile operation as config "{save_name}"')

@@ -1,19 +1,20 @@
 
 
 import configparser
-import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
-from shutil import copy2 as shutil_copy2, Error as shutil_Error
-from filecmp import dircmp
-from threading import Thread
-import time
 import logging
+import os
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from filecmp import dircmp
+from pathlib import Path
+from shutil import Error as shutil_Error
+from shutil import copy2 as shutil_copy2
+from threading import Thread
 
 import LT_Dic
-from mf_ui import ProgressBar
 from mf_const import MF_DATA_PATH, SF_CONFIG_PATH
 from mf_mods import language_num, mf_toaster
+from mf_ui import ProgressBar
 
 
 def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):

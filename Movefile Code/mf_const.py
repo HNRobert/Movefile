@@ -1,7 +1,6 @@
 import os
 import winreg
 
-
 WIN_SHELL_KEY = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                                r'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders')
 ROAMING_PATH = os.path.join(winreg.QueryValueEx(WIN_SHELL_KEY, 'AppData')[0])
