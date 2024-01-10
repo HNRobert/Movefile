@@ -7,9 +7,8 @@ from shutil import move as shutil_move
 from threading import Thread
 
 import LT_Dic
-from mf_const import CF_CONFIG_PATH, MF_DATA_PATH
+from mf_const import CF_CONFIG_PATH, MF_CONFIG_PATH, MF_ICON_PATH
 from mf_mods import language_num, mf_log, mf_toaster, scan_items
-from mf_ui import ProgressBar
 
 
 def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
@@ -30,14 +29,15 @@ def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, ove
     It can have one of the following values:
     :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
     """
+    from mf_ui import ProgressBar
     mf_file = configparser.ConfigParser()
-    mf_file.read(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'))
+    mf_file.read(MF_CONFIG_PATH)
     lang_num = language_num(mf_file.get('General', 'language'))
 
     def cf_show_notice(old_path, new_path, move_name, error_name):
         new_folder = new_path.split('\\')[-1]
         old_folder = old_path.split('\\')[-1]
-        mf_icon_path = os.path.join(MF_DATA_PATH, r'Movefile.ico')
+        mf_icon_path = os.path.join(MF_ICON_PATH)
         if len(move_name) > 0:
             notice_title = LT_Dic.cfdic['title_p1'][lang_num] + old_folder + \
                 LT_Dic.cfdic['title_p2_1'][lang_num] + new_folder + ':'

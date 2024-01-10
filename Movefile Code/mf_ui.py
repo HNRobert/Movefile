@@ -11,7 +11,8 @@ from tkinter import ttk
 import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
 from ComBoPicker import Combopicker
-from mf_const import CF_CONFIG_PATH, DESKTOP_PATH, MF_DATA_PATH, SF_CONFIG_PATH
+from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
+                      MF_ICON_PATH, SF_CONFIG_PATH)
 from mf_mods import (detect_removable_disks_thread, language_num,
                      list_saving_data, mf_log, mf_toaster,
                      put_desktop_shortcut, scan_removable_disks, set_startup)
@@ -53,8 +54,7 @@ class ProgressBar:
         self.progress_root = tk.Toplevel(root_master)
         self.progress_root.title(self.title)
         self.progress_root.geometry('420x115')
-        self.progress_root.iconbitmap(
-            os.path.join(MF_DATA_PATH, r'Movefile.ico'))
+        self.progress_root.iconbitmap(MF_ICON_PATH)
         self.main_progress_label = ttk.Label(
             self.progress_root, text=self.label1)
         self.main_progress_label.grid(
@@ -104,7 +104,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     cf_data = configparser.ConfigParser()
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
-    general_data.read(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'))
+    general_data.read(MF_CONFIG_PATH)
     cf_ori_old_path = ''
 
     def cf_refresh_whitelist_entry():
@@ -456,7 +456,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     root = tk.Tk()
     if startup_visit:
         root.withdraw()
-    root.iconbitmap(os.path.join(MF_DATA_PATH, r'Movefile.ico'))
+    root.iconbitmap(MF_ICON_PATH)
     root.title('Movefile Setting')
     root.geometry("800x287")
     root.resizable(False, False)
@@ -957,8 +957,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
         if not error_state:
             ask_name_window = tk.Toplevel(root)
-            ask_name_window.iconbitmap(
-                os.path.join(MF_DATA_PATH, r'Movefile.ico'))
+            ask_name_window.iconbitmap(MF_ICON_PATH)
             ask_name_window.geometry('400x35')
             ask_name_window.title(
                 LT_Dic.r_label_text_dic['ask_name_window'][lang_num])
@@ -1142,8 +1141,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
         if ask_path:
             ask_saving_root = tk.Toplevel(root)
-            ask_saving_root.iconbitmap(
-                os.path.join(MF_DATA_PATH, r'Movefile.ico'))
+            ask_saving_root.iconbitmap(MF_ICON_PATH)
             if lang_num == 0:
                 ask_saving_root.geometry('680x35')
             elif lang_num == 1:
@@ -1233,7 +1231,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
         nonlocal lang_num
         general_data.set('General', 'language', language)
         general_data.write(
-            open(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'), "w+", encoding='ANSI'))
+            open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
         Place(cf_or_sf.get(), sf_place_mode.get())
@@ -1270,7 +1268,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
         mf_log("\nMovefile Quit\n")
         butt_icon.join()
-        ask_permit.join()
         background_detect.join()
 
     # 创建按键
@@ -1340,7 +1337,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
         MenuItem(taskbar_setting_text.get(),
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
         MenuItem(taskbar_exit_text.get(), action=lambda: exit_program()))
-    image = Image.open(os.path.join(MF_DATA_PATH, r'Movefile.ico'))
+    image = Image.open(MF_ICON_PATH)
     task_menu = Icon("icon", image, "Movefile", menu)
 
     root.bind("<Control-o>", lambda event: read_saving(ask_path=True))
@@ -1371,10 +1368,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     butt_icon = Thread(target=task_menu.run, daemon=True)
     butt_icon.start()
     background_detect = Thread(
-        target=lambda: detect_removable_disks_thread(), daemon=True)
+        target=lambda: detect_removable_disks_thread(root, lang_num), daemon=True)
     background_detect.start()
-    ask_permit = Thread(target=lambda: ask_sync_disk(root), daemon=True)
-    ask_permit.start()
+
     if visits_today == 1 and startup_visit:
         autorun_options = Thread(
             target=lambda: startup_autorun(), daemon=True)

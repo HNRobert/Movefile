@@ -12,15 +12,15 @@ from shutil import copy2 as shutil_copy2
 from threading import Thread
 
 import LT_Dic
-from mf_const import MF_DATA_PATH, SF_CONFIG_PATH
+from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
 from mf_mods import language_num, mf_toaster
-from mf_ui import ProgressBar
 
 
 def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
 
+    from mf_ui import ProgressBar
+
     def sf_show_notice(path_1, path_2, sf_error_name):
-        mf_icon_path = os.path.join(MF_DATA_PATH, r'Movefile.ico')
         sf_notice_title = LT_Dic.sfdic["title_p1"][language_number]
         sf_notice_content = LT_Dic.sfdic["title_p2_1"][language_number] + path_1 + \
             LT_Dic.sfdic["title_p2_2"][language_number] + path_2 + \
@@ -28,7 +28,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
         logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
         mf_toaster.show_toast(sf_notice_title,
                               sf_notice_content,
-                              icon_path=mf_icon_path,
+                              icon_path=MF_ICON_PATH,
                               duration=10,
                               threaded=False)
 
@@ -39,7 +39,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
             logging.warning("\n" + sf_error_title + "\n" + sf_error_content)
             mf_toaster.show_toast(sf_error_title,
                                   sf_error_content,
-                                  icon_path=mf_icon_path,
+                                  icon_path=MF_ICON_PATH,
                                   duration=10,
                                   threaded=False)
 
@@ -247,7 +247,7 @@ def sf_autorun_operation(master, place, saving_datas=None):
     sf_file = configparser.ConfigParser()
     sf_file.read(SF_CONFIG_PATH)
     mf_file = configparser.ConfigParser()
-    mf_file.read(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'))
+    mf_file.read(MF_CONFIG_PATH)
 
     def get_sf_startup_savings():
         sf_startup_settings = []

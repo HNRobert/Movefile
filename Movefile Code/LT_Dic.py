@@ -191,49 +191,32 @@ This notice won't be shown automatically anymore"""]
 
 help_before_use_text = ["""使用前特别注意事项：
 1.本软件必须在64位操作系统下运行，
-  后续将推出32位操作系统版本
 2.本exe文件的名称请不要改变："Movefile.exe"
   否则会影响开机自启功能
 3.使用本软件前请打开Windows设置中的
   系统/通知和操作/通知/
   “获取来自应用和其他发送者的通知” 选项，
   否则会影响操作结果通知功能
-4.使用本软件前请先将本软件放入
-  Windows安全中心的防病毒扫描排除项中，
-  否则在运行时会被直接删除
-  这是因为本软件涉及更改开机启动项。
-  如果本软件在使用中被意外删除，
-  请在Windows安全中心中
-  病毒威胁和防护的 "保护历史记录"
-  或其他安全软件中找回本软件
-5.如果经过版本新后软件无法运行，
+5.如果经过版本更新后软件无法运行，
   可以尝试删除位于Roaming文件夹中的配置文件
 6.若有其他原因导致软件功能无法正常运行，
-  且无法按上面的解释修复，可以访问 Github 网站
+  且无法按上面的解释修复，可以访问 Github 官方网站:
+  https://github.com/HNRobert/Movefile
   或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use:
-1.This software must be run under a 64-bit operating system,
-   The 32-bit operating system version will be introduced later.
+1.This software must be run under a 64-bit operating system.
 2.Please do not change the name of this exe file："Movefile.exe"
    Otherwise, the startup function will be affected.
-3.Please open the option in the windows setting:
+3.Please check the option in Windows Setting:
    System/notification and operation/notification/
    "Get notifications from apps and other senders",
    Otherwise, the operation result notification function will be affected
-4.Please put the software into the
-   'Antivirus scanning exclusion item' of Windows Security Center,
-   Otherwise, it will be deleted directly at runtime
-   This is because this software involves changing the Startup item.
-   If this software is accidentally deleted in use,
-   Please retrieve this software in the "Protection History"
-   of virus threat and protection in Windows Security Center 
-   Or other security software
-5.If the software cannot run after the new version,
+5.If the software cannot run after updating the new version,
    You can try to delete the profile located in the Roaming folder
 6.If the software fails to run normally due to other reasons, and
    Also can't be repaired as explained above,
-   You can visit Github website https://github.com/HNRobert/Movefile
+   You can visit our Github website https://github.com/HNRobert/Movefile
    Or contact the author directly (QQ: 2567466856), 
-   I will try to repair it for you as soon as possible"""]
+   I'll try to repair it for you as soon as possible"""]
 
 cf_help_text = ["""Cleanfile
 清理文件工具

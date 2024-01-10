@@ -13,12 +13,6 @@ GitHub address: https://github.com/HNRobert/Movefile
 
 import logging
 import time
-import tkinter.messagebox
-
-from mf_mods import Initialization
-from mf_ui import make_ui
-from mttkinter import mtTkinter as tk
-from win32gui import FindWindow, ShowWindow
 
 
 class GlobalsVar:
@@ -39,39 +33,9 @@ class GlobalsVar:
 gvar = GlobalsVar()
 
 
-
-# The CheckMFProgress class is used to check if the program is already running.
-# If it's running, it will display a message box to inform the user, and put the window on the top.
-class CheckMFProgress:
-
-    def __init__(self):
-        self.continue_this_progress = True
-        if self.proc_root_on():
-            self.continue_this_progress = False
-
-    def proc_root_on(self):
-        mfs_hwnd = FindWindow(None, 'Movefile Setting')
-        if mfs_hwnd:
-            return self.display_root(mfs_hwnd)
-        return False
-
-    def display_root(self, mf_hwnd):
-        temp_root = tk.Tk()
-        temp_root.withdraw()
-        try:
-            ShowWindow(mf_hwnd, 5)
-            tkinter.messagebox.showinfo(
-                title="Movefile", message="The app's running!")
-            temp_root.quit()
-            temp_root.destroy()
-            return True
-        except:
-            temp_root.quit()
-            temp_root.destroy()
-            return False
-
-
 def main():
+    from mf_mods import CheckMFProgress, Initialization
+    from mf_ui import make_ui
     checkpgs_result = CheckMFProgress()
     if not checkpgs_result.continue_this_progress:
         return

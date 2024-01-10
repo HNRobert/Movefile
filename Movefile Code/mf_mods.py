@@ -11,19 +11,51 @@ from datetime import datetime
 
 import LT_Dic
 import Movefile_icon as icon
-from mf_const import (CF_CONFIG_PATH, CF_DATA_PATH, DESKTOP_PATH, MF_DATA_PATH,
+from mf_const import (CF_CONFIG_PATH, CF_DATA_PATH, DESKTOP_PATH,
+                      MF_CONFIG_PATH, MF_DATA_PATH, MF_ICON_PATH, MF_LOG_PATH,
                       ROAMING_PATH, SF_CONFIG_PATH, SF_DATA_PATH, STARTUP_PATH)
+from mttkinter.mtTkinter import Tk
 from psutil import disk_partitions
-from syncfile import sf_autorun_operation
 from win10toast_edited import ToastNotifier
 from win32api import GetVolumeInformation
 from win32com.client import Dispatch
+from win32gui import FindWindow, ShowWindow
 from winshell import CreateShortcut
 
 from Movefile import gvar
 
 mf_toaster = ToastNotifier()
 
+
+# The CheckMFProgress class is used to check if the program is already running.
+# If it's running, it will display a message box to inform the user, and put the window on the top.
+class CheckMFProgress:
+
+    def __init__(self):
+        self.continue_this_progress = True
+        if self.proc_root_on():
+            self.continue_this_progress = False
+
+    def proc_root_on(self):
+        mfs_hwnd = FindWindow(None, 'Movefile Setting')
+        if mfs_hwnd:
+            return self.display_root(mfs_hwnd)
+        return False
+
+    def display_root(self, mf_hwnd):
+        temp_root = Tk()
+        temp_root.withdraw()
+        try:
+            ShowWindow(mf_hwnd, 5)
+            tkinter.messagebox.showinfo(
+                title="Movefile", message="The app's running!")
+            temp_root.quit()
+            temp_root.destroy()
+            return True
+        except:
+            temp_root.quit()
+            temp_root.destroy()
+            return False
 
 class Initialization:
     def __init__(self):
@@ -32,13 +64,13 @@ class Initialization:
         self.check_data_path()
 
         self.mf_data = configparser.ConfigParser()
-        self.mf_data.read(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'))
+        self.mf_data.read(MF_CONFIG_PATH)
 
-        self.log_file_path = os.path.join(MF_DATA_PATH, r'Movefile.log')
+        # self.log_file_path = os.path.join(MF_DATA_PATH, r'Movefile.log')
         self.set_log_writer()
 
         self.mf_ico = None
-        if not os.path.exists(os.path.join(MF_DATA_PATH, r'Movefile.ico')):
+        if not os.path.exists(MF_ICON_PATH):
             self.load_icon()
 
         self.ask_time_today = 0
@@ -72,8 +104,8 @@ class Initialization:
         time_now = datetime.today()
         date = str(time_now.date())
 
-        if not os.path.exists(os.path.join(MF_DATA_PATH, r'Movefile_data.ini')):  # 创建配置文件
-            file = open(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'),
+        if not os.path.exists(MF_CONFIG_PATH):  # 创建配置文件
+            file = open(MF_CONFIG_PATH,
                         'w', encoding="ANSI")
             file.close()
 
@@ -112,21 +144,20 @@ class Initialization:
             self.mf_data.set('General', 'autorun', 'False')
 
         self.mf_data.write(
-            open(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'), "w+", encoding='ANSI'))
+            open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
 
     def load_icon(self):
-        self.mf_ico = open(os.path.join(MF_DATA_PATH, r'Movefile.ico'), 'wb')
+        self.mf_ico = open(MF_ICON_PATH, 'wb')
         self.mf_ico.write(b64decode(icon.Movefile_ico))
         self.mf_ico.close()
 
     def set_log_writer(self):
-        log_file_path = self.log_file_path
-        if not os.path.exists(log_file_path):
-            logfile = open(log_file_path, 'a')
+        if not os.path.exists(MF_LOG_PATH):
+            logfile = open(MF_LOG_PATH, 'a')
             logfile.close()
         formatter = "[%(asctime)s] - [%(levelname)s]: %(message)s"
         logging.basicConfig(level=logging.INFO,
-                            filename=log_file_path,
+                            filename=MF_LOG_PATH,
                             filemode='a+',
                             format=formatter)
 
@@ -147,9 +178,8 @@ def set_startup(state=True, lang_n=0):
     bin_path = r"Movefile.exe"
     shortcut_path = os.path.join(STARTUP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
-    icon_ = os.path.join(MF_DATA_PATH, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'))
+    gen_cf.read(MF_CONFIG_PATH)
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -157,13 +187,13 @@ def set_startup(state=True, lang_n=0):
         CreateShortcut(
             Path=shortcut_path,
             Target=bin_path,
-            Icon=(icon_, 0),
+            Icon=(MF_ICON_PATH, 0),
             Description=desc,
             Arguments="--startup_visit")
     else:
         gen_cf.set('General', 'autorun', 'False')
     gen_cf.write(
-        open(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'), "w+", encoding='ANSI'))
+        open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
 
 
 def put_desktop_shortcut(state=True, lang_n=0):
@@ -177,9 +207,8 @@ def put_desktop_shortcut(state=True, lang_n=0):
     bin_path = r"Movefile.exe"
     shortcut_path = os.path.join(DESKTOP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
-    icon_ = os.path.join(MF_DATA_PATH, r'Movefile.ico')
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'))
+    gen_cf.read(MF_CONFIG_PATH)
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -187,12 +216,12 @@ def put_desktop_shortcut(state=True, lang_n=0):
         CreateShortcut(
             Path=shortcut_path,
             Target=bin_path,
-            Icon=(icon_, 0),
+            Icon=(MF_ICON_PATH, 0),
             Description=desc)
     else:
         gen_cf.set('General', 'desktop_shortcut', 'False')
     gen_cf.write(
-        open(os.path.join(MF_DATA_PATH, r'Movefile_data.ini'), "w+", encoding='ANSI'))
+        open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
 
 
 def language_num(language_name):
@@ -320,6 +349,7 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
         The function "ask_sync_disk" is used to prompt the user to input whether they want to
         synchronize their disk.
         """
+    from syncfile import sf_autorun_operation
     for autorun_id in get_movable_autorun_ids():
         msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
         msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_id[1]}{msg_ps[3]}'
