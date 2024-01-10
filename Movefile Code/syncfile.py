@@ -1,7 +1,6 @@
 
 
 import configparser
-import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -13,19 +12,31 @@ from threading import Thread
 
 import LT_Dic
 from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
-from mf_mods import language_num, mf_toaster
+from mf_mods import language_num, mf_log, mf_toaster
 
 
 def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
+    """
+    The `sf_sync_dir` function synchronizes files between two directories, displaying progress using a progress bar.
 
-    from mf_ui import ProgressBar
+    :param master_root: The master_root parameter is a string that represents the root window variable of the Movefile application. It is the mother root to create and display the progress bar.
+    :param path1: The path to the first folder that you want to synchronize
+    :param path2: The `path2` parameter represents the destination directory where the files will be synchronized to
+    :param single_sync: A boolean value indicating whether to perform a single sync or not. If True, only files present in the first folder will be synced to the second folder. If False, files present in both folders will be synced
+    :param language_number: The `language_number` parameter is an integer that represents the language code to be used for displaying messages and notifications. It is used to select the appropriate language from a dictionary of language translations
+    :param area_name: The `area_name` parameter is an optional parameter that represents the label of the partitions being synchronized. It is used in the notification message to indicate which area of files has been synchronized. If not provided, the default name will be the last part of the `path1`
+    :param pass_file_paths: The `pass_file_paths` parameter is a string that represents a comma-separated list of file paths that should be excluded from the synchronization process. These files will not be moved or replaced during the synchronization
+    :param pass_folder_paths: The `pass_folder_paths` parameter is a string that represents the paths of folders that should be excluded from the synchronization process. These folders will not be compared or synchronized with the other folders. Multiple folder paths can be separated by commas
+    """
+
+    from mfprogressbar import MFProgressBar
 
     def sf_show_notice(path_1, path_2, sf_error_name):
         sf_notice_title = LT_Dic.sfdic["title_p1"][language_number]
         sf_notice_content = LT_Dic.sfdic["title_p2_1"][language_number] + path_1 + \
             LT_Dic.sfdic["title_p2_2"][language_number] + path_2 + \
             LT_Dic.sfdic["title_p2_3"][language_number]
-        logging.info("\n" + sf_notice_title + "\n" + sf_notice_content)
+        mf_log("\n" + sf_notice_title + "\n" + sf_notice_content)
         mf_toaster.show_toast(sf_notice_title,
                               sf_notice_content,
                               icon_path=MF_ICON_PATH,
@@ -36,7 +47,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
             sf_error_title = LT_Dic.sfdic["errtitle"][language_number]
             sf_error_content = sf_error_name + \
                 LT_Dic.sfdic['can_not_move_notice'][language_number]
-            logging.warning("\n" + sf_error_title + "\n" + sf_error_content)
+            mf_log("\n" + sf_error_title + "\n" + sf_error_content)
             mf_toaster.show_toast(sf_error_title,
                                   sf_error_content,
                                   icon_path=MF_ICON_PATH,
@@ -213,10 +224,10 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
         os.mkdir(path1)
     if not os.path.exists(path2):
         os.mkdir(path2)
-    sync_bar_root = ProgressBar('Movefile  -Syncfile Progress',
-                                LT_Dic.sfdic["main_progress_label2"][language_number],
-                                LT_Dic.sfdic["current_file_label"][language_number],
-                                language_number)
+    sync_bar_root = MFProgressBar('Movefile  -Syncfile Progress',
+                                  LT_Dic.sfdic["main_progress_label2"][language_number],
+                                  LT_Dic.sfdic["current_file_label"][language_number],
+                                  language_number)
     sync_bar_root_task = Thread(
         target=lambda: sync_bar_root.launch(root_master=master_root), daemon=True)
     sync_bar_root_task.start()
@@ -279,7 +290,7 @@ def sf_autorun_operation(master, place, saving_datas=None):
                 single_sync = False
             sf_sync_dir(master, path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')),
                         pass_folder_paths=lockfolder, pass_file_paths=lockfile)
-            logging.info(
+            mf_log(
                 f'\nAutomatically ran Syncfile operation as config "{data_name}"')
 
     if place == 'movable':

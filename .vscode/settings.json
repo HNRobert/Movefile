@@ -16,8 +16,10 @@
     "entrywidth",
     "gvar",
     "highlightthickness",
+    "ipady",
     "levelname",
     "menuoptions",
+    "mfprogressbar",
     "onselect",
     "processwheel",
     "relwidth",
@@ -26,5 +28,8 @@
     "selectforeground",
     "sfdic",
     "yscrollcommand"
-  ]
+  ],
+  "docwriter.progress.trackFunctions": true,
+  "docwriter.progress.trackMethods": true,
+  "docwriter.progress.trackClasses": true
 }

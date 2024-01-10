@@ -11,15 +11,13 @@ GitHub address: https://github.com/HNRobert/Movefile
 """
 
 
-import logging
 import time
 
 
 class GlobalsVar:
     def __init__(self):
         self.gvar = {
-            "program_finished": False,
-            "new_areas_data": []
+            "program_finished": False
         }
 
     def get(self, key):
@@ -34,7 +32,7 @@ gvar = GlobalsVar()
 
 
 def main():
-    from mf_mods import CheckMFProgress, Initialization
+    from mf_mods import CheckMFProgress, Initialization, mf_log
     from mf_ui import make_ui
     checkpgs_result = CheckMFProgress()
     if not checkpgs_result.continue_this_progress:
@@ -44,11 +42,12 @@ def main():
     visits_today = initial_data.ask_time_today
     boot_visit = initial_data.startup_visit
     first_visit = initial_data.first_visit
-    logging.info(
+    quit_after_autorun = initial_data.quit_after_autorun
+    mf_log(
         f"\nMovefile Start\nVisits today: {visits_today}\nStartup visit: {str(boot_visit)}")
 
     make_ui(first_visit=first_visit, startup_visit=boot_visit,
-            visits_today=visits_today)
+            visits_today=visits_today, quit_after_autorun=quit_after_autorun)
 
 
 if __name__ == '__main__':

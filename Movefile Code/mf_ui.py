@@ -1,5 +1,7 @@
 
 
+from ast import List
+from calendar import c
 import configparser
 import os
 import time
@@ -10,11 +12,11 @@ from tkinter import ttk
 
 import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
-from ComBoPicker import Combopicker
+from combopicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
                       MF_ICON_PATH, SF_CONFIG_PATH)
 from mf_mods import (detect_removable_disks_thread, language_num,
-                     list_saving_data, mf_log, mf_toaster,
+                     list_saving_data, mf_log, mf_toaster, set_auto_quit,
                      put_desktop_shortcut, scan_removable_disks, set_startup)
 from mttkinter import mtTkinter as tk
 from PIL import Image
@@ -25,73 +27,7 @@ from win32api import GetVolumeInformation
 from Movefile import gvar
 
 
-# The ProgressBar class generate a root used to display the progress of a task.
-class ProgressBar:
-    def __init__(self, title, label1, label2, lang_num):
-        self.initialization_done = False
-        self.title = title
-        self.label1 = label1
-        self.label2 = label2
-        self.label_dic = LT_Dic.progress_root_label_dic
-        self.lang_num = lang_num
-
-        """
-        self.main_progress_label = None
-        self.main_progress_bar = None
-        self.current_file_label = None
-        self.show_running_bar = None
-        self.progress_root = None
-        self.roll_bar = None
-        """
-
-    def set_label1(self, content):
-        self.main_progress_label['text'] = content
-
-    def set_label2(self, content):
-        self.current_file_label['text'] = content
-
-    def launch(self, root_master):
-        self.progress_root = tk.Toplevel(root_master)
-        self.progress_root.title(self.title)
-        self.progress_root.geometry('420x115')
-        self.progress_root.iconbitmap(MF_ICON_PATH)
-        self.main_progress_label = ttk.Label(
-            self.progress_root, text=self.label1)
-        self.main_progress_label.grid(
-            row=0, column=0, padx=10, pady=5, sticky='SW')
-        self.main_progress_bar = ttk.Progressbar(self.progress_root)
-        self.main_progress_bar.grid(
-            row=1, column=0, padx=10, pady=0, ipadx=150, sticky='W')
-        self.current_file_label = ttk.Label(
-            self.progress_root, text=self.label2)
-        self.current_file_label.grid(
-            row=2, column=0, padx=10, pady=5, sticky='SW')
-        self.show_running_bar = ttk.Progressbar(
-            self.progress_root, mode='indeterminate')
-        self.show_running_bar.grid(
-            row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
-        self.progress_root.protocol(
-            'WM_DELETE_WINDOW', lambda: self.sync_bar_on_exit())
-        self.roll_bar = Thread(target=self.show_running, daemon=True)
-        self.roll_bar.start()
-        self.initialization_done = True
-
-    def show_running(self):
-        self.show_running_bar.start(10)
-
-    def sync_bar_on_exit(self):
-        if tkinter.messagebox.askyesno(title='Syncfile', message=self.label_dic['confirm_exit_text'][self.lang_num]):
-            self.progress_root.destroy()
-            self.roll_bar.join()
-            return True
-        else:
-            return False
-
-    def progress_root_destruction(self):
-        self.progress_root.destroy()
-
-
-def make_ui(first_visit=False, startup_visit=False, visits_today=0):
+def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_autorun=False):
     """
     The function "make_ui" creates a user interface.
 
@@ -118,8 +54,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             cf_entry_keep_formats.delete(0, 'end')
             cf_ori_old_path = cf_entry_old_path.get()
         for item in item_names:
-            if item.is_file():
-                file_end = '.' + item.name.split('.')[-1]
+            suffix = item.name.split('.')[-1]
+            if item.is_file() and suffix != 'lnk':
+                file_end = '.' + suffix
                 all_ends.append(file_end)
                 file_names.append(item.name)
             elif item.is_dir() and cf_is_folder_move.get():
@@ -185,22 +122,33 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             LT_Dic.r_label_text_dic['cf_label_new_path'][lang_number])
         cf_label_move_options_text.set(
             LT_Dic.r_label_text_dic['cf_label_move_options'][lang_number])
+        cf_option_folder_move_text.set(
+            LT_Dic.r_label_text_dic['cf_option_folder_move'][lang_number])
+        cf_option_move_lnk_text.set(
+            LT_Dic.r_label_text_dic['cf_option_move_lnk'][lang_number])
+        cf_label_adv_text.set(
+            LT_Dic.r_label_text_dic['cf_label_adv'][lang_number])
+        cf_option_adv_text.set(
+            LT_Dic.r_label_text_dic['cf_option_adv'][lang_number])
         cf_option_mode_1_text.set(
             LT_Dic.r_label_text_dic['cf_option_mode_1'][lang_number])
         cf_option_mode_2_text.set(
             LT_Dic.r_label_text_dic['cf_option_mode_2'][lang_number])
-        cf_option_folder_move_text.set(
-            LT_Dic.r_label_text_dic['cf_option_folder_move'][lang_number])
         cf_label_keep_files_text.set(
             LT_Dic.r_label_text_dic['cf_label_keep_files'][lang_number])
         cf_label_keep_formats_text.set(
             LT_Dic.r_label_text_dic['cf_label_keep_formats'][lang_number])
+        cf_label_expire_options_text.set(
+            LT_Dic.r_label_text_dic['cf_label_expire_options'][lang_number])
         cf_label_time_text.set(
             LT_Dic.r_label_text_dic['cf_label_time'][lang_number])
+        cf_label_preview_text.set(
+            LT_Dic.r_label_text_dic['cf_label_preview'][lang_number])
         cf_label_start_options_text.set(
             LT_Dic.r_label_text_dic['cf_label_start_options'][lang_number])
         cf_option_is_auto_text.set(
             LT_Dic.r_label_text_dic['cf_option_is_auto'][lang_number])
+
         sf_label_place_mode_text.set(
             LT_Dic.r_label_text_dic['sf_label_place_mode'][lang_number])
         sf_option_mode_usb_text.set(
@@ -251,6 +199,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             LT_Dic.r_label_text_dic['option_menu'][lang_number])
         autorun_menu_text.set(
             LT_Dic.r_label_text_dic['autorun_menu'][lang_number])
+        auto_quit_menu_text.set(
+            LT_Dic.r_label_text_dic['auto_quit_menu'][lang_number])
         desktop_shortcut_text.set(
             LT_Dic.r_label_text_dic['desktop_shortcut'][lang_number])
         language_menu_text.set(
@@ -267,17 +217,20 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             LT_Dic.r_label_text_dic['sf_removable_menu'][lang_number])
         sf_lock_menu_text.set(
             LT_Dic.r_label_text_dic['sf_lock_menu'][lang_number])
+        menu_hide_text.set(LT_Dic.r_label_text_dic['menu_hide'][lang_number])
 
         taskbar_setting_text.set(
             LT_Dic.r_label_text_dic['taskbar_setting'][lang_number])
+        taskbar_hide_text.set(
+            LT_Dic.r_label_text_dic['taskbar_hide'][lang_number])
         taskbar_exit_text.set(
             LT_Dic.r_label_text_dic['taskbar_exit'][lang_number])
 
     class Place:
         def __init__(self, mode=None, sf_place=None):
             self.mode = mode
-            label_choose_state.grid(row=0, column=0, pady=5, sticky='E')
-            blank.grid(row=3, column=1, padx=321, pady=5, sticky='W')
+            label_choose_state.grid(row=0, column=0, pady=4, sticky='E')
+            blank.grid(row=3, column=1, padx=321, pady=4, sticky='W')
             option_is_cleanfile.grid(
                 row=0, column=1, padx=10, pady=5, sticky='W')
             option_is_syncfile.grid(
@@ -288,6 +241,51 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             elif self.mode == 'sf':
                 self.sf_state(sf_place)
             self.judge_button_pix()
+
+        @staticmethod
+        def cf_fold_adv(state=False):
+            if state:
+                cf_label_old_path.grid(row=4, column=0, pady=5, sticky='E')
+                cf_label_keep_files.grid(row=5, column=0, pady=5, sticky='E')
+                cf_label_keep_formats.grid(row=6, column=0, pady=5, sticky='E')
+                cf_label_expire_options.grid(
+                    row=7, column=0, pady=4, sticky='E')
+                cf_label_time.grid(row=8, column=0, pady=5, sticky='E')
+
+                cf_entry_old_path.grid(
+                    row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+                cf_browse_old_path_button.grid(
+                    row=4, column=1, ipadx=3, sticky='E', padx=10)
+                cf_entry_keep_files.grid(
+                    row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+                cf_entry_frame_keep_files.grid(row=5, column=1, sticky='W')
+                cf_entry_keep_formats.grid(
+                    row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+                cf_entry_frame_keep_formats.grid(row=6, column=1, sticky='W')
+                cf_option_mode_1.grid(
+                    row=7, column=1, padx=10, ipadx=0, sticky='W')
+                temp_adjust_value = [150, 210]
+                cf_option_mode_2.grid(
+                    row=7, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
+                cf_entry_time.grid(row=8, column=1, padx=10,
+                                   pady=0, ipadx=240, sticky='W')
+                root.geometry('800x520')
+            else:
+                cf_label_old_path.grid_forget()
+                cf_entry_old_path.grid_forget()
+                cf_browse_old_path_button.grid_forget()
+                cf_label_keep_files.grid_forget()
+                cf_label_keep_formats.grid_forget()
+                cf_label_expire_options.grid_forget()
+                cf_label_time.grid_forget()
+                cf_entry_keep_files.grid_forget()
+                cf_entry_frame_keep_files.grid_forget()
+                cf_entry_keep_formats.grid_forget()
+                cf_entry_frame_keep_formats.grid_forget()
+                cf_option_mode_1.grid_forget()
+                cf_option_mode_2.grid_forget()
+                cf_entry_time.grid_forget()
+                root.geometry('800x360')
 
         @staticmethod
         def sf_change_place_mode(mode):
@@ -314,20 +312,18 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
         @staticmethod
         def judge_button_pix():
+            def adjust_widget(mount: list):
+                save_button.grid(row=11, column=1, ipadx=mount[0],
+                                 pady=4, padx=10, sticky='W')
+                continue_button.grid(
+                    row=11, column=1, ipadx=mount[1], pady=4, padx=10, sticky='E')
+                cf_option_lnk_move.grid(
+                    row=2, column=1, padx=mount[2], ipadx=0, sticky='W')
+
             if lang_num == 0:
-                save_button.grid(row=8, column=1, ipadx=100,
-                                 pady=4, padx=10, sticky='W')
-                continue_button.grid(
-                    row=8, column=1, ipadx=100, pady=4, padx=10, sticky='E')
-                cf_option_mode_2.grid(
-                    row=3, column=1, padx=180, ipadx=0, sticky='E')
+                adjust_widget([100, 100, 150])
             elif lang_num == 1:
-                save_button.grid(row=8, column=1, ipadx=95,
-                                 pady=4, padx=10, sticky='W')
-                continue_button.grid(
-                    row=8, column=1, ipadx=70, pady=4, padx=10, sticky='E')
-                cf_option_mode_2.grid(
-                    row=3, column=1, padx=210, ipadx=0, sticky='W')
+                adjust_widget([95, 95, 210])
 
         @staticmethod
         def cf_state():
@@ -354,36 +350,25 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             sf_browse_lockfile_button.grid_forget()
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
+            
+            cf_label_new_path.grid(row=1, column=0, pady=5, sticky='E')
+            cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
+            cf_label_adv.grid(row=3, column=0, pady=3, sticky='E')
+            cf_label_preview.grid(row=9, column=0, pady=0, sticky='E')
+            cf_label_start_options.grid(row=10, column=0, sticky='E')
 
-            cf_entry_old_path.grid(
-                row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            cf_browse_old_path_button.grid(
-                row=1, column=1, ipadx=3, sticky='E', padx=10)
             cf_entry_new_path.grid(
-                row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+                row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_new_path_button.grid(
-                row=2, column=1, ipadx=3, sticky='E', padx=10)
-            cf_option_mode_1.grid(
-                row=3, column=1, padx=10, ipadx=0, sticky='W')
-            cf_option_mode_2.grid(
-                row=3, column=1, padx=180, ipadx=0, sticky='W')
-            cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='E')
-            cf_entry_keep_files.grid(
-                row=4, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-            cf_entry_keep_formats.grid(
-                row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-            cf_entry_frame_keep_files.grid(row=4, column=1, sticky='W')
-            cf_entry_frame_keep_formats.grid(row=5, column=1, sticky='W')
-            cf_entry_time.grid(row=6, column=1, padx=10,
-                               pady=5, ipadx=240, sticky='W')
-            cf_option_is_auto.grid(row=7, column=1, padx=10, sticky='NW')
-            cf_label_old_path.grid(row=1, column=0, pady=5, sticky='E')
-            cf_label_new_path.grid(row=2, column=0, pady=5, sticky='E')
-            cf_label_move_options.grid(row=3, column=0, pady=5, sticky='E')
-            cf_label_keep_files.grid(row=4, column=0, pady=5, sticky='E')
-            cf_label_keep_formats.grid(row=5, column=0, sticky='E')
-            cf_label_time.grid(row=6, column=0, sticky='E')
-            cf_label_start_options.grid(row=7, column=0, sticky='E')
+                row=1, column=1, ipadx=3, sticky='E', padx=10)
+            cf_option_folder_move.grid(row=2, column=1, padx=10, sticky='W')
+            cf_option_lnk_move.grid(row=2, column=1, padx=210, sticky='W')
+            cf_option_adv.grid(row=3, column=1, padx=10, sticky='W')
+
+            cf_text_preview.grid(row=9, column=1, padx=10,
+                                 pady=5, ipadx=135, ipady=50, sticky='W')
+            cf_option_is_auto.grid(row=10, column=1, padx=10, sticky='NW')
+            Place.cf_fold_adv(cf_unfold_adv.get())
 
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + current_cf_save_name.get())
@@ -394,20 +379,24 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
             cf_browse_old_path_button.grid_forget()
             cf_entry_new_path.grid_forget()
             cf_browse_new_path_button.grid_forget()
-            cf_option_mode_1.grid_forget()
-            cf_option_mode_2.grid_forget()
             cf_option_folder_move.grid_forget()
+            cf_option_lnk_move.grid_forget()
             cf_entry_keep_files.grid_forget()
             cf_entry_keep_formats.grid_forget()
             cf_entry_frame_keep_files.grid_forget()
             cf_entry_frame_keep_formats.grid_forget()
+            cf_option_mode_1.grid_forget()
+            cf_option_mode_2.grid_forget()
             cf_entry_time.grid_forget()
+            cf_text_preview.grid_forget()
             cf_option_is_auto.grid_forget()
             cf_label_old_path.grid_forget()
             cf_label_new_path.grid_forget()
-            cf_label_move_options.grid_forget()
+            cf_label_expire_options.grid_forget()
             cf_label_keep_files.grid_forget()
             cf_label_keep_formats.grid_forget()
+            cf_label_preview.grid_forget()
+            cf_label_expire_options.grid_forget()
             cf_label_time.grid_forget()
             cf_label_start_options.grid_forget()
 
@@ -458,11 +447,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
         root.withdraw()
     root.iconbitmap(MF_ICON_PATH)
     root.title('Movefile Setting')
-    root.geometry("800x287")
+    root.geometry("800x360")
     root.resizable(False, False)
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
     root.update_idletasks()
+    root.protocol('WM_DELETE_WINDOW', lambda: exit_program())
+    # 重新定义点击关闭按钮的处理
 
     current_save_name = tk.StringVar()
     current_cf_save_name = tk.StringVar()
@@ -479,14 +470,21 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     cf_browse_new_path_button_text = tk.StringVar()
     cf_label_new_path_text = tk.StringVar()
     cf_label_move_options_text = tk.StringVar()
-    cf_option_mode_1_text = tk.StringVar()
-    cf_option_mode_2_text = tk.StringVar()
     cf_option_folder_move_text = tk.StringVar()
+    cf_option_move_lnk_text = tk.StringVar()
+    cf_label_adv_text = tk.StringVar()
+
+    cf_option_adv_text = tk.StringVar()
     cf_label_keep_files_text = tk.StringVar()
     cf_label_keep_formats_text = tk.StringVar()
+    cf_label_expire_options_text = tk.StringVar()
+    cf_option_mode_1_text = tk.StringVar()
+    cf_option_mode_2_text = tk.StringVar()
     cf_label_time_text = tk.StringVar()
+    cf_label_preview_text = tk.StringVar()
     cf_label_start_options_text = tk.StringVar()
     cf_option_is_auto_text = tk.StringVar()
+
     sf_label_place_mode_text = tk.StringVar()
     sf_option_mode_usb_text = tk.StringVar()
     sf_option_mode_local_text = tk.StringVar()
@@ -514,6 +512,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     exit_menu_text = tk.StringVar()
     option_menu_text = tk.StringVar()
     autorun_menu_text = tk.StringVar()
+    auto_quit_menu_text = tk.StringVar()
     desktop_shortcut_text = tk.StringVar()
     language_menu_text = tk.StringVar()
     help_menu_text = tk.StringVar()
@@ -524,6 +523,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     sf_removable_menu_text = tk.StringVar()
     sf_lock_menu_text = tk.StringVar()
     taskbar_setting_text = tk.StringVar()
+    menu_hide_text = tk.StringVar()
+    taskbar_hide_text = tk.StringVar()
     taskbar_exit_text = tk.StringVar()
 
     root_language = tk.StringVar()
@@ -560,20 +561,24 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
     cf_label_move_options = ttk.Label(
         root, textvariable=cf_label_move_options_text)
-    cf_entry_mode = tk.IntVar()
-    cf_option_mode_1 = ttk.Radiobutton(root, textvariable=cf_option_mode_1_text, variable=cf_entry_mode,
-                                       value=1)
-    cf_option_mode_2 = ttk.Radiobutton(root, textvariable=cf_option_mode_2_text, variable=cf_entry_mode,
-                                       value=2)
+    cf_is_lnk_move = tk.BooleanVar()
+    cf_option_lnk_move = ttk.Checkbutton(root, textvariable=cf_option_move_lnk_text,
+                                         variable=cf_is_lnk_move)
     cf_is_folder_move = tk.BooleanVar()
     cf_option_folder_move = ttk.Checkbutton(root, textvariable=cf_option_folder_move_text,
                                             variable=cf_is_folder_move)
+
+    cf_label_adv = ttk.Label(root, textvariable=cf_label_adv_text)
+    cf_unfold_adv = tk.BooleanVar()
+    cf_option_adv = ttk.Checkbutton(root, textvariable=cf_option_adv_text,
+                                    variable=cf_unfold_adv,
+                                    command=lambda: Place.cf_fold_adv(cf_unfold_adv.get()))
 
     cf_entry_frame_keep_files = tk.Frame(root)
     cf_label_keep_files = ttk.Label(
         root, textvariable=cf_label_keep_files_text)
     cf_entry_keep_files = Combopicker(
-        master=cf_entry_frame_keep_files, frameheight=120, allname_textvariable=select_all_text)
+        master=cf_entry_frame_keep_files, frameheight=220, allname_textvariable=select_all_text)
     cf_entry_keep_files.bind(
         '<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
@@ -581,12 +586,23 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     cf_label_keep_formats = ttk.Label(
         root, textvariable=cf_label_keep_formats_text)
     cf_entry_keep_formats = Combopicker(
-        master=cf_entry_frame_keep_formats, frameheight=90, allname_textvariable=select_all_text)
+        master=cf_entry_frame_keep_formats, frameheight=190, allname_textvariable=select_all_text)
     cf_entry_keep_formats.bind(
         '<Button-1>', lambda event: cf_refresh_whitelist_entry())
 
+    cf_label_expire_options = ttk.Label(
+        root, textvariable=cf_label_expire_options_text)
+    cf_entry_mode = tk.IntVar()
+    cf_option_mode_1 = ttk.Radiobutton(root, textvariable=cf_option_mode_1_text, variable=cf_entry_mode,
+                                       value=1)
+    cf_option_mode_2 = ttk.Radiobutton(root, textvariable=cf_option_mode_2_text, variable=cf_entry_mode,
+                                       value=2)
     cf_label_time = ttk.Label(root, textvariable=cf_label_time_text)
     cf_entry_time = ttk.Entry(root)
+
+    cf_label_preview = ttk.Label(root, textvariable=cf_label_preview_text)
+    cf_text_preview = tk.Text(root, height=5, width=50,
+                              state='disabled')
 
     cf_label_start_options = ttk.Label(
         root, textvariable=cf_label_start_options_text)
@@ -635,14 +651,14 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
         root, textvariable=sf_label_lock_folder_text)
     sf_entry_frame_lock_folder = tk.Frame(root)
     sf_entry_lock_folder = Combopicker(
-        master=sf_entry_frame_lock_folder, frameheight=90, allname_textvariable=select_all_text)
+        master=sf_entry_frame_lock_folder, frameheight=190, allname_textvariable=select_all_text)
     sf_browse_lockfolder_button = ttk.Button(root, textvariable=sf_browse_lockfolder_button_text,
                                              command=lambda: choose_lock_items('lockfolder'))
 
     sf_label_lock_file = ttk.Label(root, textvariable=sf_label_lock_file_text)
     sf_entry_frame_lock_file = tk.Frame(root)
     sf_entry_lock_file = Combopicker(
-        master=sf_entry_frame_lock_file, frameheight=50, allname_textvariable=select_all_text)
+        master=sf_entry_frame_lock_file, frameheight=150, allname_textvariable=select_all_text)
     sf_browse_lockfile_button = ttk.Button(root, textvariable=sf_browse_lockfile_button_text,
                                            command=lambda: choose_lock_items('lockfile'))
 
@@ -1226,6 +1242,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
         time.sleep(1)
         cf_autorun_operation(root)
         sf_autorun_operation(root, 'local')
+        if quit_after_autorun:
+            exit_program()
 
     def change_language(language):
         nonlocal lang_num
@@ -1272,7 +1290,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
     # 创建按键
     blank_pix = ttk.Label(root, text=' ')
-    blank_pix.grid(row=8, column=0, ipadx=67, pady=4, padx=0, sticky='E')
+    blank_pix.grid(row=114, column=0, ipadx=67, pady=4,
+                   padx=0, sticky='E')  # This is a Placeholder
     save_button = ttk.Button(
         root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(
@@ -1292,12 +1311,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
 
     option_menu = tk.Menu(main_menu, tearoff=False)
     is_startup_run = tk.BooleanVar()
-    is_startup_run.set(general_data.get('General', 'autorun') == "True")
+    is_startup_run.set(general_data.getboolean('General', 'autorun'))
+    auto_quit = tk.BooleanVar()
+    auto_quit.set(quit_after_autorun)
     is_desktop_shortcut = tk.BooleanVar()
-    is_desktop_shortcut.set(general_data.get(
-        'General', 'desktop_shortcut') == "True")
+    is_desktop_shortcut.set(general_data.getboolean(
+        'General', 'desktop_shortcut'))
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
                                 command=lambda: set_startup(is_startup_run.get(), lang_num))
+    option_menu.add_checkbutton(label=auto_quit_menu_text.get(), variable=auto_quit,
+                                command=lambda: set_auto_quit(auto_quit.get()))
     option_menu.add_checkbutton(label=desktop_shortcut_text.get(
     ), variable=is_desktop_shortcut, command=lambda: put_desktop_shortcut(is_desktop_shortcut.get(), lang_num))
 
@@ -1330,12 +1353,17 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
     main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
+    main_menu.add_command(label=menu_hide_text.get(),
+                          command=lambda: root.withdraw())
+
     root.config(menu=main_menu)
 
     # 托盘菜单
     menu = (
         MenuItem(taskbar_setting_text.get(),
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
+        MenuItem(taskbar_hide_text.get(),
+                 action=lambda event: root.wait_window()),
         MenuItem(taskbar_exit_text.get(), action=lambda: exit_program()))
     image = Image.open(MF_ICON_PATH)
     task_menu = Icon("icon", image, "Movefile", menu)
@@ -1347,9 +1375,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0):
     # root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
 
     root_info_checker = MF_Info_Checker()
-
-    root.protocol('WM_DELETE_WINDOW', root.withdraw)
-    # 重新定义点击关闭按钮的处理
 
     if first_visit:
         initial_entry(set_cf_dest=True)

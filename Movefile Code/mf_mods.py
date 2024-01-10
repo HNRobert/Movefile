@@ -10,7 +10,7 @@ from ctypes import windll
 from datetime import datetime
 
 import LT_Dic
-import Movefile_icon as icon
+import mf_icon as icon
 from mf_const import (CF_CONFIG_PATH, CF_DATA_PATH, DESKTOP_PATH,
                       MF_CONFIG_PATH, MF_DATA_PATH, MF_ICON_PATH, MF_LOG_PATH,
                       ROAMING_PATH, SF_CONFIG_PATH, SF_DATA_PATH, STARTUP_PATH)
@@ -57,10 +57,14 @@ class CheckMFProgress:
             temp_root.destroy()
             return False
 
+# The Initialization class is used for initializing the Movefile programme.
+
+
 class Initialization:
     def __init__(self):
         self.startup_visit = self.get_startup_state()
         self.first_visit = False
+        self.quit_after_autorun = False
         self.check_data_path()
 
         self.mf_data = configparser.ConfigParser()
@@ -131,6 +135,12 @@ class Initialization:
 
         if not self.mf_data.has_option('General', 'autorun'):
             self.mf_data.set('General', 'autorun', 'False')
+        if not self.mf_data.has_option('General', 'quit_after_autorun'):
+            self.mf_data.set('General', 'quit_after_autorun', 'False')
+        else:
+            self.quit_after_autorun = self.mf_data.getboolean(
+                'General', 'quit_after_autorun')
+
         if not self.mf_data.has_option('General', 'desktop_shortcut'):
             self.mf_data.set('General', 'desktop_shortcut', 'False')
 
@@ -222,6 +232,19 @@ def put_desktop_shortcut(state=True, lang_n=0):
         gen_cf.set('General', 'desktop_shortcut', 'False')
     gen_cf.write(
         open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
+
+
+def set_auto_quit(state=True):
+    """
+    The function `set_close_after_autorun` sets the value of the `quit_after_autorun` variable in the `gvar` module to the specified value.
+
+    :param state: The `state` parameter is a boolean value that determines whether the program should quit after the autorun process is completed. If `state` is `True`, the program will quit after the autorun process is completed. If `state` is `False`, the program will not quit after the autorun process is completed, defaults to True (optional)
+    """
+
+    ca_cf = configparser.ConfigParser()
+    ca_cf.read(MF_CONFIG_PATH)
+    ca_cf.set('General', 'quit_after_autorun', str(state))
+    mf_log(f"Set quit-after-autorun to {state}")
 
 
 def language_num(language_name):
@@ -357,7 +380,6 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
                                                                                      message=msg_content):
             sf_autorun_operation(master_root, 'movable', [
                                  new_area_data[0], new_area_data[1], autorun_id[1]])
-
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹

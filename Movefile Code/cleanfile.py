@@ -11,25 +11,21 @@ from mf_const import CF_CONFIG_PATH, MF_CONFIG_PATH, MF_ICON_PATH
 from mf_mods import language_num, mf_log, mf_toaster, scan_items
 
 
-def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
+def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
     """
     The function `cf_move_dir` is used to move files or folders from one directory to another, with
     options for specifying file formats, checking modes, and handling overdue files.
 
+    :param master_root: The master_root parameter is a string that represents the root window variable of the Movefile application. It is the mother root to create and display the progress bar.
     :param old__path: The current path or location of the file or folder that needs to be moved
     :param new__path: The new path where the file or folder will be moved to
-    :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is
-    a boolean value where True means files will be passed and False means files will not be passed
-    :param pass__format: The pass__format parameter is used to specify the format of the files that
-    should be moved. It can be a string or a list of strings representing the file formats. For example,
-    if you want to move only text files, you can set pass__format to "txt" or ["txt"]
-    :param overdue_time: The parameter "overdue_time" is used to specify the time in seconds after which
-    a file or folder is considered overdue
-    :param check__mode: The check__mode parameter is used to specify the type of check to be performed.
-    It can have one of the following values:
+    :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is a boolean value where True means files will be passed and False means files will not be passed
+    :param pass__format: The pass__format parameter is used to specify the format of the files that should be moved. It can be a string or a list of strings representing the file formats. For example, if you want to move only text files, you can set pass__format to "txt" or ["txt"]
+    :param overdue_time: The parameter "overdue_time" is used to specify the time in seconds after which a file or folder is considered overdue
+    :param check__mode: The check__mode parameter is used to specify the type of check to be performed. It can have one of the following values:
     :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
     """
-    from mf_ui import ProgressBar
+    from mfprogressbar import MFProgressBar
     mf_file = configparser.ConfigParser()
     mf_file.read(MF_CONFIG_PATH)
     lang_num = language_num(mf_file.get('General', 'language'))
@@ -169,12 +165,12 @@ def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, ove
         os.mkdir(new__path)
 
     cleanfile_done = False
-    clean_bar_root = ProgressBar('Movefile  -Syncfile Progress',
-                                 LT_Dic.cfdic["main_progress_label2"][lang_num],
-                                 LT_Dic.cfdic["current_file_label"][lang_num],
-                                 lang_num)
+    clean_bar_root = MFProgressBar('Movefile  -Syncfile Progress',
+                                   LT_Dic.cfdic["main_progress_label2"][lang_num],
+                                   LT_Dic.cfdic["current_file_label"][lang_num],
+                                   lang_num)
     clean_bar_root_task = Thread(
-        target=lambda: clean_bar_root.launch(root_master=master_root), daemon=True)
+        target=lambda: clean_bar_root.launch(root_master=master__root), daemon=True)
     clean_bar_root_task.start()
     while not clean_bar_root.initialization_done:
         time.sleep(0.01)
@@ -191,6 +187,8 @@ def cf_move_dir(master_root, old__path, new__path, pass__file, pass__format, ove
 def cf_autorun_operation(master):
     """
     The function cf_autorun_operation is used to perform an cleanfile operation automatically.
+
+    :param master: The master parameter is the root window of the application. It is the mother root to create and display the progress bar.
     """
     cf_file = configparser.ConfigParser()
     cf_file.read(CF_CONFIG_PATH)
@@ -201,7 +199,7 @@ def cf_autorun_operation(master):
             autorun_savings.append(cf_name)
 
     for save_name in autorun_savings:
-        cf_move_dir(master_root=master,
+        cf_move_dir(master__root=master,
                     old__path=cf_file.get(save_name, 'old_path'),
                     new__path=cf_file.get(save_name, 'new_path'),
                     pass__file=cf_file.get(
