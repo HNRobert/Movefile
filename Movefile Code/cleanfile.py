@@ -1,6 +1,7 @@
 
 
 import configparser
+from email.policy import default
 import os
 import time
 from shutil import move as shutil_move
@@ -11,7 +12,7 @@ from mf_const import CF_CONFIG_PATH, MF_CONFIG_PATH, MF_ICON_PATH
 from mf_mods import language_num, mf_log, mf_toaster, scan_items
 
 
-def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, overdue_time, check__mode, is__move__folder):
+def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: list, overdue__time, check__mode, is__move__folder, is__move__lnk):
     """
     The function `cf_move_dir` is used to move files or folders from one directory to another, with
     options for specifying file formats, checking modes, and handling overdue files.
@@ -19,8 +20,8 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, ov
     :param master_root: The master_root parameter is a string that represents the root window variable of the Movefile application. It is the mother root to create and display the progress bar.
     :param old__path: The current path or location of the file or folder that needs to be moved
     :param new__path: The new path where the file or folder will be moved to
-    :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is a boolean value where True means files will be passed and False means files will not be passed
-    :param pass__format: The pass__format parameter is used to specify the format of the files that should be moved. It can be a string or a list of strings representing the file formats. For example, if you want to move only text files, you can set pass__format to "txt" or ["txt"]
+    :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is a list of the files which will be passed.
+    :param pass__format: The pass__format parameter is used to specify the format of the files that should be moved. It is a list of strings representing the file formats. For example, if you want to move only text files, you can set pass__format to "txt" or ["txt"]
     :param overdue_time: The parameter "overdue_time" is used to specify the time in seconds after which a file or folder is considered overdue
     :param check__mode: The check__mode parameter is used to specify the type of check to be performed. It can have one of the following values:
     :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
@@ -29,39 +30,6 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, ov
     mf_file = configparser.ConfigParser()
     mf_file.read(MF_CONFIG_PATH)
     lang_num = language_num(mf_file.get('General', 'language'))
-
-    def cf_show_notice(old_path, new_path, move_name, error_name):
-        new_folder = new_path.split('\\')[-1]
-        old_folder = old_path.split('\\')[-1]
-        mf_icon_path = os.path.join(MF_ICON_PATH)
-        if len(move_name) > 0:
-            notice_title = LT_Dic.cfdic['title_p1'][lang_num] + old_folder + \
-                LT_Dic.cfdic['title_p2_1'][lang_num] + new_folder + ':'
-            if new_path == '':
-                notice_title = LT_Dic.cfdic['title_p1'][lang_num] + \
-                    old_folder + LT_Dic.cfdic['title_p2_2'][lang_num]
-            mf_log("\n" + notice_title + "\n" + move_name[:-3])
-            mf_toaster.show_toast(notice_title, move_name[:-3],
-                                  icon_path=mf_icon_path,
-                                  duration=10,
-                                  threaded=False)
-        else:
-            notice_title = old_folder + LT_Dic.cfdic['cltitle'][lang_num]
-            notice_content = LT_Dic.cfdic['clcontent'][lang_num]
-            mf_log("\n" + notice_title + "\n" + notice_content)
-            mf_toaster.show_toast(notice_title, notice_content,
-                                  icon_path=mf_icon_path,
-                                  duration=10,
-                                  threaded=False)
-        if len(error_name) > 0:
-            notice_title = LT_Dic.cfdic['errtitle'][lang_num]
-            notice_content = error_name[:-3] + \
-                '\n' + LT_Dic.cfdic['errcontent'][lang_num]
-            mf_log("\n" + notice_title + "\n" + notice_content)
-            mf_toaster.show_toast(notice_title, notice_content,
-                                  icon_path=mf_icon_path,
-                                  duration=10,
-                                  threaded=False)
 
     def del_item(path):  # 递归删除文件夹或单个文件, 代替shutil.rmtree和os.remove  (shutil.rmtree会莫名报错)
         error_files = ''
@@ -98,6 +66,8 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, ov
         tasks = []
         item_datas = os.scandir(old__path)  # 获取文件夹下所有文件和文件夹
         now = int(time.time())  # 当前时间
+        if is__move__lnk:
+            pass__format.append('lnk')
         for item_data in item_datas:
             if ('.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir()
                     or item_data.name in pass__file):
@@ -112,7 +82,7 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, ov
                 last = int(os.stat(item_data.path).st_atime)
             else:
                 raise
-            if item_data.is_dir() and not is__move__folder or now - last < overdue_time:  # 判断移动条件
+            if item_data.is_dir() and not is__move__folder or now - last < overdue__time:  # 判断移动条件
                 continue
             tasks.append([item_data.name, item_data.path, new__path])
             baroot.set_label1(LT_Dic.cfdic['main_progress_label']
@@ -157,7 +127,8 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, ov
                 f'{LT_Dic.cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{task_len}  {LT_Dic.cfdic["main_progress_label1"][lang_num][1]}')
             baroot.progress_root.update_idletasks()
         baroot.progress_root.withdraw()
-        cf_show_notice(old__path, new__path, cf_move_name, cf_error_name)
+        cf_show_notice(old__path, new__path, cf_move_name,
+                       cf_error_name, lang_num)
         baroot.progress_root.withdraw()
         cleanfile_done = True
 
@@ -184,6 +155,54 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format, ov
     run_tasks.join()
 
 
+def cf_show_notice(old_path, new_path, move_name, error_name, lang_num):
+    new_folder = new_path.split('\\')[-1]
+    old_folder = old_path.split('\\')[-1]
+    mf_icon_path = os.path.join(MF_ICON_PATH)
+    if len(move_name) > 0:
+        notice_title = LT_Dic.cfdic['title_p1'][lang_num] + old_folder + \
+            LT_Dic.cfdic['title_p2_1'][lang_num] + new_folder + ':'
+        if new_path == '':
+            notice_title = LT_Dic.cfdic['title_p1'][lang_num] + \
+                old_folder + LT_Dic.cfdic['title_p2_2'][lang_num]
+        mf_log("\n" + notice_title + "\n" + move_name[:-3])
+        mf_toaster.show_toast(notice_title, move_name[:-3],
+                              icon_path=mf_icon_path,
+                              duration=10,
+                              threaded=False)
+    else:
+        notice_title = old_folder + LT_Dic.cfdic['cltitle'][lang_num]
+        notice_content = LT_Dic.cfdic['clcontent'][lang_num]
+        mf_log("\n" + notice_title + "\n" + notice_content)
+        mf_toaster.show_toast(notice_title, notice_content,
+                              icon_path=mf_icon_path,
+                              duration=10,
+                              threaded=False)
+    if len(error_name) > 0:
+        notice_title = LT_Dic.cfdic['errtitle'][lang_num]
+        notice_content = error_name[:-3] + \
+            '\n' + LT_Dic.cfdic['errcontent'][lang_num]
+        mf_log("\n" + notice_title + "\n" + notice_content)
+        mf_toaster.show_toast(notice_title, notice_content,
+                              icon_path=mf_icon_path,
+                              duration=10,
+                              threaded=False)
+
+
+def fixed_cf_config(cf_config_file: configparser.ConfigParser, saving_name: str):
+    if not cf_config_file.has_section(saving_name):
+        return False
+    if not cf_config_file.has_option(saving_name, 'old_path') or not cf_config_file.has_option(saving_name, 'new_path'):
+        return False
+    option_names = ['pass_filename', 'pass_format',
+                    'set_hour', 'mode', 'move_folder', 'move_lnk']
+    default_values = ['', '', '0', '0', 'False', 'False']
+    for option, value in option_names, default_values:
+        if not cf_config_file.has_option(saving_name, option):
+            cf_config_file.set(saving_name, option, value)
+    return True
+
+
 def cf_autorun_operation(master):
     """
     The function cf_autorun_operation is used to perform an cleanfile operation automatically.
@@ -195,7 +214,7 @@ def cf_autorun_operation(master):
 
     autorun_savings = []
     for cf_name in cf_file.sections():
-        if cf_file.get(cf_name, 'autorun') == 'True':
+        if cf_file.has_option(cf_name, 'autorun') and cf_file.get(cf_name, 'autorun') == 'True' and fixed_cf_config(cf_file, cf_name):
             autorun_savings.append(cf_name)
 
     for save_name in autorun_savings:
@@ -206,8 +225,10 @@ def cf_autorun_operation(master):
                         save_name, 'pass_filename').split(','),
                     pass__format=cf_file.get(
                         save_name, 'pass_format').split(','),
-                    overdue_time=cf_file.getint(save_name, 'set_hour') * 3600,
+                    overdue__time=cf_file.getint(save_name, 'set_hour') * 3600,
                     check__mode=cf_file.getint(save_name, 'mode'),
-                    is__move__folder=cf_file.get(save_name, 'move_folder'))
+                    is__move__folder=cf_file.getboolean(
+                        save_name, 'move_folder'),
+                    is__move__lnk=cf_file.getboolean(save_name, 'move_lnk'))
         mf_log(
             f'\nAutomatically ran Cleanfile operation as config "{save_name}"')

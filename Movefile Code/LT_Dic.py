@@ -38,17 +38,17 @@ r_label_text_dic = {
     'cf_browse_new_path_button': ['浏览', 'Browse'],
     'cf_label_new_path': ['移动到：', 'Moving to：'],
     'cf_label_move_options': ['移动选项：', 'Move Options：'],
-    'cf_option_folder_move': ['保留文件夹', 'Keep Folders remain'],
-    'cf_option_move_lnk': ['保留快捷方式', 'Keep Shortcuts remain'],
+    'cf_option_folder_move': ['移动文件夹', 'Move Folders'],
+    'cf_option_move_lnk': ['移动快捷方式', 'Move Shortcuts'],
     'cf_label_adv': ['高级选项：', 'Advanced Options：'],
     'cf_option_adv': ['展开 ↓', 'Unfold ↓'],
     'cf_label_keep_files': ['强制保留项目：', 'Reserved Files：'],
     'cf_label_keep_formats': ['按文件格式保留：', 'Reserved Fmts：'],
     'cf_label_expire_options': ['过期判断依据：', 'Expire Criteria：'],
-    'cf_option_mode_1': ['最后修改时间', "Use Items' latest edit time"],
-    'cf_option_mode_2': ['最后访问时间', "Use Items' latest ask time"],
+    'cf_option_mode_1': ['最后修改时间', "Last Modified Times"],
+    'cf_option_mode_2': ['最后访问时间', "Last Accessed Times"],
     'cf_label_time': ['过期时间设定(小时)：', 'Expire limit(h)：'],
-    'cf_label_preview': ['移动项目预览：', 'Moving items Preview：'],
+    'cf_label_preview': ['移动项目预览：', 'Action Preview：'],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
     'cf_option_is_auto': ['开机自动运行上面配置', 'Automatically run this config after Startup(if saved)'],
 
@@ -78,7 +78,7 @@ r_label_text_dic = {
 
     # About options
     'save_button': ['保存', 'Save'],
-    'continue_button': ['运行当前配置', 'Run current configuration'],
+    'continue_button': ['运行', 'Run'],
 
     # Readfile options
     'read_name_label': ['     选择存档：', '   Pick a config：'],

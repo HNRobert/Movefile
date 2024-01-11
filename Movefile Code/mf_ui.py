@@ -12,7 +12,7 @@ from tkinter import ttk
 
 import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
-from combopicker import Combopicker
+from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
                       MF_ICON_PATH, SF_CONFIG_PATH)
 from mf_mods import (detect_removable_disks_thread, language_num,
@@ -240,11 +240,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 self.cf_state()
             elif self.mode == 'sf':
                 self.sf_state(sf_place)
-            self.judge_button_pix()
+            # self.judge_button_pix()
 
         @staticmethod
         def cf_fold_adv(state=False):
             if state:
+                
                 cf_label_old_path.grid(row=4, column=0, pady=5, sticky='E')
                 cf_label_keep_files.grid(row=5, column=0, pady=5, sticky='E')
                 cf_label_keep_formats.grid(row=6, column=0, pady=5, sticky='E')
@@ -310,20 +311,19 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     row=3, column=1, ipadx=3, sticky='E', padx=10)
                 sf_entry_select_removable.grid_forget()
 
+        """
         @staticmethod
         def judge_button_pix():
             def adjust_widget(mount: list):
-                save_button.grid(row=11, column=1, ipadx=mount[0],
-                                 pady=4, padx=10, sticky='W')
-                continue_button.grid(
-                    row=11, column=1, ipadx=mount[1], pady=4, padx=10, sticky='E')
+                
                 cf_option_lnk_move.grid(
                     row=2, column=1, padx=mount[2], ipadx=0, sticky='W')
 
             if lang_num == 0:
                 adjust_widget([100, 100, 150])
             elif lang_num == 1:
-                adjust_widget([95, 95, 210])
+                adjust_widget([100, 100, 150])
+        """
 
         @staticmethod
         def cf_state():
@@ -350,7 +350,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_browse_lockfile_button.grid_forget()
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
-            
+
             cf_label_new_path.grid(row=1, column=0, pady=5, sticky='E')
             cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
             cf_label_adv.grid(row=3, column=0, pady=3, sticky='E')
@@ -362,7 +362,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_browse_new_path_button.grid(
                 row=1, column=1, ipadx=3, sticky='E', padx=10)
             cf_option_folder_move.grid(row=2, column=1, padx=10, sticky='W')
-            cf_option_lnk_move.grid(row=2, column=1, padx=210, sticky='W')
+            cf_option_lnk_move.grid(row=2, column=1, padx=150, sticky='W')
             cf_option_adv.grid(row=3, column=1, padx=10, sticky='W')
 
             cf_text_preview.grid(row=9, column=1, padx=10,
@@ -911,6 +911,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_data.set(save_name, "autorun", str(cf_is_autorun.get()))
                 cf_data.set(save_name, "move_folder",
                             str(cf_is_folder_move.get()))
+                cf_data.set(save_name, "move_lnk", str(cf_is_lnk_move.get()))
                 cf_data.write(
                     open(CF_CONFIG_PATH, "w+", encoding='ANSI'))
 
@@ -1046,8 +1047,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 setting_name, 'set_hour'))  # 设置过期时间(hour)
             cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # 设置判断模式
             cf_is_autorun.set(cf_file.get(setting_name, 'autorun') == 'True')
-            cf_is_folder_move.set(cf_file.get(
-                setting_name, 'move_folder') == 'True')
+            cf_is_folder_move.set(cf_file.getboolean(
+                setting_name, 'move_folder'))
+            cf_is_lnk_move.set(cf_file.getboolean(setting_name, 'move_lnk'))
             Place('cf')
             cf_or_sf.set('cf')
             current_cf_save_name.set(setting_name)
@@ -1214,10 +1216,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         time_ = int(cf_entry_time.get()) * 3600  # 设置过期时间(hour)
         mode = int(cf_entry_mode.get())  # 设置判断模式
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
+        is_move_lnk = cf_is_lnk_move.get()
 
         cf_move_dir(root, old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
-                    overdue_time=time_,
-                    check__mode=mode, is__move__folder=is_move_folder)
+                    overdue__time=time_,
+                    check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk)
 
     def sf_operate_from_root():
         if sf_place_mode.get() == 'movable':
@@ -1296,7 +1299,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(
         root, textvariable=continue_button_text, command=lambda: continue_going())
-    continue_button.config(state=tk.DISABLED)
+    save_button.grid(row=11, column=1, ipadx=100,
+                     pady=4, padx=10, sticky='W')
+    continue_button.grid(row=11, column=1, ipadx=100,
+                         pady=4, padx=10, sticky='E')
+    # continue_button.config(state=tk.DISABLED)
 
     # 菜单栏
     main_menu = tk.Menu(root)
