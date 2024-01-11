@@ -12,7 +12,7 @@ from mf_const import CF_CONFIG_PATH, MF_CONFIG_PATH, MF_ICON_PATH
 from mf_mods import language_num, mf_log, mf_toaster, scan_items
 
 
-def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: list, overdue__time, check__mode, is__move__folder, is__move__lnk):
+def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: list, overdue__time, check__mode, is__move__folder, is__move__lnk, preview=False):
     """
     The function `cf_move_dir` is used to move files or folders from one directory to another, with
     options for specifying file formats, checking modes, and handling overdue files.
@@ -57,7 +57,7 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
                 moved_files += path.split('\\')[-1] + ',  '
         return [moved_files, error_files]
 
-    def get_cf_tasks(baroot):
+    def get_cf_tasks(baroot:MFProgressBar):
         """
         The function "get_cf_tasks" decide what to clean in a directory.
 
@@ -91,13 +91,13 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         item_datas.close()
         return tasks
 
-    def run_cleanfile(baroot):
+    def run_cleanfile(baroot, tasks):
         nonlocal cleanfile_done
         cf_move_name = ''
         cf_error_name = ''
-        baroot.main_progress_bar['value'] = 0
-        baroot.progress_root.update_idletasks()
-        tasks = get_cf_tasks(baroot)
+        
+            
+
         task_len = str(len(tasks))
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
@@ -132,6 +132,7 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         baroot.progress_root.withdraw()
         cleanfile_done = True
 
+    
     if new__path != '' and not os.path.exists(new__path):
         os.mkdir(new__path)
 
@@ -145,8 +146,14 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
     clean_bar_root_task.start()
     while not clean_bar_root.initialization_done:
         time.sleep(0.01)
+    clean_bar_root.main_progress_bar['value'] = 0
+    clean_bar_root.progress_root.update_idletasks()
+    cf_tasks = get_cf_tasks(clean_bar_root)
+    if preview:
+        clean_bar_root.progress_root_destruction()
+        return cf_tasks
     run_tasks = Thread(
-        target=lambda: run_cleanfile(clean_bar_root), daemon=True)
+        target=lambda: run_cleanfile(clean_bar_root, cf_tasks), daemon=True)
     run_tasks.start()
     while not cleanfile_done:
         time.sleep(1)

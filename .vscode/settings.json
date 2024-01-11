@@ -27,6 +27,9 @@
     "scrollregion",
     "selectforeground",
     "sfdic",
+    "xscrollbar",
+    "xscrollcommand",
+    "yscrollbar",
     "yscrollcommand"
   ],
   "docwriter.progress.trackFunctions": true,

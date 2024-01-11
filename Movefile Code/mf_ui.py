@@ -103,6 +103,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 for file in file_path_:
                     sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
+    def cf_preview():
+        pass
+
     def set_language(lang_number):
         label_choose_state_text.set(
             LT_Dic.r_label_text_dic['label_choose_state'][lang_number])
@@ -245,7 +248,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         @staticmethod
         def cf_fold_adv(state=False):
             if state:
-                
                 cf_label_old_path.grid(row=4, column=0, pady=5, sticky='E')
                 cf_label_keep_files.grid(row=5, column=0, pady=5, sticky='E')
                 cf_label_keep_formats.grid(row=6, column=0, pady=5, sticky='E')
@@ -265,7 +267,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_entry_frame_keep_formats.grid(row=6, column=1, sticky='W')
                 cf_option_mode_1.grid(
                     row=7, column=1, padx=10, ipadx=0, sticky='W')
-                temp_adjust_value = [150, 210]
+                temp_adjust_value = [150, 180]
                 cf_option_mode_2.grid(
                     row=7, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
                 cf_entry_time.grid(row=8, column=1, padx=10,
@@ -366,7 +368,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_adv.grid(row=3, column=1, padx=10, sticky='W')
 
             cf_text_preview.grid(row=9, column=1, padx=10,
-                                 pady=5, ipadx=135, ipady=50, sticky='W')
+                                 pady=20, ipadx=127, ipady=35, sticky='NW')
+            cf_preview_xscrollbar.grid(
+                row=9, column=1, padx=10, pady=3, sticky='EWS')
+            cf_preview_yscrollbar.grid(
+                row=9, column=1, padx=10, pady=20, sticky='ENS')
             cf_option_is_auto.grid(row=10, column=1, padx=10, sticky='NW')
             Place.cf_fold_adv(cf_unfold_adv.get())
 
@@ -389,6 +395,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_mode_2.grid_forget()
             cf_entry_time.grid_forget()
             cf_text_preview.grid_forget()
+            cf_preview_yscrollbar.grid_forget()
+            cf_preview_xscrollbar.grid_forget()
             cf_option_is_auto.grid_forget()
             cf_label_old_path.grid_forget()
             cf_label_new_path.grid_forget()
@@ -483,6 +491,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_label_time_text = tk.StringVar()
     cf_label_preview_text = tk.StringVar()
     cf_label_start_options_text = tk.StringVar()
+    cf_preview_button_text = tk.StringVar()
     cf_option_is_auto_text = tk.StringVar()
 
     sf_label_place_mode_text = tk.StringVar()
@@ -602,7 +611,19 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     cf_label_preview = ttk.Label(root, textvariable=cf_label_preview_text)
     cf_text_preview = tk.Text(root, height=5, width=50,
-                              state='disabled')
+                              state='normal', wrap='none', )
+    cf_text_preview.insert(tk.END, LT_Dic.help_main_text[lang_num])
+    cf_text_preview.config(state='disabled')
+
+    cf_preview_yscrollbar = tk.Scrollbar()
+    cf_text_preview.config(yscrollcommand=cf_preview_yscrollbar.set)
+    cf_preview_yscrollbar.config(command=cf_text_preview.yview)
+
+    cf_preview_xscrollbar = tk.Scrollbar(orient='horizontal')
+    cf_text_preview.config(xscrollcommand=cf_preview_xscrollbar.set)
+    cf_preview_xscrollbar.config(command=cf_text_preview.xview)
+
+    cf_preview_button = ttk.Button(root, textvariable=cf_preview_button_text, )
 
     cf_label_start_options = ttk.Label(
         root, textvariable=cf_label_start_options_text)
