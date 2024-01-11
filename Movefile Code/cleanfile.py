@@ -95,9 +95,6 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         nonlocal cleanfile_done
         cf_move_name = ''
         cf_error_name = ''
-        
-            
-
         task_len = str(len(tasks))
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
@@ -151,6 +148,7 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
     cf_tasks = get_cf_tasks(clean_bar_root)
     if preview:
         clean_bar_root.progress_root_destruction()
+        clean_bar_root_task.join()
         return cf_tasks
     run_tasks = Thread(
         target=lambda: run_cleanfile(clean_bar_root, cf_tasks), daemon=True)

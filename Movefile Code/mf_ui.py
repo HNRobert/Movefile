@@ -1229,7 +1229,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         initial_entry(set_cf_dest=cf_save_name == '')
 
-    def cf_operate_from_root():
+    def cf_operate_from_root(preview=False):
         old_path = cf_entry_old_path.get()  # 旧文件夹
         new_path = cf_entry_new_path.get()  # 新文件夹
         pass_file = cf_entry_keep_files.get().split(',')  # 设置跳过白名单
@@ -1241,7 +1241,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         cf_move_dir(root, old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
                     overdue__time=time_,
-                    check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk)
+                    check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
 
     def sf_operate_from_root():
         if sf_place_mode.get() == 'movable':
