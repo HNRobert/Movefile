@@ -118,7 +118,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
                 diff_data[i].extend(dir_data[i])
         return diff_data
 
-    def get_task(_bar_root):
+    def get_task(_bar_root: MFProgressBar):
         """
         The function "get_task" compares the two folder and decides which file need to be moved or replaced.
 
@@ -164,7 +164,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
         sync_tasks = list(filter(None, sync_tasks))
         return sync_tasks
 
-    def synchronize_files(baroot, task):
+    def synchronize_files(baroot: MFProgressBar, task):
         """
         The function `synchronize_files` takes two parameters, `baroot` and `task`, and does some kind of file synchronization operation.
 
@@ -184,7 +184,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
             return source_file_path
         return None
 
-    def run_sync_tasks(baroot):
+    def run_sync_tasks(baroot: MFProgressBar):
         """
         The function "run_sync_tasks" performs synchronous tasks.
 

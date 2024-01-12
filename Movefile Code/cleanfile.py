@@ -91,12 +91,13 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         item_datas.close()
         return tasks
 
-    def run_cleanfile(baroot, tasks):
-        nonlocal cleanfile_done
+    def run_cleanfile(baroot:MFProgressBar, tasks):
         cf_move_name = ''
         cf_error_name = ''
         task_len = str(len(tasks))
         baroot.main_progress_bar['maximum'] = len(tasks)
+        baroot.main_progress_bar['value'] = 0
+        baroot.progress_root.update_idletasks()
         baroot.set_label1(
             f'{LT_Dic.cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{task_len}  {LT_Dic.cfdic["main_progress_label1"][lang_num][1]}')
         for task in tasks:
@@ -127,13 +128,11 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         cf_show_notice(old__path, new__path, cf_move_name,
                        cf_error_name, lang_num)
         baroot.progress_root.withdraw()
-        cleanfile_done = True
 
     
     if new__path != '' and not os.path.exists(new__path):
         os.mkdir(new__path)
-
-    cleanfile_done = False
+    print('s3')
     clean_bar_root = MFProgressBar('Movefile  -Syncfile Progress',
                                    LT_Dic.cfdic["main_progress_label2"][lang_num],
                                    LT_Dic.cfdic["current_file_label"][lang_num],
@@ -141,23 +140,16 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
     clean_bar_root_task = Thread(
         target=lambda: clean_bar_root.launch(root_master=master__root), daemon=True)
     clean_bar_root_task.start()
+    print('s4')
     while not clean_bar_root.initialization_done:
         time.sleep(0.01)
-    clean_bar_root.main_progress_bar['value'] = 0
-    clean_bar_root.progress_root.update_idletasks()
+    print('s6')
     cf_tasks = get_cf_tasks(clean_bar_root)
-    if preview:
-        clean_bar_root.progress_root_destruction()
-        clean_bar_root_task.join()
-        return cf_tasks
-    run_tasks = Thread(
-        target=lambda: run_cleanfile(clean_bar_root, cf_tasks), daemon=True)
-    run_tasks.start()
-    while not cleanfile_done:
-        time.sleep(1)
+    if not preview:
+        run_cleanfile(clean_bar_root, cf_tasks)
     clean_bar_root.progress_root_destruction()
     clean_bar_root_task.join()
-    run_tasks.join()
+    return cf_tasks
 
 
 def cf_show_notice(old_path, new_path, move_name, error_name, lang_num):

@@ -1,7 +1,5 @@
 
 
-from ast import List
-from calendar import c
 import configparser
 import os
 import time
@@ -16,8 +14,9 @@ from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
                       MF_ICON_PATH, SF_CONFIG_PATH)
 from mf_mods import (detect_removable_disks_thread, language_num,
-                     list_saving_data, mf_log, mf_toaster, set_auto_quit,
-                     put_desktop_shortcut, scan_removable_disks, set_startup)
+                     list_saving_data, mf_log, mf_toaster,
+                     put_desktop_shortcut, scan_removable_disks, set_auto_quit,
+                     set_startup)
 from mttkinter import mtTkinter as tk
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
@@ -104,7 +103,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
     def cf_preview():
-        pass
+        result = execute_as_root(exe_preview=True)
+        cf_text_preview.config(state='normal')
+        cf_text_preview.delete(0, tk.END)
+        for line in result:
+            s_path = line[1]
+            d_path = line[2]
+            cf_text_preview.insert(tk.END, s_path + ' -> ' + d_path + '\n')
+        cf_text_preview.insert(tk.END, '\n')
+        cf_text_preview.config(state='disabled')
 
     def set_language(lang_number):
         label_choose_state_text.set(
@@ -239,6 +246,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             option_is_syncfile.grid(
                 row=0, column=1, padx=100, pady=5, sticky='W')
             label_current_save_name.grid(row=0, column=1, padx=10, sticky='E')
+            blank_pix.grid(row=114, column=0, ipadx=67, pady=4,
+                           padx=0, sticky='E')  # This is a Placeholder
+            save_button.grid(row=12, column=1, ipadx=100,
+                             pady=4, padx=10, sticky='W')
+            continue_button.grid(row=12, column=1, ipadx=100,
+                                 pady=4, padx=10, sticky='E')
+            # continue_button.config(state=tk.DISABLED)
             if self.mode == 'cf':
                 self.cf_state()
             elif self.mode == 'sf':
@@ -356,8 +370,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_label_new_path.grid(row=1, column=0, pady=5, sticky='E')
             cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
             cf_label_adv.grid(row=3, column=0, pady=3, sticky='E')
-            cf_label_preview.grid(row=9, column=0, pady=0, sticky='E')
-            cf_label_start_options.grid(row=10, column=0, sticky='E')
+            cf_label_preview.grid(
+                row=9, column=0, pady=20, sticky='EN')
+            cf_preview_button.grid(row=9, column=0, pady=20, sticky='ES')
+            cf_label_start_options.grid(row=11, column=0, sticky='E')
 
             cf_entry_new_path.grid(
                 row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
@@ -367,13 +383,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_lnk_move.grid(row=2, column=1, padx=150, sticky='W')
             cf_option_adv.grid(row=3, column=1, padx=10, sticky='W')
 
-            cf_text_preview.grid(row=9, column=1, padx=10,
-                                 pady=20, ipadx=127, ipady=35, sticky='NW')
+            cf_text_preview.grid(row=9, rowspan=1, column=1, padx=10,
+                                 pady=5, ipadx=127, ipady=50, sticky='NW')
             cf_preview_xscrollbar.grid(
-                row=9, column=1, padx=10, pady=3, sticky='EWS')
+                row=9, rowspan=1, column=1, padx=10, pady=3, ipadx=288, sticky='WS')
             cf_preview_yscrollbar.grid(
-                row=9, column=1, padx=10, pady=20, sticky='ENS')
-            cf_option_is_auto.grid(row=10, column=1, padx=10, sticky='NW')
+                row=9, rowspan=1, column=1, padx=10, pady=5, ipady=50, sticky='EN')
+            cf_option_is_auto.grid(row=11, column=1, padx=10, sticky='NW')
             Place.cf_fold_adv(cf_unfold_adv.get())
 
             current_save_name.set(
@@ -395,6 +411,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_mode_2.grid_forget()
             cf_entry_time.grid_forget()
             cf_text_preview.grid_forget()
+            cf_preview_button.grid_forget()
             cf_preview_yscrollbar.grid_forget()
             cf_preview_xscrollbar.grid_forget()
             cf_option_is_auto.grid_forget()
@@ -611,9 +628,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     cf_label_preview = ttk.Label(root, textvariable=cf_label_preview_text)
     cf_text_preview = tk.Text(root, height=5, width=50,
-                              state='normal', wrap='none', )
-    cf_text_preview.insert(tk.END, LT_Dic.help_main_text[lang_num])
-    cf_text_preview.config(state='disabled')
+                              state='disabled', wrap='none', )
 
     cf_preview_yscrollbar = tk.Scrollbar()
     cf_text_preview.config(yscrollcommand=cf_preview_yscrollbar.set)
@@ -623,7 +638,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_text_preview.config(xscrollcommand=cf_preview_xscrollbar.set)
     cf_preview_xscrollbar.config(command=cf_text_preview.xview)
 
-    cf_preview_button = ttk.Button(root, textvariable=cf_preview_button_text, )
+    cf_preview_button = ttk.Button(root, textvariable=cf_preview_button_text, command=lambda: cf_preview())
 
     cf_label_start_options = ttk.Label(
         root, textvariable=cf_label_start_options_text)
@@ -1238,10 +1253,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         mode = int(cf_entry_mode.get())  # 设置判断模式
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
         is_move_lnk = cf_is_lnk_move.get()
-
-        cf_move_dir(root, old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
-                    overdue__time=time_,
-                    check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
+        print('s2')
+        cf_tasks = cf_move_dir(root, old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
+                               overdue__time=time_,
+                               check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
+        print('s7')
+        return cf_tasks
 
     def sf_operate_from_root():
         if sf_place_mode.get() == 'movable':
@@ -1280,17 +1297,18 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         tkinter.messagebox.showinfo(
             title='Movefile', message=LT_Dic.r_label_text_dic['change_language'][lang_num])
 
-    def continue_going():
+    def execute_as_root(exe_preview=False):
         if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
-            cf_operator = Thread(
-                target=lambda: cf_operate_from_root(), daemon=True)
-            cf_operator.start()
-            root.withdraw()
+            if not exe_preview:
+                root.withdraw()
+            print('s1')
+            return cf_operate_from_root(preview=exe_preview)
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             sf_operator = Thread(
                 target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
             root.withdraw()
+        return []
 
     # @atexit.register
     def exit_program():
@@ -1313,18 +1331,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         background_detect.join()
 
     # 创建按键
-    blank_pix = ttk.Label(root, text=' ')
-    blank_pix.grid(row=114, column=0, ipadx=67, pady=4,
-                   padx=0, sticky='E')  # This is a Placeholder
+    blank_pix = ttk.Label(root, text=' ')  # This is a Placeholder
     save_button = ttk.Button(
         root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(
-        root, textvariable=continue_button_text, command=lambda: continue_going())
-    save_button.grid(row=11, column=1, ipadx=100,
-                     pady=4, padx=10, sticky='W')
-    continue_button.grid(row=11, column=1, ipadx=100,
-                         pady=4, padx=10, sticky='E')
-    # continue_button.config(state=tk.DISABLED)
+        root, textvariable=continue_button_text, command=lambda: execute_as_root())
 
     # 菜单栏
     main_menu = tk.Menu(root)

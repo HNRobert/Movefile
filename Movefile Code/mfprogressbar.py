@@ -33,7 +33,9 @@ class MFProgressBar:
         self.current_file_label['text'] = content
 
     def launch(self, root_master):
-        self.progress_root = tk.Toplevel(root_master)
+        print('s41')
+        self.progress_root = tk.Tk()
+        print('s42')
         self.progress_root.title(self.title)
         self.progress_root.geometry('420x115')
         self.progress_root.iconbitmap(MF_ICON_PATH)
@@ -54,6 +56,7 @@ class MFProgressBar:
             row=3, column=0, padx=10, pady=0, ipadx=150, sticky='W')
         self.progress_root.protocol(
             'WM_DELETE_WINDOW', lambda: self.sync_bar_on_exit())
+        print('s43')
         self.roll_bar = Thread(target=self.show_running, daemon=True)
         self.roll_bar.start()
         self.initialization_done = True
