@@ -32,22 +32,18 @@ gvar = GlobalsVar()
 
 
 def main():
-    from mf_mods import CheckMFProgress, Initialization, mf_log
+    from mf_mods import Initialization, MFProgressChecker, mf_log
     from mf_ui import make_ui
-    checkpgs_result = CheckMFProgress()
+    checkpgs_result = MFProgressChecker()
     if not checkpgs_result.continue_this_progress:
         return
-    initial_data = Initialization()
+    init_data = Initialization()
     time.sleep(0.1)
-    visits_today = initial_data.ask_time_today
-    boot_visit = initial_data.startup_visit
-    first_visit = initial_data.first_visit
-    quit_after_autorun = initial_data.quit_after_autorun
     mf_log(
-        f"\nMovefile Start\nVisits today: {visits_today}\nStartup visit: {str(boot_visit)}")
+        f"\nMovefile Start\nVisits today: {init_data.ask_time_today}\nStartup visit: {str(init_data.startup_visit)}")
 
-    make_ui(first_visit=first_visit, startup_visit=boot_visit,
-            visits_today=visits_today, quit_after_autorun=quit_after_autorun)
+    make_ui(first_visit=init_data.first_visit, startup_visit=init_data.startup_visit,
+            visits_today=init_data.ask_time_today, quit_after_autorun=init_data.quit_after_autorun)
 
 
 if __name__ == '__main__':

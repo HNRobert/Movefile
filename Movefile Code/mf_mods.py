@@ -27,9 +27,9 @@ from Movefile import gvar
 mf_toaster = ToastNotifier()
 
 
-# The CheckMFProgress class is used to check if the program is already running.
+# The MFProgressChecker class is used to check if the program is already running.
 # If it's running, it will display a message box to inform the user, and put the window on the top.
-class CheckMFProgress:
+class MFProgressChecker:
 
     def __init__(self):
         self.continue_this_progress = True

@@ -1,8 +1,10 @@
 
 
+from calendar import c
 import configparser
 from email.policy import default
 import os
+from pdb import run
 import time
 from shutil import move as shutil_move
 from threading import Thread
@@ -30,6 +32,7 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
     mf_file = configparser.ConfigParser()
     mf_file.read(MF_CONFIG_PATH)
     lang_num = language_num(mf_file.get('General', 'language'))
+    cleaning_completed = False
 
     def del_item(path):  # 递归删除文件夹或单个文件, 代替shutil.rmtree和os.remove  (shutil.rmtree会莫名报错)
         error_files = ''
@@ -57,7 +60,7 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
                 moved_files += path.split('\\')[-1] + ',  '
         return [moved_files, error_files]
 
-    def get_cf_tasks(baroot:MFProgressBar):
+    def get_cf_tasks(baroot: MFProgressBar):
         """
         The function "get_cf_tasks" decide what to clean in a directory.
 
@@ -66,8 +69,8 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         tasks = []
         item_datas = os.scandir(old__path)  # 获取文件夹下所有文件和文件夹
         now = int(time.time())  # 当前时间
-        if is__move__lnk:
-            pass__format.append('lnk')
+        if not is__move__lnk:
+            pass__format.append('.lnk')
         for item_data in item_datas:
             if ('.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir()
                     or item_data.name in pass__file):
@@ -91,7 +94,8 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         item_datas.close()
         return tasks
 
-    def run_cleanfile(baroot:MFProgressBar, tasks):
+    def run_cleanfile(baroot: MFProgressBar, tasks):
+        nonlocal cleaning_completed
         cf_move_name = ''
         cf_error_name = ''
         task_len = str(len(tasks))
@@ -128,11 +132,10 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
         cf_show_notice(old__path, new__path, cf_move_name,
                        cf_error_name, lang_num)
         baroot.progress_root.withdraw()
+        cleaning_completed = True
 
-    
     if new__path != '' and not os.path.exists(new__path):
         os.mkdir(new__path)
-    print('s3')
     clean_bar_root = MFProgressBar('Movefile  -Syncfile Progress',
                                    LT_Dic.cfdic["main_progress_label2"][lang_num],
                                    LT_Dic.cfdic["current_file_label"][lang_num],
@@ -140,13 +143,15 @@ def cf_move_dir(master__root, old__path, new__path, pass__file, pass__format: li
     clean_bar_root_task = Thread(
         target=lambda: clean_bar_root.launch(root_master=master__root), daemon=True)
     clean_bar_root_task.start()
-    print('s4')
     while not clean_bar_root.initialization_done:
         time.sleep(0.01)
-    print('s6')
     cf_tasks = get_cf_tasks(clean_bar_root)
     if not preview:
-        run_cleanfile(clean_bar_root, cf_tasks)
+        run_cf_thread = Thread(target=lambda: run_cleanfile(
+            clean_bar_root, cf_tasks), daemon=True)
+        run_cf_thread.start()
+        while not cleaning_completed:
+            time.sleep(0.1)
     clean_bar_root.progress_root_destruction()
     clean_bar_root_task.join()
     return cf_tasks

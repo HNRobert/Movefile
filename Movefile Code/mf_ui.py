@@ -102,16 +102,26 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 for file in file_path_:
                     sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
-    def cf_preview():
-        result = execute_as_root(exe_preview=True)
-        cf_text_preview.config(state='normal')
-        cf_text_preview.delete(0, tk.END)
+    def set_preview(text_widget: tk.Text, result, mode):
+        text_widget.config(state='normal')
+        if len(result) == 0:
+            text_widget.insert(tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
+            text_widget.config(state='disabled')
+            return
+        text_widget.delete('1.0', tk.END)
+        if mode == 'cf':
+            text_widget.insert(
+                tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
+            text_widget.insert(
+                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
+            text_widget.insert(
+                tk.END, '---------------------------------------------------------------------------\n' + LT_Dic.cfdic['preview_item'][lang_num] + '\n')
+
         for line in result:
-            s_path = line[1]
-            d_path = line[2]
-            cf_text_preview.insert(tk.END, s_path + ' -> ' + d_path + '\n')
-        cf_text_preview.insert(tk.END, '\n')
-        cf_text_preview.config(state='disabled')
+            s_path = os.path.basename(line[1])
+            text_widget.insert(tk.END, s_path + '\n')
+        text_widget.insert(tk.END, '\n')
+        text_widget.config(state='disabled')
 
     def set_language(lang_number):
         label_choose_state_text.set(
@@ -154,6 +164,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['cf_label_time'][lang_number])
         cf_label_preview_text.set(
             LT_Dic.r_label_text_dic['cf_label_preview'][lang_number])
+        cf_preview_button_text.set(
+            LT_Dic.r_label_text_dic['cf_preview_button'][lang_number])
         cf_label_start_options_text.set(
             LT_Dic.r_label_text_dic['cf_label_start_options'][lang_number])
         cf_option_is_auto_text.set(
@@ -371,8 +383,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
             cf_label_adv.grid(row=3, column=0, pady=3, sticky='E')
             cf_label_preview.grid(
-                row=9, column=0, pady=20, sticky='EN')
-            cf_preview_button.grid(row=9, column=0, pady=20, sticky='ES')
+                row=9, column=0, pady=5, sticky='EN')
+            cf_preview_button.grid(
+                row=9, column=0, pady=20, ipady=50, ipadx=3, sticky='ES')
             cf_label_start_options.grid(row=11, column=0, sticky='E')
 
             cf_entry_new_path.grid(
@@ -386,7 +399,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_text_preview.grid(row=9, rowspan=1, column=1, padx=10,
                                  pady=5, ipadx=127, ipady=50, sticky='NW')
             cf_preview_xscrollbar.grid(
-                row=9, rowspan=1, column=1, padx=10, pady=3, ipadx=288, sticky='WS')
+                row=9, rowspan=1, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
             cf_preview_yscrollbar.grid(
                 row=9, rowspan=1, column=1, padx=10, pady=5, ipady=50, sticky='EN')
             cf_option_is_auto.grid(row=11, column=1, padx=10, sticky='NW')
@@ -638,7 +651,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_text_preview.config(xscrollcommand=cf_preview_xscrollbar.set)
     cf_preview_xscrollbar.config(command=cf_text_preview.xview)
 
-    cf_preview_button = ttk.Button(root, textvariable=cf_preview_button_text, command=lambda: cf_preview())
+    cf_preview_button = ttk.Button(
+        root, textvariable=cf_preview_button_text, command=lambda: Thread(target=lambda: execute_as_root(exe_preview=True)).start())
 
     cf_label_start_options = ttk.Label(
         root, textvariable=cf_label_start_options_text)
@@ -1253,11 +1267,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         mode = int(cf_entry_mode.get())  # 设置判断模式
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
         is_move_lnk = cf_is_lnk_move.get()
-        print('s2')
         cf_tasks = cf_move_dir(root, old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
                                overdue__time=time_,
                                check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
-        print('s7')
         return cf_tasks
 
     def sf_operate_from_root():
@@ -1301,14 +1313,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
             if not exe_preview:
                 root.withdraw()
-            print('s1')
-            return cf_operate_from_root(preview=exe_preview)
+            _result = cf_operate_from_root(preview=exe_preview)  # run cf
+            if exe_preview:
+                set_preview(text_widget=cf_text_preview,
+                            result=_result, mode='cf')
+
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             sf_operator = Thread(
                 target=lambda: sf_operate_from_root(), daemon=True)
             sf_operator.start()
             root.withdraw()
-        return []
 
     # @atexit.register
     def exit_program():
@@ -1335,7 +1349,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     save_button = ttk.Button(
         root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(
-        root, textvariable=continue_button_text, command=lambda: execute_as_root())
+        root, textvariable=continue_button_text, command=lambda: Thread(target=lambda: execute_as_root()).start())
 
     # 菜单栏
     main_menu = tk.Menu(root)

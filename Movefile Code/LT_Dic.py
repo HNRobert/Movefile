@@ -39,7 +39,7 @@ r_label_text_dic = {
     'cf_label_new_path': ['移动到：', 'Moving to：'],
     'cf_label_move_options': ['移动选项：', 'Move Options：'],
     'cf_option_folder_move': ['移动文件夹', 'Move Folders'],
-    'cf_option_move_lnk': ['移动快捷方式', 'Move Shortcuts'],
+    'cf_option_move_lnk': ['移动快捷方式', 'Move Shortcuts (.lnk)'],
     'cf_label_adv': ['高级选项：', 'Advanced Options：'],
     'cf_option_adv': ['展开 ↓', 'Unfold ↓'],
     'cf_label_keep_files': ['强制保留项目：', 'Reserved Files：'],
@@ -49,6 +49,7 @@ r_label_text_dic = {
     'cf_option_mode_2': ['最后访问时间', "Last Accessed Times"],
     'cf_label_time': ['过期时间设定(小时)：', 'Expire limit(h)：'],
     'cf_label_preview': ['移动项目预览：', 'Action Preview：'],
+    'cf_preview_button': ['预览', 'Preview'],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
     'cf_option_is_auto': ['开机自动运行上面配置', 'Automatically run this config after Startup(if saved)'],
 
@@ -127,6 +128,10 @@ cfdic = {
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
     'current_file_label1': ['文件处理中：', 'File in process：'],
+    'preview_src': ['源路径: ', 'Source:      '],
+    'preview_dest': ['移动到: ', 'Destination: '],
+    'preview_item': ['移动项目: ', 'Items to be moved: '],
+    'preview_no_item': ['该设置下没有将被移动的项目。', 'No item would be moved according to the above settings']
 }
 
 sfdic = {
