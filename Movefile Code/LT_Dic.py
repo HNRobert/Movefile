@@ -48,8 +48,6 @@ r_label_text_dic = {
     'cf_option_mode_1': ['最后修改时间', "Last Modified Times"],
     'cf_option_mode_2': ['最后访问时间', "Last Accessed Times"],
     'cf_label_time': ['过期时间设定(小时)：', 'Expire limit(h)：'],
-    'cf_label_preview': ['移动项目预览：', 'Action Preview：'],
-    'cf_preview_button': ['预览', 'Preview'],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
     'cf_option_is_auto': ['开机自动运行上面配置', 'Automatically run this config after Startup(if saved)'],
 
@@ -77,7 +75,9 @@ r_label_text_dic = {
     # ComBoPicker select all label
     'select_all': ['全选', 'Select All'],
 
-    # About options
+    # Func labels
+    'label_preview': ['移动项目预览：', 'Action Preview：'],
+    'preview_button': ['预览', 'Preview'],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行', 'Run'],
 
@@ -107,6 +107,7 @@ r_label_text_dic = {
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software\nto make the language of some labels changed'''],
     'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
     'create_path_notice': ['\n选择 "是" 来创建该路径', '\nChoose "Yes" to create this path'],
+    'blank': [138, 117]
 }
 
 

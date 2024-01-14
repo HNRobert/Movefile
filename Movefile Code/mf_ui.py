@@ -1,6 +1,7 @@
 
 
 import configparser
+from doctest import BLANKLINE_MARKER
 import os
 import time
 import tkinter.filedialog
@@ -54,13 +55,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_ori_old_path = cf_entry_old_path.get()
         for item in item_names:
             suffix = item.name.split('.')[-1]
-            if item.is_file() and suffix != 'lnk':
-                file_end = '.' + suffix
-                all_ends.append(file_end)
+            if item.is_file() and (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk'):
                 file_names.append(item.name)
+                all_ends.append('.' + suffix)
             elif item.is_dir() and cf_is_folder_move.get():
                 folder_names.append(item.name)
-        exist_ends = sorted(set(all_ends))
+
+        exist_ends = sorted(set(filter(lambda suff: suff != '.lnk', all_ends)))
 
         cf_entry_keep_files.update_values(folder_names + file_names)
         cf_entry_keep_formats.update_values(exist_ends)
@@ -102,26 +103,39 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 for file in file_path_:
                     sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
-    def set_preview(text_widget: tk.Text, result, mode):
-        text_widget.config(state='normal')
-        if len(result) == 0:
-            text_widget.insert(tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
-            text_widget.config(state='disabled')
-            return
-        text_widget.delete('1.0', tk.END)
-        if mode == 'cf':
-            text_widget.insert(
-                tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
-            text_widget.insert(
-                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
-            text_widget.insert(
-                tk.END, '---------------------------------------------------------------------------\n' + LT_Dic.cfdic['preview_item'][lang_num] + '\n')
+    def set_preview(result=[], mode='cf', content=''):
+        """
+        The function `set_preview` is used to update the preview text widget based on the given parameters.
 
-        for line in result:
-            s_path = os.path.basename(line[1])
-            text_widget.insert(tk.END, s_path + '\n')
-        text_widget.insert(tk.END, '\n')
-        text_widget.config(state='disabled')
+        :param result: The `result` parameter is a list that contains information about the items to be previewed. Each item in the list is a tuple with three elements: the item's name, the item's path, and destination path
+        :param mode: The `mode` parameter is used to determine the type of preview to be displayed. It can have two possible values: 'cf' or 'sf', defaults to cf (optional)
+        :param content: The `content` parameter is a string that represents the content to be displayed in the preview_text widget. If this parameter is not empty, the content will be inserted directly into the widget
+        """
+        preview_text.config(state='normal')
+        preview_text.delete('1.0', tk.END)
+        if content:
+            preview_text.insert(tk.END, content)
+        elif len(result) == 0:  # no item in result
+            preview_text.insert(
+                tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
+        elif mode == 'cf':
+            preview_text.insert(
+                tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
+            preview_text.insert(
+                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
+            preview_text.insert(
+                tk.END, '---------------------------------------------------------------------------\n')
+            preview_text.insert(
+                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + '\n')
+            for line in result:
+                s_path = os.path.basename(line[1])
+                preview_text.insert(tk.END, s_path + '\n')
+        elif mode == 'sf':
+            pass
+        else:
+            assert False, "No Such Mode"
+        preview_text.insert(tk.END, '\n')
+        preview_text.config(state='disabled')
 
     def set_language(lang_number):
         label_choose_state_text.set(
@@ -162,10 +176,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['cf_label_expire_options'][lang_number])
         cf_label_time_text.set(
             LT_Dic.r_label_text_dic['cf_label_time'][lang_number])
-        cf_label_preview_text.set(
-            LT_Dic.r_label_text_dic['cf_label_preview'][lang_number])
-        cf_preview_button_text.set(
-            LT_Dic.r_label_text_dic['cf_preview_button'][lang_number])
+        label_preview_text.set(
+            LT_Dic.r_label_text_dic['label_preview'][lang_number])
+        preview_button_text.set(
+            LT_Dic.r_label_text_dic['preview_button'][lang_number])
         cf_label_start_options_text.set(
             LT_Dic.r_label_text_dic['cf_label_start_options'][lang_number])
         cf_option_is_auto_text.set(
@@ -260,6 +274,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             label_current_save_name.grid(row=0, column=1, padx=10, sticky='E')
             blank_pix.grid(row=114, column=0, ipadx=67, pady=4,
                            padx=0, sticky='E')  # This is a Placeholder
+            label_preview.grid(
+                row=9, column=0, pady=5, sticky='EN')
+            preview_button.grid(
+                row=9, column=0, pady=22, ipady=50, ipadx=3, sticky='ES')
+            preview_text.grid(row=9, rowspan=1, column=1, padx=10,
+                              pady=5, ipadx=127, ipady=50, sticky='NW')
+            preview_xscrollbar.grid(
+                row=9, rowspan=1, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
+            preview_yscrollbar.grid(
+                row=9, rowspan=1, column=1, padx=10, pady=5, ipady=50, sticky='EN')
             save_button.grid(row=12, column=1, ipadx=100,
                              pady=4, padx=10, sticky='W')
             continue_button.grid(row=12, column=1, ipadx=100,
@@ -319,25 +343,27 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         @staticmethod
         def sf_change_place_mode(mode):
             if mode == 'movable':
-                sf_label_path_1_text.set(
-                    LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][0])
-                sf_label_path_2_text.set(
-                    LT_Dic.r_label_text_dic['sf_label_path_2'][lang_num][0])
-                sf_option_autorun_text.set(
-                    LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][0])
+                label_index = 0
                 sf_browse_path_1_button.grid_forget()
                 sf_entry_select_removable.grid(
                     row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
             else:
-                sf_label_path_1_text.set(
-                    LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][1])
-                sf_label_path_2_text.set(
-                    LT_Dic.r_label_text_dic['sf_label_path_2'][lang_num][1])
-                sf_option_autorun_text.set(
-                    LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][1])
+                label_index = 1
                 sf_browse_path_1_button.grid(
                     row=3, column=1, ipadx=3, sticky='E', padx=10)
                 sf_entry_select_removable.grid_forget()
+            sf_label_path_1_text.set(
+                LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][label_index])
+            sf_label_path_2_text.set(
+                LT_Dic.r_label_text_dic['sf_label_path_2'][lang_num][label_index])
+            sf_option_autorun_text.set(
+                LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][label_index])
+
+        @staticmethod
+        def exchange_preview_text():
+            pre_preview_text = opp_preview_text.get()
+            opp_preview_text.set(preview_text.get('1.0', tk.END))
+            set_preview(content=pre_preview_text)
 
         """
         @staticmethod
@@ -382,10 +408,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_label_new_path.grid(row=1, column=0, pady=5, sticky='E')
             cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
             cf_label_adv.grid(row=3, column=0, pady=3, sticky='E')
-            cf_label_preview.grid(
-                row=9, column=0, pady=5, sticky='EN')
-            cf_preview_button.grid(
-                row=9, column=0, pady=20, ipady=50, ipadx=3, sticky='ES')
             cf_label_start_options.grid(row=11, column=0, sticky='E')
 
             cf_entry_new_path.grid(
@@ -396,14 +418,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_lnk_move.grid(row=2, column=1, padx=150, sticky='W')
             cf_option_adv.grid(row=3, column=1, padx=10, sticky='W')
 
-            cf_text_preview.grid(row=9, rowspan=1, column=1, padx=10,
-                                 pady=5, ipadx=127, ipady=50, sticky='NW')
-            cf_preview_xscrollbar.grid(
-                row=9, rowspan=1, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
-            cf_preview_yscrollbar.grid(
-                row=9, rowspan=1, column=1, padx=10, pady=5, ipady=50, sticky='EN')
             cf_option_is_auto.grid(row=11, column=1, padx=10, sticky='NW')
             Place.cf_fold_adv(cf_unfold_adv.get())
+            Place.exchange_preview_text()
 
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + current_cf_save_name.get())
@@ -423,17 +440,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_mode_1.grid_forget()
             cf_option_mode_2.grid_forget()
             cf_entry_time.grid_forget()
-            cf_text_preview.grid_forget()
-            cf_preview_button.grid_forget()
-            cf_preview_yscrollbar.grid_forget()
-            cf_preview_xscrollbar.grid_forget()
             cf_option_is_auto.grid_forget()
             cf_label_old_path.grid_forget()
             cf_label_new_path.grid_forget()
             cf_label_expire_options.grid_forget()
             cf_label_keep_files.grid_forget()
             cf_label_keep_formats.grid_forget()
-            cf_label_preview.grid_forget()
             cf_label_expire_options.grid_forget()
             cf_label_time.grid_forget()
             cf_label_start_options.grid_forget()
@@ -474,9 +486,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 row=6, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             sf_browse_lockfile_button.grid(
                 row=6, column=1, padx=10, sticky='E', ipadx=3)
-            sf_label_autorun.grid(row=7, column=0, sticky='E')
-            sf_option_autorun.grid(row=7, column=1, padx=10, sticky='W')
-
+            sf_label_autorun.grid(row=11, column=0, sticky='E')
+            sf_option_autorun.grid(row=11, column=1, padx=10, sticky='W')
+            root.geometry('800x468')
+            Place.exchange_preview_text()
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + current_sf_save_name.get())
 
@@ -519,11 +532,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_option_mode_1_text = tk.StringVar()
     cf_option_mode_2_text = tk.StringVar()
     cf_label_time_text = tk.StringVar()
-    cf_label_preview_text = tk.StringVar()
     cf_label_start_options_text = tk.StringVar()
-    cf_preview_button_text = tk.StringVar()
     cf_option_is_auto_text = tk.StringVar()
-
+    
     sf_label_place_mode_text = tk.StringVar()
     sf_option_mode_usb_text = tk.StringVar()
     sf_option_mode_local_text = tk.StringVar()
@@ -541,6 +552,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_label_lock_file_text = tk.StringVar()
     sf_label_autorun_text = tk.StringVar()
     sf_option_autorun_text = tk.StringVar()
+
+    label_preview_text = tk.StringVar()
+    preview_button_text = tk.StringVar()
+    opp_preview_text = tk.StringVar()
     select_all_text = tk.StringVar()
 
     save_button_text = tk.StringVar()
@@ -587,7 +602,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     blank = ttk.Label(root)
 
     cf_label_old_path = ttk.Label(root, textvariable=cf_label_old_path_text)
-    cf_entry_old_path = ttk.Entry(root, textvariable=source_path)
+    cf_entry_old_path = ttk.Entry(root, textvariable=source_path, state='')
     cf_browse_old_path_button = ttk.Button(root, textvariable=cf_browse_old_path_button_text,
                                            command=lambda: select_path(place='old',
                                                                        ori_content=cf_entry_old_path.get()))
@@ -639,20 +654,20 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_label_time = ttk.Label(root, textvariable=cf_label_time_text)
     cf_entry_time = ttk.Entry(root)
 
-    cf_label_preview = ttk.Label(root, textvariable=cf_label_preview_text)
-    cf_text_preview = tk.Text(root, height=5, width=50,
-                              state='disabled', wrap='none', )
+    label_preview = ttk.Label(root, textvariable=label_preview_text)
+    preview_text = tk.Text(root, height=5, width=50,
+                           state='disabled', wrap='none', )
 
-    cf_preview_yscrollbar = tk.Scrollbar()
-    cf_text_preview.config(yscrollcommand=cf_preview_yscrollbar.set)
-    cf_preview_yscrollbar.config(command=cf_text_preview.yview)
+    preview_yscrollbar = tk.Scrollbar()
+    preview_text.config(yscrollcommand=preview_yscrollbar.set)
+    preview_yscrollbar.config(command=preview_text.yview)
 
-    cf_preview_xscrollbar = tk.Scrollbar(orient='horizontal')
-    cf_text_preview.config(xscrollcommand=cf_preview_xscrollbar.set)
-    cf_preview_xscrollbar.config(command=cf_text_preview.xview)
+    preview_xscrollbar = tk.Scrollbar(orient='horizontal')
+    preview_text.config(xscrollcommand=preview_xscrollbar.set)
+    preview_xscrollbar.config(command=preview_text.xview)
 
-    cf_preview_button = ttk.Button(
-        root, textvariable=cf_preview_button_text, command=lambda: Thread(target=lambda: execute_as_root(exe_preview=True)).start())
+    preview_button = ttk.Button(
+        root, textvariable=preview_button_text, command=lambda: Thread(target=lambda: execute_as_root(exe_preview=True)).start())
 
     cf_label_start_options = ttk.Label(
         root, textvariable=cf_label_start_options_text)
@@ -1315,8 +1330,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 root.withdraw()
             _result = cf_operate_from_root(preview=exe_preview)  # run cf
             if exe_preview:
-                set_preview(text_widget=cf_text_preview,
-                            result=_result, mode='cf')
+                set_preview(result=_result, mode='cf')
 
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             sf_operator = Thread(
@@ -1406,6 +1420,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
     main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
+    
+    main_menu.add_command(label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')
     main_menu.add_command(label=menu_hide_text.get(),
                           command=lambda: root.withdraw())
 
