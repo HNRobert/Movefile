@@ -8,7 +8,7 @@ r_label_text_dic = {
     'savefile_menu': ['保存', 'Save config'],
     'exit_menu': ['退出', 'Exit'],
     'option_menu': ['选项', 'Option'],
-    'autorun_menu': ['开机自启', 'Start automatically'],
+    'autorun_menu': ['开机自启', 'Automatic starting'],
     'auto_quit_menu': ['自动化运行完毕后自动退出', 'Automatically quit after automation'],
     'desktop_shortcut': ['添加快捷方式到桌面', 'Add a shortcut to Desktop'],
     'language_menu': ['语言', 'Language'],
@@ -41,7 +41,7 @@ r_label_text_dic = {
     'cf_option_folder_move': ['移动文件夹', 'Move Folders'],
     'cf_option_move_lnk': ['移动快捷方式', 'Move Shortcuts (.lnk)'],
     'cf_label_adv': ['高级选项：', 'Advanced Options：'],
-    'cf_option_adv': ['展开 ↓', 'Unfold ↓'],
+    'cf_option_adv': ['展开 ⬇', 'Unfold ⬇'],
     'cf_label_keep_files': ['强制保留项目：', 'Reserved Files：'],
     'cf_label_keep_formats': ['按文件格式保留：', 'Reserved Fmts：'],
     'cf_label_expire_options': ['过期判断依据：', 'Expire Criteria：'],
@@ -78,6 +78,7 @@ r_label_text_dic = {
     # Func labels
     'label_preview': ['移动项目预览：', 'Action Preview：'],
     'preview_button': ['预览', 'Preview'],
+    'default_preview': ['点击左侧 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button on the left \nto check the settings above and view which items will be moved'],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行', 'Run'],
 
@@ -131,8 +132,8 @@ cfdic = {
     'current_file_label1': ['文件处理中：', 'File in process：'],
     'preview_src': ['源路径: ', 'Source:      '],
     'preview_dest': ['移动到: ', 'Destination: '],
-    'preview_item': ['移动项目: ', 'Items to be moved: '],
-    'preview_no_item': ['该设置下没有将被移动的项目。', 'No item would be moved according to the above settings']
+    'preview_item': ['下面的项目将被移动: ⬇', 'The following items would be moved: ⬇'],
+    'preview_no_item': ['该设置下将没有项目被移动。', 'No item would be moved according to the settings above.']
 }
 
 sfdic = {

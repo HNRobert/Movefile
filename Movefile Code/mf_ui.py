@@ -41,24 +41,25 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
     general_data.read(MF_CONFIG_PATH)
-    cf_ori_old_path = ''
+    cf_ori_src_path = ''
 
     def cf_refresh_whitelist_entry():
-        nonlocal cf_ori_old_path
+        nonlocal cf_ori_src_path
         all_ends = []
         file_names = []
         folder_names = []
-        item_names = os.scandir(cf_entry_old_path.get())
-        if cf_ori_old_path != cf_entry_old_path.get():
+        item_names = os.scandir(cf_entry_src_path.get())
+        dest_path = cf_entry_dest_path.get()
+        if cf_ori_src_path != cf_entry_src_path.get():
             cf_entry_keep_files.delete(0, 'end')
             cf_entry_keep_formats.delete(0, 'end')
-            cf_ori_old_path = cf_entry_old_path.get()
+            cf_ori_src_path = cf_entry_src_path.get()
         for item in item_names:
             suffix = item.name.split('.')[-1]
-            if item.is_file() and (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk'):
+            if item.is_file() and (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk') and item.name != 'desktop.ini':
                 file_names.append(item.name)
                 all_ends.append('.' + suffix)
-            elif item.is_dir() and cf_is_folder_move.get():
+            elif item.is_dir() and cf_is_folder_move.get() and os.path.isdir(dest_path) and os.path.commonpath([item.path, dest_path]) != dest_path:
                 folder_names.append(item.name)
 
         exist_ends = sorted(set(filter(lambda suff: suff != '.lnk', all_ends)))
@@ -124,14 +125,28 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
             preview_text.insert(
-                tk.END, '---------------------------------------------------------------------------\n')
+                tk.END, '-'*100 + '\n')
             preview_text.insert(
-                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + '\n')
+                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + '\n' + '-'*100 + '\n')
             for line in result:
                 s_path = os.path.basename(line[1])
                 preview_text.insert(tk.END, s_path + '\n')
         elif mode == 'sf':
-            pass
+            preview_text.insert(
+                tk.END, '-'*100 + '\n')
+            preview_text.insert(
+                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + '\n' + '-'*100 + '\n')
+            maxlen_a = max(map(lambda x: len(x[0]), result))
+            for line in result:
+                s_path = line[0] + ' '*(maxlen_a-len(line[0]))
+                d_path = line[1]
+                _preview_line: str = s_path + ' → ' + d_path
+                _preview_line = _preview_line.replace(
+                    sf_entry_path_2.get(), 'B')
+                if sf_place_mode.get() == 'local':
+                    _preview_line = _preview_line.replace(
+                        sf_entry_path_1.get(), 'A')
+                preview_text.insert(tk.END, _preview_line + '\n')
         else:
             assert False, "No Such Mode"
         preview_text.insert(tk.END, '\n')
@@ -146,13 +161,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['option_is_syncfile'][lang_number])
         current_save_name.set(
             LT_Dic.r_label_text_dic['current_save_name'][lang_number])
-        cf_label_old_path_text.set(
+        cf_label_src_path_text.set(
             LT_Dic.r_label_text_dic['cf_label_old_path'][lang_number])
-        cf_browse_old_path_button_text.set(
+        cf_browse_src_path_button_text.set(
             LT_Dic.r_label_text_dic['cf_browse_old_path_button'][lang_number])
-        cf_browse_new_path_button_text.set(
+        cf_browse_dest_path_button_text.set(
             LT_Dic.r_label_text_dic['cf_browse_new_path_button'][lang_number])
-        cf_label_new_path_text.set(
+        cf_label_dest_path_text.set(
             LT_Dic.r_label_text_dic['cf_label_new_path'][lang_number])
         cf_label_move_options_text.set(
             LT_Dic.r_label_text_dic['cf_label_move_options'][lang_number])
@@ -263,8 +278,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['taskbar_exit'][lang_number])
 
     class Place:
-        def __init__(self, mode=None, sf_place=None):
+        def __init__(self, mode=None, sf_place=None, keep_preview=False):
             self.mode = mode
+            self.keep_preview = keep_preview
             label_choose_state.grid(row=0, column=0, pady=4, sticky='E')
             blank.grid(row=3, column=1, padx=321, pady=4, sticky='W')
             option_is_cleanfile.grid(
@@ -298,16 +314,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         @staticmethod
         def cf_fold_adv(state=False):
             if state:
-                cf_label_old_path.grid(row=4, column=0, pady=5, sticky='E')
+                cf_label_src_path.grid(row=4, column=0, pady=5, sticky='E')
                 cf_label_keep_files.grid(row=5, column=0, pady=5, sticky='E')
                 cf_label_keep_formats.grid(row=6, column=0, pady=5, sticky='E')
                 cf_label_expire_options.grid(
                     row=7, column=0, pady=4, sticky='E')
                 cf_label_time.grid(row=8, column=0, pady=5, sticky='E')
 
-                cf_entry_old_path.grid(
+                cf_entry_src_path.grid(
                     row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-                cf_browse_old_path_button.grid(
+                cf_browse_src_path_button.grid(
                     row=4, column=1, ipadx=3, sticky='E', padx=10)
                 cf_entry_keep_files.grid(
                     row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
@@ -324,9 +340,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                                    pady=0, ipadx=240, sticky='W')
                 root.geometry('800x520')
             else:
-                cf_label_old_path.grid_forget()
-                cf_entry_old_path.grid_forget()
-                cf_browse_old_path_button.grid_forget()
+                cf_label_src_path.grid_forget()
+                cf_entry_src_path.grid_forget()
+                cf_browse_src_path_button.grid_forget()
                 cf_label_keep_files.grid_forget()
                 cf_label_keep_formats.grid_forget()
                 cf_label_expire_options.grid_forget()
@@ -359,8 +375,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_option_autorun_text.set(
                 LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][label_index])
 
-        @staticmethod
-        def exchange_preview_text():
+        def exchange_preview_text(self):
+            if self.keep_preview:
+                return
             pre_preview_text = opp_preview_text.get()
             opp_preview_text.set(preview_text.get('1.0', tk.END))
             set_preview(content=pre_preview_text)
@@ -379,8 +396,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 adjust_widget([100, 100, 150])
         """
 
-        @staticmethod
-        def cf_state():
+        def cf_state(self):
             sf_label_place_mode.grid_forget()
             sf_option_mode_usb.grid_forget()
             sf_option_mode_local.grid_forget()
@@ -405,32 +421,31 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
 
-            cf_label_new_path.grid(row=1, column=0, pady=5, sticky='E')
+            cf_label_dest_path.grid(row=1, column=0, pady=5, sticky='E')
             cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
             cf_label_adv.grid(row=3, column=0, pady=3, sticky='E')
             cf_label_start_options.grid(row=11, column=0, sticky='E')
 
-            cf_entry_new_path.grid(
+            cf_entry_dest_path.grid(
                 row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-            cf_browse_new_path_button.grid(
+            cf_browse_dest_path_button.grid(
                 row=1, column=1, ipadx=3, sticky='E', padx=10)
             cf_option_folder_move.grid(row=2, column=1, padx=10, sticky='W')
             cf_option_lnk_move.grid(row=2, column=1, padx=150, sticky='W')
             cf_option_adv.grid(row=3, column=1, padx=10, sticky='W')
 
             cf_option_is_auto.grid(row=11, column=1, padx=10, sticky='NW')
-            Place.cf_fold_adv(cf_unfold_adv.get())
-            Place.exchange_preview_text()
+            self.cf_fold_adv(cf_unfold_adv.get())
+            self.exchange_preview_text()
 
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + current_cf_save_name.get())
 
-        @staticmethod
-        def sf_state(placemode=None):
-            cf_entry_old_path.grid_forget()
-            cf_browse_old_path_button.grid_forget()
-            cf_entry_new_path.grid_forget()
-            cf_browse_new_path_button.grid_forget()
+        def sf_state(self, placemode=None):
+            cf_entry_src_path.grid_forget()
+            cf_browse_src_path_button.grid_forget()
+            cf_entry_dest_path.grid_forget()
+            cf_browse_dest_path_button.grid_forget()
             cf_option_folder_move.grid_forget()
             cf_option_lnk_move.grid_forget()
             cf_entry_keep_files.grid_forget()
@@ -441,8 +456,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_mode_2.grid_forget()
             cf_entry_time.grid_forget()
             cf_option_is_auto.grid_forget()
-            cf_label_old_path.grid_forget()
-            cf_label_new_path.grid_forget()
+            cf_label_src_path.grid_forget()
+            cf_label_dest_path.grid_forget()
             cf_label_expire_options.grid_forget()
             cf_label_keep_files.grid_forget()
             cf_label_keep_formats.grid_forget()
@@ -451,11 +466,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_label_start_options.grid_forget()
 
             if placemode:
-                Place.sf_change_place_mode(placemode)
+                self.sf_change_place_mode(placemode)
             elif sf_place_mode.get() == 'movable':
-                Place.sf_change_place_mode('movable')
+                self.sf_change_place_mode('movable')
             else:
-                Place.sf_change_place_mode('local')
+                self.sf_change_place_mode('local')
 
             sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
             sf_option_mode_usb.grid(
@@ -489,7 +504,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_label_autorun.grid(row=11, column=0, sticky='E')
             sf_option_autorun.grid(row=11, column=1, padx=10, sticky='W')
             root.geometry('800x468')
-            Place.exchange_preview_text()
+            self.exchange_preview_text()
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + current_sf_save_name.get())
 
@@ -503,8 +518,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root.attributes('-topmost', True)
     root.attributes('-topmost', False)
     root.update_idletasks()
-    root.protocol('WM_DELETE_WINDOW', lambda: exit_program())
-    # 重新定义点击关闭按钮的处理
+    root.protocol("WM_DELETE_WINDOW", lambda: exit_program())
 
     current_save_name = tk.StringVar()
     current_cf_save_name = tk.StringVar()
@@ -516,10 +530,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     label_choose_state_text = tk.StringVar()
     option_is_cleanfile_text = tk.StringVar()
     option_is_syncfile_text = tk.StringVar()
-    cf_label_old_path_text = tk.StringVar()
-    cf_browse_old_path_button_text = tk.StringVar()
-    cf_browse_new_path_button_text = tk.StringVar()
-    cf_label_new_path_text = tk.StringVar()
+    cf_label_src_path_text = tk.StringVar()
+    cf_browse_src_path_button_text = tk.StringVar()
+    cf_browse_dest_path_button_text = tk.StringVar()
+    cf_label_dest_path_text = tk.StringVar()
     cf_label_move_options_text = tk.StringVar()
     cf_option_folder_move_text = tk.StringVar()
     cf_option_move_lnk_text = tk.StringVar()
@@ -534,7 +548,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_label_time_text = tk.StringVar()
     cf_label_start_options_text = tk.StringVar()
     cf_option_is_auto_text = tk.StringVar()
-    
+
     sf_label_place_mode_text = tk.StringVar()
     sf_option_mode_usb_text = tk.StringVar()
     sf_option_mode_local_text = tk.StringVar()
@@ -585,6 +599,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root_language.set(general_data.get('General', 'language'))
     lang_num = language_num(root_language.get())
     set_language(lang_num)
+    opp_preview_text.set(LT_Dic.r_label_text_dic['default_preview'][lang_num])
 
     label_choose_state = ttk.Label(
         root, text=label_choose_state_text.get(), textvariable=label_choose_state_text)
@@ -601,17 +616,17 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     blank = ttk.Label(root)
 
-    cf_label_old_path = ttk.Label(root, textvariable=cf_label_old_path_text)
-    cf_entry_old_path = ttk.Entry(root, textvariable=source_path, state='')
-    cf_browse_old_path_button = ttk.Button(root, textvariable=cf_browse_old_path_button_text,
+    cf_label_src_path = ttk.Label(root, textvariable=cf_label_src_path_text)
+    cf_entry_src_path = ttk.Entry(root, textvariable=source_path, state='')
+    cf_browse_src_path_button = ttk.Button(root, textvariable=cf_browse_src_path_button_text,
                                            command=lambda: select_path(place='old',
-                                                                       ori_content=cf_entry_old_path.get()))
+                                                                       ori_content=cf_entry_src_path.get()))
 
-    cf_label_new_path = ttk.Label(root, textvariable=cf_label_new_path_text)
-    cf_entry_new_path = ttk.Entry(root, textvariable=dest_path)
-    cf_browse_new_path_button = ttk.Button(root, textvariable=cf_browse_new_path_button_text,
-                                           command=lambda: select_path(place='new',
-                                                                       ori_content=cf_entry_new_path.get()))
+    cf_label_dest_path = ttk.Label(root, textvariable=cf_label_dest_path_text)
+    cf_entry_dest_path = ttk.Entry(root, textvariable=dest_path)
+    cf_browse_dest_path_button = ttk.Button(root, textvariable=cf_browse_dest_path_button_text,
+                                            command=lambda: select_path(place='new',
+                                                                        ori_content=cf_entry_dest_path.get()))
 
     cf_label_move_options = ttk.Label(
         root, textvariable=cf_label_move_options_text)
@@ -681,11 +696,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_option_mode_usb = ttk.Radiobutton(root, textvariable=sf_option_mode_usb_text,
                                          variable=sf_place_mode,
                                          value='movable',
-                                         command=lambda: Place('sf', sf_place=sf_place_mode.get()))
+                                         command=lambda: Place('sf', sf_place=sf_place_mode.get(), keep_preview=True))
     sf_option_mode_local = ttk.Radiobutton(root, textvariable=sf_option_mode_local_text,
                                            variable=sf_place_mode,
                                            value='local',
-                                           command=lambda: Place('sf', sf_place=sf_place_mode.get()))
+                                           command=lambda: Place('sf', sf_place=sf_place_mode.get(), keep_preview=True))
     sf_place_mode.set('movable')
 
     sf_label_path_1 = ttk.Label(root, textvariable=sf_label_path_1_text)
@@ -780,7 +795,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         @staticmethod
         def cf_has_blank():
             blank_num = 0
-            if len(cf_entry_old_path.get()) == 0:
+            if len(cf_entry_src_path.get()) == 0:
                 blank_num += 1
             elif len(cf_entry_time.get()) == 0:
                 blank_num += 1
@@ -805,14 +820,14 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         def cf_path_error(self):
             try:
-                os.listdir(cf_entry_old_path.get())
-                if cf_entry_new_path.get() == '':
+                os.listdir(cf_entry_src_path.get())
+                if cf_entry_dest_path.get() == '':
                     return False
-                if cf_entry_old_path.get() == cf_entry_new_path.get():
+                if cf_entry_src_path.get() == cf_entry_dest_path.get():
                     return 'same_path_error'
-                if not os.path.isdir(cf_entry_new_path.get()):
-                    return self.try_create_path(cf_entry_new_path.get())
-                os.listdir(cf_entry_new_path.get())
+                if not os.path.isdir(cf_entry_dest_path.get()):
+                    return self.try_create_path(cf_entry_dest_path.get())
+                os.listdir(cf_entry_dest_path.get())
             except:
                 return True
             else:
@@ -832,43 +847,51 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 return True
 
-        def sf_path_error(self):
+        def sf_path_error(self, from_savings=False):
             has_cancelled = False
-            if sf_place_mode.get() == 'movable':  # moveable check
+            _mode = sf_place_mode.get()
+            _disk_path = ''
+            if sf_entry_select_removable.get():
+                _disk_path = sf_entry_select_removable.get().split(':')[
+                    0][-1] + ':'
+            _path1 = sf_entry_path_1.get()
+            _path2 = sf_entry_path_2.get()
+            if _mode == 'movable' and not from_savings:  # moveable check
                 try:
-                    os.listdir(sf_entry_select_removable.get().split(
-                        ':')[0][-1] + ':')
+                    os.listdir(_disk_path)
                 except:
                     return True
-            elif not os.path.isdir(sf_entry_path_1.get()):  # local route A check
-                result = self.try_create_path(sf_entry_path_1.get())
+            # local route A check
+            elif _mode == 'local' and not os.path.isdir(_path1):
+                result = self.try_create_path(_path1)
                 if not (result is None):
                     return result
                 has_cancelled = True  # passed
-            else:
+            elif _mode == 'local':
                 try:
-                    os.listdir(sf_entry_path_1.get())
+                    os.listdir(_path1)
                 except:
                     return True
 
-            if not os.path.isdir(sf_entry_path_2.get()):  # local route B Check
-                result = self.try_create_path(sf_entry_path_2.get())
+            if not os.path.isdir(_path2):  # local route B Check
+                result = self.try_create_path(_path2)
                 if has_cancelled or (result is None):
                     return None
                 return result
             else:
                 try:
-                    os.listdir(sf_entry_path_2.get())
+                    os.listdir(_path2)
                 except:
                     return True
 
-            if sf_entry_path_1.get() == sf_entry_path_2.get() and sf_place_mode.get() != 'movable':
+            if _path1 == _path2 and _mode != 'movable':
                 return 'same_path_error'
-            elif (sf_entry_path_1.get() in sf_entry_path_2.get() or sf_entry_path_2.get() in sf_entry_path_1.get()) \
-                    and sf_place_mode.get() != 'movable':
+            # _path1 in _path2 or _path2 in _path1  # previous way
+            # not included in each other
+            elif _mode != 'movable' and os.path.commonpath([_path1, _path2]) in [_path1, _path2]:
                 return 'in_path_error'
-            elif sf_place_mode.get() == 'movable':
-                if (sf_entry_select_removable.get().split(':')[0][-1] + ':') in sf_entry_path_2.get():
+            elif _mode == 'movable':
+                if os.path.commonpath([_disk_path, _path2]) == _disk_path:
                     return 'in_disk_path_error'
             return False
 
@@ -895,8 +918,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 return False
 
-        def get_sf_error_state(self):
-            sf_path_error_info = self.sf_path_error()
+        def get_sf_error_state(self, from_savings=False):
+            sf_path_error_info = self.sf_path_error(from_savings)
             if self.sf_has_blank():
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=LT_Dic.r_label_text_dic['blank_warning'][lang_num])
@@ -924,11 +947,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     def initial_entry(set_cf_dest=False):
         default_dest_path = os.path.join(DESKTOP_PATH, r'Previous Files')
-        if not cf_entry_old_path.get():
-            cf_entry_old_path.insert(0, DESKTOP_PATH)
+        if not cf_entry_src_path.get():
+            cf_entry_src_path.insert(0, DESKTOP_PATH)
             cf_refresh_whitelist_entry()
-        if set_cf_dest and not cf_entry_new_path.get():
-            cf_entry_new_path.insert(0, default_dest_path)
+        if set_cf_dest and not cf_entry_dest_path.get():
+            cf_entry_dest_path.insert(0, default_dest_path)
         if not cf_entry_mode.get():
             cf_entry_mode.set(1)
         if not cf_entry_time.get():
@@ -937,7 +960,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_entry_mode.set('double')
 
     def ask_save_name():
-        global ask_name_window
         last_saving_data, cf_save_names, sf_save_names = list_saving_data()
 
         def remove_last_edit(mode_data: configparser.ConfigParser, config_file_path):
@@ -965,8 +987,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 if not cf_data.has_section(str(save_name)):
                     cf_data.add_section(str(save_name))
                 cf_data.set(save_name, '_last_edit_', 'True')
-                cf_data.set(save_name, "old_path", cf_entry_old_path.get())
-                cf_data.set(save_name, "new_path", cf_entry_new_path.get())
+                cf_data.set(save_name, "old_path", cf_entry_src_path.get())
+                cf_data.set(save_name, "new_path", cf_entry_dest_path.get())
                 cf_data.set(save_name, "pass_filename",
                             cf_entry_keep_files.get())
                 cf_data.set(save_name, "pass_format",
@@ -1069,7 +1091,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             ask_name_window.protocol('WM_DELETE_WINDOW', exit_asn)
 
     def read_saving(ask_path=False):
-        global ask_saving_root
         cf_file = configparser.ConfigParser()
         cf_file.read(CF_CONFIG_PATH)  # 获取配置文件
         sf_file = configparser.ConfigParser()
@@ -1085,15 +1106,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 return
             if not cf_file.has_section(setting_name):
                 return
-            nonlocal cf_ori_old_path
-            if cf_entry_old_path.get() != '':
-                cf_entry_old_path.delete(0, 'end')
-            if cf_entry_new_path.get() != '':
-                cf_entry_new_path.delete(0, 'end')
-            cf_entry_old_path.insert(0, cf_file.get(
+            nonlocal cf_ori_src_path
+            if cf_entry_src_path.get() != '':
+                cf_entry_src_path.delete(0, 'end')
+            if cf_entry_dest_path.get() != '':
+                cf_entry_dest_path.delete(0, 'end')
+            cf_entry_src_path.insert(0, cf_file.get(
                 setting_name, 'old_path'))  # 旧文件夹
-            cf_ori_old_path = cf_entry_old_path.get()
-            cf_entry_new_path.insert(0, cf_file.get(
+            cf_ori_src_path = cf_entry_src_path.get()
+            cf_entry_dest_path.insert(0, cf_file.get(
                 setting_name, 'new_path'))  # 新文件夹
             cf_refresh_whitelist_entry()
             if cf_entry_keep_files.get() != '':
@@ -1115,7 +1136,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_is_folder_move.set(cf_file.getboolean(
                 setting_name, 'move_folder'))
             cf_is_lnk_move.set(cf_file.getboolean(setting_name, 'move_lnk'))
-            Place('cf')
+            Place('cf', keep_preview=True)
             cf_or_sf.set('cf')
             current_cf_save_name.set(setting_name)
             current_save_name.set(
@@ -1163,12 +1184,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     sf_entry_lock_file.append_value(file)
             sf_entry_is_autorun.set(sf_file.get(
                 setting_name, 'autorun') == 'True')
-            Place('sf', place_mode)
+            Place('sf', place_mode, keep_preview=True)
             cf_or_sf.set('sf')
             current_sf_save_name.set(setting_name)
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + setting_name)
-            root_info_checker.get_sf_error_state()
+            root_info_checker.get_sf_error_state(from_savings=True)
 
         def refresh_saving():
             nonlocal new_values
@@ -1274,20 +1295,19 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         initial_entry(set_cf_dest=cf_save_name == '')
 
     def cf_operate_from_root(preview=False):
-        old_path = cf_entry_old_path.get()  # 旧文件夹
-        new_path = cf_entry_new_path.get()  # 新文件夹
+        src_path = cf_entry_src_path.get()  # 旧文件夹
+        dest_path = cf_entry_dest_path.get()  # 新文件夹
         pass_file = cf_entry_keep_files.get().split(',')  # 设置跳过白名单
         pass_format = cf_entry_keep_formats.get().split(',')  # 设置跳过格式
         time_ = int(cf_entry_time.get()) * 3600  # 设置过期时间(hour)
         mode = int(cf_entry_mode.get())  # 设置判断模式
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
         is_move_lnk = cf_is_lnk_move.get()
-        cf_tasks = cf_move_dir(root, old__path=old_path, new__path=new_path, pass__file=pass_file, pass__format=pass_format,
-                               overdue__time=time_,
-                               check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
-        return cf_tasks
+        return cf_move_dir(root, src__path=src_path, dest__path=dest_path, pass__file=pass_file, pass__format=pass_format,
+                           overdue__time=time_,
+                           check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
 
-    def sf_operate_from_root():
+    def sf_operate_from_root(preview=False):
         if sf_place_mode.get() == 'movable':
             path1 = sf_entry_select_removable.get().split(':')[0][-1] + ':'
         else:
@@ -1299,12 +1319,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         lockfile = sf_entry_lock_file.get()
         if path1[-1] == ":":
             area_name = GetVolumeInformation(path1)[0]
-        if mode == 'single':
-            single_sync = True
-        else:
-            single_sync = False
-        sf_sync_dir(root, path1, path2, single_sync, lang_num,
-                    area_name, lockfile, lockfolder)
+
+        return sf_sync_dir(master_root=root, path1=path1, path2=path2, single_sync=mode == 'single', language_number=lang_num,
+                           area_name=area_name, pass_file_paths=lockfile, pass_folder_paths=lockfolder, preview=preview)
 
     def startup_autorun():
         time.sleep(1)
@@ -1320,7 +1337,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
         lang_num = language_num(language)
         set_language(lang_num)
-        Place(cf_or_sf.get(), sf_place_mode.get())
+        Place(cf_or_sf.get(), sf_place_mode.get(), True)
         tkinter.messagebox.showinfo(
             title='Movefile', message=LT_Dic.r_label_text_dic['change_language'][lang_num])
 
@@ -1331,32 +1348,21 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             _result = cf_operate_from_root(preview=exe_preview)  # run cf
             if exe_preview:
                 set_preview(result=_result, mode='cf')
-
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
-            sf_operator = Thread(
-                target=lambda: sf_operate_from_root(), daemon=True)
-            sf_operator.start()
-            root.withdraw()
+            if not exe_preview:
+                root.withdraw()
+            _result = sf_operate_from_root(preview=exe_preview)
+            if exe_preview:
+                set_preview(result=_result, mode='sf')
 
-    # @atexit.register
     def exit_program():
         gvar.set('program_finished', True)
         root.withdraw()
         mf_toaster.stop_notification_thread()
-        if 'ask_saving_root' in globals().keys():
-            ask_saving_root.quit()
-            ask_saving_root.destroy()
-        if 'ask_name_window' in globals().keys():
-            ask_name_window.quit()
-            ask_name_window.destroy()
-
-        task_menu.stop()
-        root.quit()
-        root.destroy()
 
         mf_log("\nMovefile Quit\n")
-        butt_icon.join()
-        background_detect.join()
+        root.quit()
+        task_menu.stop()
 
     # 创建按键
     blank_pix = ttk.Label(root, text=' ')  # This is a Placeholder
@@ -1420,8 +1426,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
     main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
-    
-    main_menu.add_command(label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')
+
+    main_menu.add_command(
+        label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')
     main_menu.add_command(label=menu_hide_text.get(),
                           command=lambda: root.withdraw())
 
@@ -1432,7 +1439,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         MenuItem(taskbar_setting_text.get(),
                  lambda event: root.deiconify(), default=True), Menu.SEPARATOR,
         MenuItem(taskbar_hide_text.get(),
-                 action=lambda event: root.wait_window()),
+                 action=lambda event: root.withdraw()),
         MenuItem(taskbar_exit_text.get(), action=lambda: exit_program()))
     image = Image.open(MF_ICON_PATH)
     task_menu = Icon("icon", image, "Movefile", menu)
@@ -1459,7 +1466,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_or_sf.set('cf')
             Place('cf')
 
-    butt_icon = Thread(target=task_menu.run, daemon=True)
+    butt_icon = Thread(target=lambda: task_menu.run(), daemon=True)
     butt_icon.start()
     background_detect = Thread(
         target=lambda: detect_removable_disks_thread(root, lang_num), daemon=True)

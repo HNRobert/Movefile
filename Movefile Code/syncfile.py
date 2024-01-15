@@ -15,7 +15,7 @@ from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
 from mf_mods import language_num, mf_log, mf_toaster
 
 
-def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths=''):
+def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths='', preview=False):
     """
     The `sf_sync_dir` function synchronizes files between two directories, displaying progress using a progress bar.
 
@@ -118,7 +118,7 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
                 diff_data[i].extend(dir_data[i])
         return diff_data
 
-    def get_task(_bar_root: MFProgressBar):
+    def get_sf_tasks(_bar_root: MFProgressBar):
         """
         The function "get_task" compares the two folder and decides which file need to be moved or replaced.
 
@@ -184,17 +184,15 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
             return source_file_path
         return None
 
-    def run_sync_tasks(baroot: MFProgressBar):
+    def run_sync_tasks(baroot: MFProgressBar, tasks):
         """
         The function "run_sync_tasks" performs synchronous tasks.
 
         :param baroot: The progress bar root object
         """
-        nonlocal sf_progress_done
         sf_error_name = ''
         baroot.main_progress_bar['value'] = 0
         baroot.progress_root.update_idletasks()
-        tasks = get_task(baroot)
         baroot.main_progress_bar['maximum'] = len(tasks)
         baroot.set_label1(
             f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}')
@@ -218,7 +216,6 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
             path_name_1 = area_name
         sf_show_notice(path_name_1, path2.split('\\')[-1], sf_error_name)
         baroot.progress_root.destroy()
-        sf_progress_done = True
 
     if path1[-1] != ':' and not os.path.exists(path1):
         os.mkdir(path1)
@@ -233,15 +230,15 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
     sync_bar_root_task.start()
     while not sync_bar_root.initialization_done:
         time.sleep(0.01)
-    sf_progress_done = False
-    run_tasks = Thread(
-        target=lambda: run_sync_tasks(sync_bar_root), daemon=True)
-    run_tasks.start()
-    while not sf_progress_done:
-        time.sleep(1.0)
+    sf_tasks = get_sf_tasks(sync_bar_root)
+    if not preview:
+        run_tasks = Thread(
+            target=lambda: run_sync_tasks(sync_bar_root, sf_tasks), daemon=True)
+        run_tasks.start()
+        run_tasks.join()
     sync_bar_root.progress_root_destruction()
     sync_bar_root_task.join()
-    run_tasks.join()
+    return sf_tasks
 
 
 def sf_autorun_operation(master, place, saving_datas=None):
