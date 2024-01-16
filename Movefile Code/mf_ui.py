@@ -295,12 +295,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             temp_adjust_value = [130, 170]
             preview_button.grid(
                 row=9, column=1, padx=temp_adjust_value[lang_num], ipadx=10, sticky='W')
-            preview_text.grid(row=10, column=1, padx=10,
-                              pady=5, ipadx=129, ipady=50, sticky='NW')
-            preview_xscrollbar.grid(
-                row=10, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
-            preview_yscrollbar.grid(
-                row=10, column=1, padx=10, pady=5, ipady=50, sticky='EN')
+
             save_button.grid(row=12, column=1, ipadx=100,
                              pady=4, padx=10, sticky='W')
             continue_button.grid(row=12, column=1, ipadx=100,
@@ -310,6 +305,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 self.cf_state()
             elif self.mode == 'sf':
                 self.sf_state(sf_place)
+
+        @staticmethod
+        def put_preview():
+            preview_text.grid(row=10, column=1, padx=10,
+                              pady=5, ipadx=129, ipady=50, sticky='NW')
+            preview_xscrollbar.grid(
+                row=10, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
+            preview_yscrollbar.grid(
+                row=10, column=1, padx=10, pady=5, ipady=50, sticky='EN')
 
         @staticmethod
         def unfold_adv(booleanvar: BooleanVar, unfold_method: Callable, stay=False):
@@ -323,10 +327,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 button_expand_adv_text.set(
                     button_expand_adv_text.get()[:-1]+'↓')
-            unfold_method(state)
+            preview_height = int(preview_placed.get()) * 180
+            unfold_method(state, preview_height)
 
         @staticmethod
-        def cf_unfold_adv(state):
+        def cf_unfold_adv(state, preview_height):
             if state:
                 cf_label_src_path.grid(row=4, column=0, pady=5, sticky='E')
                 cf_label_keep_files.grid(row=5, column=0, pady=5, sticky='E')
@@ -350,7 +355,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 temp_adjust_value = [150, 200]
                 cf_option_mode_2.grid(
                     row=8, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
-                root.geometry('800x520')
+                r_height = str(340 + preview_height)
+                root.geometry('800x' + r_height)
             else:
                 cf_label_src_path.grid_forget()
                 cf_entry_src_path.grid_forget()
@@ -364,10 +370,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_option_mode_1.grid_forget()
                 cf_option_mode_2.grid_forget()
                 cf_entry_time.grid_forget()
-                root.geometry('800x360')
+                r_height = str(180 + preview_height)
+                root.geometry('800x' + r_height)
 
         @staticmethod
-        def sf_unfold_adv(state):
+        def sf_unfold_adv(state, preview_height):
             if state:
                 sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
                 sf_entry_lock_folder.grid(
@@ -379,6 +386,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     row=6, column=1, padx=10, pady=5, ipadx=190, sticky='W')
                 sf_browse_lockfile_button.grid(
                     row=6, column=1, padx=10, sticky='E', ipadx=3)
+
                 root.geometry('800x495')
             else:
                 sf_label_lock_folder.grid_forget()
@@ -631,7 +639,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                                          command=lambda: Place(cf_or_sf.get()))
 
     label_current_save_name = ttk.Label(
-        root, text=current_save_name.get(), textvariable=current_save_name)
+        root, textvariable=current_save_name)
 
     cf_label_src_path = ttk.Label(root, textvariable=cf_label_src_path_text)
     cf_entry_src_path = ttk.Entry(root, textvariable=source_path, state='')
@@ -691,6 +699,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     preview_text.config(xscrollcommand=preview_xscrollbar.set)
     preview_xscrollbar.config(command=preview_text.xview)
 
+    preview_placed = tk.BooleanVar()
+
     preview_button = ttk.Button(
         root, textvariable=preview_button_text, command=lambda: Thread(target=lambda: execute_as_root(exe_preview=True)).start())
 
@@ -698,7 +708,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root, textvariable=cf_label_start_options_text)
     cf_is_autorun = tk.BooleanVar()
     cf_option_is_auto = ttk.Checkbutton(
-        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun)
+        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun, command=lambda: request_saving(cf_is_autorun.get()))
 
     sf_label_place_mode = ttk.Label(
         root, textvariable=sf_label_place_mode_text)
@@ -754,7 +764,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_entry_is_autorun = tk.BooleanVar()
     sf_option_autorun = ttk.Checkbutton(root,
                                         textvariable=sf_option_autorun_text,
-                                        variable=sf_entry_is_autorun)
+                                        variable=sf_entry_is_autorun,
+                                        command=lambda: request_saving(sf_entry_is_autorun.get()))
 
     class MF_Help:
         def __init__(self):
@@ -966,6 +977,18 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_entry_time.insert(0, '0')
         if not sf_entry_mode.get():
             sf_entry_mode.set('single')
+
+    def request_saving(state):
+        have_saved = current_save_name.get(
+        ) != LT_Dic.r_label_text_dic['current_save_name'][lang_num]
+        if not state or have_saved and is_startup_run.get():
+            return
+        if tkinter.messagebox.askokcancel(
+                title='Movefile', message=LT_Dic.r_label_text_dic['request_save'][lang_num]):
+            is_startup_run.set(True)
+            set_startup(True, lang_num)
+            if not have_saved:
+                ask_save_name()
 
     def ask_save_name():
         last_saving_data, cf_save_names, sf_save_names = list_saving_data()
@@ -1353,12 +1376,22 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
             if not exe_preview:
                 root.withdraw()
+            elif not preview_placed.get():
+                Place.put_preview()
+                preview_placed.set(True)
+                root.update()
+                root.geometry('800x'+str(root.winfo_height()+180))
             _result = cf_operate_from_root(preview=exe_preview)  # run cf
             if exe_preview:
                 set_preview(result=_result, mode='cf')
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             if not exe_preview:
                 root.withdraw()
+            elif not preview_placed.get():
+                Place.put_preview()
+                preview_placed.set(True)
+                root.update()
+                root.geometry('800x'+str(root.winfo_height()+180))
             _result = sf_operate_from_root(preview=exe_preview)
             if exe_preview:
                 set_preview(result=_result, mode='sf')

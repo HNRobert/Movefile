@@ -27,12 +27,12 @@ r_label_text_dic = {
     'taskbar_exit': ['退出', 'Exit'],
 
     # Function options
+    'current_save_name': ['当前存档：', 'Current config：'],
     'label_choose_state': ['功能选择：', 'Function：'],
     'option_is_cleanfile': ['清理桌面', 'Clean Desktop'],
     'option_is_syncfile': ['同步文件', 'Syncfile'],
 
     # Cleanfile labels
-    'current_save_name': ['当前存档：', 'Current config：'],
     'cf_label_old_path': ['源文件夹：', 'Source path：'],
     'cf_browse_old_path_button': ['浏览', 'Browse'],
     'cf_browse_new_path_button': ['浏览', 'Browse'],
@@ -101,6 +101,7 @@ r_label_text_dic = {
     'in_path_warning': ['警告：两个待同步的文件夹不能为包含关系！', '''Warning：Two folders to be synchronized \ncannot have a containing relationship！'''],
     'in_disk_path_warning': ['警告：不能将一个分区与位于该分区内的文件夹同步！', '''Warning：Cannot synchronize a partition \nwith a folder located within that partition！'''],
     'ini_error': ['''错误：配置信息有误\n请尽量不要手动更改配置文件''', """Error：Config invalid, \nplease don't edit the config file directly"""],
+    'request_save': ['提示：若要让该功能正常运作，\n需要保存该配置，并设置本软件为开机自启，\n选择"确定"以继续', 'Tip: You need to save the current config\n and set this software to start upon startup\nto ensure the normal functioning of this autorun function\nClick "OK" to continue'],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software\nto make the language of some labels changed'''],
     'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
