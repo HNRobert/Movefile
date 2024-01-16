@@ -5,7 +5,7 @@ from tkinter import ttk
 class Picker(ttk.Frame):
 
     def __init__(self, master=None, activebackground='#b1dcfb', values=None, entry_wid=None, activeforeground='black',
-                 selectbackground='#003eff', selectforeground='white', command=None, borderwidth=1, relief=['solid'],
+                 selectbackground='#003eff', selectforeground='white', command=None, borderwidth=1, relief=['flat'],
                  frameheight=120):
 
         if values is None:
