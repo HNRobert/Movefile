@@ -5,9 +5,16 @@ import os
 import time
 import tkinter.filedialog
 import tkinter.messagebox
+import tkinter.font as tkFont
 from threading import Thread
 from tkinter import BooleanVar, ttk
 from typing import Callable
+
+from mttkinter import mtTkinter as tk
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
+from syncfile import sf_autorun_operation, sf_sync_dir
+from win32api import GetVolumeInformation
 
 import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
@@ -18,12 +25,6 @@ from mf_mods import (detect_removable_disks_thread, language_num,
                      list_saving_data, mf_log, mf_toaster,
                      put_desktop_shortcut, scan_removable_disks, set_auto_quit,
                      set_startup)
-from mttkinter import mtTkinter as tk
-from PIL import Image
-from pystray import Icon, Menu, MenuItem
-from syncfile import sf_autorun_operation, sf_sync_dir
-from win32api import GetVolumeInformation
-
 from Movefile import gvar
 
 
@@ -275,30 +276,29 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         def __init__(self, mode, sf_place=None):
             self.mode = mode
             self.keep_preview = False
-            print(pre_cs.get()+' '+self.mode)
             if pre_cs.get() == self.mode:
                 self.keep_preview = True
             pre_cs.set(self.mode)
-            blank_c0.grid(row=114, column=0, ipadx=67, pady=4,
+            blank_c0.grid(row=124, column=0, ipadx=67, pady=4,
                           padx=0, sticky='E')  # This is a Placeholder
-            blank_c1.grid(row=114, column=1, padx=321,
+            blank_c1.grid(row=124, column=1, padx=321,
                           pady=4, sticky='W')  # So do this
-            label_choose_state.grid(row=0, column=0, pady=4, sticky='E')
+            label_choose_state.grid(row=1, column=0, pady=4, sticky='E')
             option_is_cleanfile.grid(
-                row=0, column=1, padx=10, pady=5, sticky='W')
+                row=1, column=1, padx=10, pady=5, sticky='W')
             temp_adjust_value = [100, 150]
             option_is_syncfile.grid(
-                row=0, column=1, padx=temp_adjust_value[lang_num], pady=5, sticky='W')
-            label_current_save_name.grid(row=0, column=1, padx=10, sticky='E')
+                row=1, column=1, padx=temp_adjust_value[lang_num], pady=5, sticky='W')
+            label_current_save_name.grid(row=1, column=1, padx=10, sticky='E')
             button_expand_adv.grid(
-                row=9, column=1, padx=10, ipadx=10, sticky='W')
+                row=10, column=1, padx=10, ipadx=10, sticky='W')
             temp_adjust_value = [130, 170]
             preview_button.grid(
-                row=9, column=1, padx=temp_adjust_value[lang_num], ipadx=10, sticky='W')
+                row=10, column=1, padx=temp_adjust_value[lang_num], ipadx=10, sticky='W')
 
-            save_button.grid(row=12, column=1, ipadx=100,
+            save_button.grid(row=13, column=1, ipadx=100,
                              pady=4, padx=10, sticky='W')
-            continue_button.grid(row=12, column=1, ipadx=100,
+            continue_button.grid(row=13, column=1, ipadx=100,
                                  pady=4, padx=10, sticky='E')
             # continue_button.config(state=tk.DISABLED)
             if self.mode == 'cf':
@@ -308,12 +308,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         @staticmethod
         def put_preview():
-            preview_text.grid(row=10, column=1, padx=10,
-                              pady=5, ipadx=129, ipady=50, sticky='NW')
+            preview_text.grid(row=11, column=1, padx=10,
+                              pady=5, ipadx=129, ipady=40, sticky='NW')
             preview_xscrollbar.grid(
-                row=10, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
+                row=11, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
             preview_yscrollbar.grid(
-                row=10, column=1, padx=10, pady=5, ipady=50, sticky='EN')
+                row=11, column=1, padx=10, pady=5, ipady=50, sticky='EN')
 
         @staticmethod
         def unfold_adv(booleanvar: BooleanVar, unfold_method: Callable, stay=False):
@@ -333,30 +333,29 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         @staticmethod
         def cf_unfold_adv(state, preview_height):
             if state:
-                cf_label_src_path.grid(row=4, column=0, pady=5, sticky='E')
-                cf_label_keep_files.grid(row=5, column=0, pady=5, sticky='E')
-                cf_label_keep_formats.grid(row=6, column=0, pady=5, sticky='E')
-                cf_label_time.grid(row=7, column=0, pady=5, sticky='E')
+                cf_label_src_path.grid(row=5, column=0, pady=5, sticky='E')
+                cf_label_keep_files.grid(row=6, column=0, pady=5, sticky='E')
+                cf_label_keep_formats.grid(row=7, column=0, pady=5, sticky='E')
+                cf_label_time.grid(row=8, column=0, pady=5, sticky='E')
                 cf_label_expire_options.grid(
-                    row=8, column=0, pady=4, sticky='E')
+                    row=9, column=0, pady=4, sticky='E')
 
                 cf_entry_src_path.grid(
-                    row=4, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+                    row=5, column=1, padx=10, pady=5, ipadx=190, sticky='W')
                 cf_browse_src_path_button.grid(
-                    row=4, column=1, ipadx=3, sticky='E', padx=10)
+                    row=5, column=1, ipadx=3, sticky='E', padx=10)
                 cf_entry_keep_files.grid(
-                    row=5, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-                cf_entry_keep_formats.grid(
                     row=6, column=1, padx=10, pady=5, ipadx=240, sticky='W')
-                cf_entry_time.grid(row=7, column=1, padx=10,
+                cf_entry_keep_formats.grid(
+                    row=7, column=1, padx=10, pady=5, ipadx=240, sticky='W')
+                cf_entry_time.grid(row=8, column=1, padx=10,
                                    pady=0, ipadx=240, sticky='W')
                 cf_option_mode_1.grid(
-                    row=8, column=1, padx=10, ipadx=0, sticky='W')
+                    row=9, column=1, padx=10, ipadx=0, sticky='W')
                 temp_adjust_value = [150, 200]
                 cf_option_mode_2.grid(
-                    row=8, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
-                r_height = str(340 + preview_height)
-                root.geometry('800x' + r_height)
+                    row=9, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
+                root.geometry('800x' + str(340 + preview_height))
             else:
                 cf_label_src_path.grid_forget()
                 cf_entry_src_path.grid_forget()
@@ -370,24 +369,22 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_option_mode_1.grid_forget()
                 cf_option_mode_2.grid_forget()
                 cf_entry_time.grid_forget()
-                r_height = str(180 + preview_height)
-                root.geometry('800x' + r_height)
+                root.geometry('800x' + str(180 + preview_height))
 
         @staticmethod
         def sf_unfold_adv(state, preview_height):
             if state:
-                sf_label_lock_folder.grid(row=5, column=0, pady=5, sticky='E')
+                sf_label_lock_folder.grid(row=6, column=0, pady=5, sticky='E')
                 sf_entry_lock_folder.grid(
-                    row=5, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-                sf_browse_lockfolder_button.grid(
-                    row=5, column=1, padx=10, sticky='E', ipadx=3)
-                sf_label_lock_file.grid(row=6, column=0, pady=5, sticky='E')
-                sf_entry_lock_file.grid(
                     row=6, column=1, padx=10, pady=5, ipadx=190, sticky='W')
-                sf_browse_lockfile_button.grid(
+                sf_browse_lockfolder_button.grid(
                     row=6, column=1, padx=10, sticky='E', ipadx=3)
-
-                root.geometry('800x495')
+                sf_label_lock_file.grid(row=7, column=0, pady=5, sticky='E')
+                sf_entry_lock_file.grid(
+                    row=7, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+                sf_browse_lockfile_button.grid(
+                    row=7, column=1, padx=10, sticky='E', ipadx=3)
+                root.geometry('800x' + str(315 + preview_height))
             else:
                 sf_label_lock_folder.grid_forget()
                 sf_entry_lock_folder.grid_forget()
@@ -395,7 +392,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_label_lock_file.grid_forget()
                 sf_entry_lock_file.grid_forget()
                 sf_browse_lockfile_button.grid_forget()
-                root.geometry('800x430')
+                root.geometry('800x' + str(250 + preview_height))
 
         @staticmethod
         def sf_change_place_mode(mode):
@@ -403,11 +400,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 label_index = 0
                 sf_browse_path_1_button.grid_forget()
                 sf_entry_select_removable.grid(
-                    row=3, column=1, padx=10, pady=5, ipadx=231, sticky='W')
+                    row=4, column=1, padx=10, pady=5, ipadx=231, sticky='W')
             else:
                 label_index = 1
                 sf_browse_path_1_button.grid(
-                    row=3, column=1, ipadx=3, sticky='E', padx=10)
+                    row=4, column=1, ipadx=3, sticky='E', padx=10)
                 sf_entry_select_removable.grid_forget()
             sf_label_path_1_text.set(
                 LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][label_index])
@@ -429,7 +426,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             def adjust_widget(mount: list):
                 
                 cf_option_lnk_move.grid(
-                    row=2, column=1, padx=mount[2], ipadx=0, sticky='W')
+                    row=3, column=1, padx=mount[2], ipadx=0, sticky='W')
 
             if lang_num == 0:
                 adjust_widget([100, 100, 150])
@@ -460,17 +457,17 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
 
-            cf_label_dest_path.grid(row=1, column=0, pady=5, sticky='E')
-            cf_label_move_options.grid(row=2, column=0, pady=3, sticky='E')
-            cf_label_start_options.grid(row=11, column=0, sticky='E')
+            cf_label_dest_path.grid(row=2, column=0, pady=5, sticky='E')
+            cf_label_move_options.grid(row=3, column=0, pady=3, sticky='E')
+            cf_label_start_options.grid(row=12, column=0, sticky='E')
 
             cf_entry_dest_path.grid(
-                row=1, column=1, padx=10, pady=5, ipadx=190, sticky='W')
+                row=2, column=1, padx=10, pady=5, ipadx=190, sticky='W')
             cf_browse_dest_path_button.grid(
-                row=1, column=1, ipadx=3, sticky='E', padx=10)
-            cf_option_folder_move.grid(row=2, column=1, padx=10, sticky='W')
-            cf_option_lnk_move.grid(row=2, column=1, padx=150, sticky='W')
-            cf_option_is_auto.grid(row=11, column=1, padx=10, sticky='NW')
+                row=2, column=1, ipadx=3, sticky='E', padx=10)
+            cf_option_folder_move.grid(row=3, column=1, padx=10, sticky='W')
+            cf_option_lnk_move.grid(row=3, column=1, padx=150, sticky='W')
+            cf_option_is_auto.grid(row=12, column=1, padx=10, sticky='NW')
             self.unfold_adv(cf_is_unfold_adv, self.cf_unfold_adv, stay=True)
             self.exchange_preview_text()
             button_expand_adv.config(command=lambda: self.unfold_adv(
@@ -507,26 +504,26 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 self.sf_change_place_mode('local')
 
-            sf_label_place_mode.grid(row=1, column=0, pady=5, sticky='E')
+            sf_label_place_mode.grid(row=2, column=0, pady=5, sticky='E')
             sf_option_mode_usb.grid(
-                row=1, column=1, padx=10, pady=5, sticky='W')
-            sf_option_mode_local.grid(row=1, column=1, padx=200, sticky='W')
+                row=2, column=1, padx=10, pady=5, sticky='W')
+            sf_option_mode_local.grid(row=2, column=1, padx=200, sticky='W')
             sf_option_mode_single.grid(
-                row=2, column=1, padx=10, ipadx=0, sticky='W')
+                row=3, column=1, padx=10, ipadx=0, sticky='W')
             sf_option_mode_double.grid(
-                row=2, column=1, padx=200, ipadx=0, sticky='W')
-            sf_label_mode.grid(row=2, column=0, pady=5, sticky='E')
-            sf_label_path_1.grid(row=3, column=0, pady=5, sticky='E')
-            sf_label_path_2.grid(row=4, column=0, pady=5, sticky='E')
-            sf_entry_path_1.grid(row=3, column=1, padx=10,
+                row=3, column=1, padx=200, ipadx=0, sticky='W')
+            sf_label_mode.grid(row=3, column=0, pady=5, sticky='E')
+            sf_label_path_1.grid(row=4, column=0, pady=5, sticky='E')
+            sf_label_path_2.grid(row=5, column=0, pady=5, sticky='E')
+            sf_entry_path_1.grid(row=4, column=1, padx=10,
                                  pady=5, ipadx=190, sticky='W')
-            sf_entry_path_2.grid(row=4, column=1, padx=10,
+            sf_entry_path_2.grid(row=5, column=1, padx=10,
                                  pady=5, ipadx=190, sticky='W')
             sf_browse_path_2_button.grid(
-                row=4, column=1, ipadx=3, sticky='E', padx=10)
+                row=5, column=1, ipadx=3, sticky='E', padx=10)
 
-            sf_label_autorun.grid(row=11, column=0, sticky='E')
-            sf_option_autorun.grid(row=11, column=1, padx=10, sticky='W')
+            sf_label_autorun.grid(row=12, column=0, sticky='E')
+            sf_option_autorun.grid(row=12, column=1, padx=10, sticky='W')
             self.unfold_adv(sf_is_unfold_adv, self.sf_unfold_adv, stay=True)
             self.exchange_preview_text()
             button_expand_adv.config(command=lambda: self.unfold_adv(
@@ -537,6 +534,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root = tk.Tk()
     if startup_visit:
         root.withdraw()
+    import ctypes
+
+    # 告诉操作系统使用程序自身的dpi适配
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    # 获取屏幕的缩放因子
+    ScaleFactor = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+    # 设置程序缩放
+    root.tk.call('tk', 'scaling', ScaleFactor/75)
+
     root.iconbitmap(MF_ICON_PATH)
     root.title('Movefile Setting')
     root.geometry("800x360")
@@ -545,6 +551,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root.attributes('-topmost', False)
     root.update_idletasks()
     root.protocol("WM_DELETE_WINDOW", lambda: exit_program())
+    tkfont = tkFont.nametofont("TkDefaultFont")
+    tkfont.config(family='Microsoft YaHei UI')
+    root.option_add("*Font", tkfont)
 
     current_save_name = tk.StringVar()
     current_cf_save_name = tk.StringVar()
@@ -1243,7 +1252,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             del_mode = read_mode_entry.get()
             del_name = read_name_entry.get()
             is_continue = tkinter.messagebox.askyesno(
-                title='Movefile', message='确认删除配置 ' + del_name + ' ?')
+                title='Movefile', message=LT_Dic.r_label_text_dic['sure_delete'][lang_num] + del_name + '" ?')
             ini_file = configparser.ConfigParser()
             if del_mode in ['清理文件(Cleanfile)', 'Cleanfile'] and is_continue:
                 ini_file.read(CF_CONFIG_PATH)
@@ -1469,10 +1478,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
     main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
 
-    main_menu.add_command(
-        label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')
+    # main_menu.add_command(
+    #     label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')
+    main_menu.add_separator()
     main_menu.add_command(label=menu_hide_text.get(),
-                          command=lambda: root.withdraw())
+                          command=lambda: root.withdraw(), accelerator="Ctrl+H")
 
     root.config(menu=main_menu)
 

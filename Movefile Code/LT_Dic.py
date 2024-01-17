@@ -106,7 +106,8 @@ r_label_text_dic = {
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software\nto make the language of some labels changed'''],
     'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
     'create_path_notice': ['\n选择 "是" 来创建该路径', '\nChoose "Yes" to create this path'],
-    'blank': [138, 117]
+    'blank': [138, 117],
+    'sure_delete': ['确认删除配置 "', 'Sure about deleting the config named "']
 }
 
 

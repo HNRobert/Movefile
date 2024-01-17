@@ -4,23 +4,13 @@
 			"path": "Movefile Code/mf_ui.py",
 			"bookmarks": [
 				{
-					"line": 125,
-					"column": 16,
-					"label": "sf_preview"
-				},
-				{
-					"line": 267,
-					"column": 22,
-					"label": ""
-				},
-				{
-					"line": 366,
-					"column": 33,
-					"label": ""
-				},
-				{
 					"line": 663,
 					"column": 73,
+					"label": ""
+				},
+				{
+					"line": 1253,
+					"column": 44,
 					"label": ""
 				},
 				{
@@ -36,11 +26,6 @@
 				{
 					"line": 1373,
 					"column": 43,
-					"label": ""
-				},
-				{
-					"line": 1469,
-					"column": 32,
 					"label": ""
 				}
 			]
