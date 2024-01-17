@@ -44,18 +44,19 @@ r_label_text_dic = {
     'cf_label_keep_files': ['强制保留项目：', 'Reserved Files：'],
     'cf_label_keep_formats': ['按文件格式保留：', 'Reserved Fmts：'],
     'cf_label_time': ['项目保留时长(小时)：', 'Retain Item for(h)：'],
-    'cf_label_expire_options': ['开始计时节点：', "Since the Item's："],
+    'cf_label_expire_options': ['↑ 开始计时节点：', "↑ Since the Item's："],
     'cf_option_mode_1': ['项目最后修改时刻', "Last Modified Moment"],
     'cf_option_mode_2': ['项目最后访问时刻', "Last Accessed Moment"],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
-    'cf_option_is_auto': ['开机自动运行上面配置', 'Automatically run this config after Startup(if saved)'],
+    'cf_option_is_auto': ['开机自动按上方设置清理', 'Automatically clean as settings above upon Startup'],
+    'cf_previous_files_init' : [r'旧文件', r'Previous Files'],
 
     # Syncfile labels
     'sf_label_place_mode': ['同步模式：', 'Sync mode：'],
     'sf_option_mode_usb': ['可移动磁盘(U盘)与本地同步', 'Between Removable Volume and Local Folder'],
-    'sf_option_mode_local': ['本地文件夹同步模式', 'Between Local Folders'],
-    'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'Unidirectional Sync'],
-    'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Bidirectional Sync'],
+    'sf_option_mode_local': ['本地文件夹间同步', 'Between Local Folders'],
+    'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'Unidirectional Sync (A to B Only)'],
+    'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Bidirectional Sync (Two way)'],
     'sf_label_path_1': [['选择可移动磁盘：', '文件夹路径-A：'], ['Removable Volume：', 'Folder Path-A：']],
     'sf_label_path_2': [['本地文件夹路径：', '文件夹路径-B：'], ['Local Path：', 'Folder Path-B：']],
     'sf_no_disk': ['未检测到可移动磁盘', 'No removable disk detected'],
@@ -66,16 +67,16 @@ r_label_text_dic = {
     'sf_label_lock_file': ['禁止覆盖、删除文件：', 'Locked Files：'],
     'sf_browse_lockfile_button': ['添加文件', 'Add Files'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
-    'sf_option_autorun': [['可移动磁盘接入后自动按本存档设置同步(若保存)', '开机自动运行本存档(若保存)'],
+    'sf_option_autorun': [['磁盘接入自动同步', '开机自动同步'],
                           ['Automatically run when this Removable Volume inserted',
-                           'Automatically run this config after Startup(if saved)']],
+                           'Automatically run this config upon Startup']],
 
     # ComBoPicker select all label
     'select_all': ['全选', 'Select All'],
 
     # Func labels
     'preview_button': ['移动项目预览', 'Action Preview'],
-    'default_preview': ['点击左侧 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button on the left \nto check the settings above and view which items will be moved'],
+    'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button\nto check the settings above and view which items will be moved'],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行', 'Run'],
 
@@ -129,7 +130,7 @@ cfdic = {
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
     'current_file_label1': ['文件处理中：', 'File in process：'],
-    'preview_src': ['源路径: ', 'Source:      '],
+    'preview_src': ['源路径: ', 'Source:       '],
     'preview_dest': ['移动到: ', 'Destination: '],
     'preview_item': ['下面的项目将被移动: ⬇', 'The following items would be moved: ⬇'],
     'preview_no_item': ['该设置下将没有项目被移动。', 'No item would be moved according to the settings above.']
