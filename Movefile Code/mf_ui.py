@@ -122,25 +122,31 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
         elif mode == 'cf':
+            preview_text.tag_config('green', foreground='green')
+            preview_text.tag_config('underline', underline=True)
             preview_text.insert(
-                tk.END, LT_Dic.cfdic['preview_src'][lang_num] + '\n' + os.path.dirname(result[0][1]) + '\n')
+                tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
             preview_text.insert(
-                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + '\n' + result[0][2] + '\n')
+                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
+            preview_text.tag_add(
+                'green', '1.' + str(len(LT_Dic.cfdic['preview_src'][lang_num])), '1.end')
+            preview_text.tag_add(
+                'green', '2.' + str(len(LT_Dic.cfdic['preview_dest'][lang_num])), '2.end')
             preview_text.insert(
-                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + '\n' + '_' * 150 + '\n')
+                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
+            preview_text.tag_add('underline', '3.0', '3.end')
             for line in result:
                 s_path = os.path.basename(line[1])
                 preview_text.insert(tk.END, s_path + '\n')
         elif mode == 'sf':
             preview_text.insert(
-                tk.END, '_'*150 + '\n')
-            preview_text.insert(
-                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + '\n' + '_' * 150 + '\n')
-            maxlen_a = max(map(lambda x: len(x[0]), result))
+                tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
+            preview_text.tag_config('underline', underline=True, foreground='green')
+            preview_text.tag_add('underline', '1.0', '1.end')
             for line in result:
-                s_path = line[0] + ' '*(maxlen_a-len(line[0]))
+                s_path = line[0]
                 d_path = line[1]
-                _preview_line: str = s_path + ' → ' + d_path
+                _preview_line: str = s_path + '  →  ' + d_path
                 _preview_line = _preview_line.replace(
                     sf_entry_path_2.get(), 'B')
                 if sf_place_mode.get() == 'local':
@@ -227,6 +233,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['sf_label_autorun'][lang_number])
         sf_option_autorun_text.set(
             LT_Dic.r_label_text_dic['sf_option_autorun'][lang_number])
+        sf_option_direct_sync_text.set(
+            LT_Dic.r_label_text_dic['sf_option_direct_sync'][lang_number])
+        sf_option_real_time_text.set(
+            LT_Dic.r_label_text_dic['sf_option_real_time'][lang_number])
         select_all_text.set(LT_Dic.r_label_text_dic['select_all'][lang_number])
 
         save_button_text.set(
@@ -400,21 +410,29 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         @staticmethod
         def sf_change_place_mode(mode):
             if mode == 'movable':
-                label_index = 0
+                mode_index = 0
                 sf_browse_path_1_button.grid_forget()
                 sf_entry_select_removable.grid(
                     row=4, column=1, padx=10, pady=5, ipadx=231, sticky='W')
+                temp_adjust_value = [140, 240]
+                sf_option_direct_sync.grid(
+                    row=12, column=1, padx=temp_adjust_value[lang_num], sticky='W')
             else:
-                label_index = 1
+                mode_index = 1
                 sf_browse_path_1_button.grid(
                     row=4, column=1, ipadx=3, sticky='E', padx=10)
                 sf_entry_select_removable.grid_forget()
+                sf_option_direct_sync.grid_forget()
+            temp_adjust_direction = [['W', 'E'], ['W', 'W']]
+            temp_adjust_value = [[280, 145], [130, 235]]
+            sf_option_real_time.grid(
+                row=12, column=1, padx=temp_adjust_value[mode_index][lang_num], sticky=temp_adjust_direction[mode_index][lang_num])
             sf_label_path_1_text.set(
-                LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][label_index])
+                LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][mode_index])
             sf_label_path_2_text.set(
-                LT_Dic.r_label_text_dic['sf_label_path_2'][lang_num][label_index])
+                LT_Dic.r_label_text_dic['sf_label_path_2'][lang_num][mode_index])
             sf_option_autorun_text.set(
-                LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][label_index])
+                LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][mode_index])
 
         def exchange_preview_text(self):
             if self.keep_preview:
@@ -459,6 +477,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_browse_lockfile_button.grid_forget()
             sf_label_autorun.grid_forget()
             sf_option_autorun.grid_forget()
+            sf_option_direct_sync.grid_forget()
+            sf_option_real_time.grid_forget()
 
             cf_label_dest_path.grid(row=2, column=0, pady=5, sticky='E')
             cf_label_move_options.grid(row=3, column=0, pady=3, sticky='E')
@@ -517,9 +537,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 row=2, column=1, padx=temp_adjust_value[lang_num], sticky=temp_adjust_direction[lang_num])
             sf_option_mode_single.grid(
                 row=3, column=1, padx=10, ipadx=0, sticky='W')
-            temp_adjust_value = [200, 200]
             sf_option_mode_double.grid(
-                row=3, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky=temp_adjust_direction[lang_num])
+                row=3, column=1, padx=200, ipadx=0, sticky=temp_adjust_direction[lang_num])
             sf_label_mode.grid(row=3, column=0, pady=5, sticky='E')
             sf_label_path_1.grid(row=4, column=0, pady=5, sticky='E')
             sf_label_path_2.grid(row=5, column=0, pady=5, sticky='E')
@@ -532,6 +551,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
             sf_label_autorun.grid(row=12, column=0, sticky='E')
             sf_option_autorun.grid(row=12, column=1, padx=10, sticky='W')
+
             self.unfold_adv(sf_is_unfold_adv, self.sf_unfold_adv, stay=True)
             self.exchange_preview_text()
             button_expand_adv.config(command=lambda: self.unfold_adv(
@@ -599,6 +619,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_label_lock_file_text = tk.StringVar()
     sf_label_autorun_text = tk.StringVar()
     sf_option_autorun_text = tk.StringVar()
+    sf_option_direct_sync_text = tk.StringVar()
+    sf_option_real_time_text = tk.StringVar()
 
     preview_button_text = tk.StringVar()
     opp_preview_text = tk.StringVar()
@@ -716,7 +738,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root, textvariable=cf_label_start_options_text)
     cf_is_autorun = tk.BooleanVar()
     cf_option_is_auto = ttk.Checkbutton(
-        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun, command=lambda: request_saving(cf_is_autorun.get(), cf_is_autorun), state=tk.ACTIVE)
+        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun, command=lambda: request_saving(cf_is_autorun))
 
     sf_label_place_mode = ttk.Label(
         root, textvariable=sf_label_place_mode_text)
@@ -773,7 +795,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_option_autorun = ttk.Checkbutton(root,
                                         textvariable=sf_option_autorun_text,
                                         variable=sf_is_autorun,
-                                        command=lambda: request_saving(sf_is_autorun.get(), sf_is_autorun))
+                                        command=lambda: request_saving(sf_is_autorun))
+    sf_is_direct_sync = tk.BooleanVar()
+    sf_option_direct_sync = ttk.Checkbutton(root,
+                                            textvariable=sf_option_direct_sync_text,
+                                            variable=sf_is_direct_sync)
+    sf_is_real_time = tk.BooleanVar()
+    sf_option_real_time = ttk.Checkbutton(root,
+                                          textvariable=sf_option_real_time_text,
+                                          variable=sf_is_real_time,)
 
     class MF_Help:
         def __init__(self):
@@ -987,10 +1017,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         if not sf_entry_mode.get():
             sf_entry_mode.set('single')
 
-    def request_saving(state, booleanvar: BooleanVar):
+    def request_saving(booleanvar: BooleanVar):
         have_saved = current_save_name.get(
         ) != LT_Dic.r_label_text_dic['current_save_name'][lang_num]
-        if not state or have_saved and is_startup_run.get():
+        if not booleanvar.get() or have_saved and is_startup_run.get():
+            set_realtime_state()
             return
         if tkinter.messagebox.askokcancel(
                 title='Movefile', message=LT_Dic.r_label_text_dic['request_save'][lang_num]):
@@ -1000,6 +1031,17 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 ask_save_name(booleanvar)
         else:
             booleanvar.set(False)
+        set_realtime_state()
+
+    def set_realtime_state():
+        if sf_is_autorun.get():
+            _state = tk.NORMAL
+        else:
+            _state = tk.DISABLED
+            sf_is_real_time.set(False)
+            sf_is_direct_sync.set(False)
+        sf_option_real_time.config(state=_state)
+        sf_option_direct_sync.config(state=_state)
 
     def ask_save_name(booleanvar=None):
         last_saving_data, cf_save_names, sf_save_names = list_saving_data()
@@ -1063,6 +1105,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     disk_data = sf_entry_select_removable.get()
                     sf_data.set(save_name, 'disk_number',
                                 str(GetVolumeInformation(disk_data.split(':')[0][-1] + ':')[1]))
+                    sf_data.set(save_name, 'direct_sync', str(
+                        sf_is_direct_sync.get()))
                 sf_data.set(save_name, 'path_2', sf_entry_path_2.get())
                 sf_data.set(save_name, 'mode', sf_entry_mode.get())
                 sf_data.set(save_name, 'lock_folder',
@@ -1070,6 +1114,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_data.set(save_name, 'lock_file', sf_entry_lock_file.get())
                 sf_data.set(save_name, 'autorun', str(
                     sf_is_autorun.get()))
+                sf_data.set(save_name, 'real_time', str(
+                    sf_is_real_time.get()))
                 sf_data.write(
                     open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
 
@@ -1149,9 +1195,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         sf_save_name = last_data[2]
 
         def open_cf_saving(setting_name):
+            from cleanfile import fixed_cf_config
             if setting_name == '':
                 return
-            if not cf_file.has_section(setting_name):
+            if not fixed_cf_config(cf_file, setting_name):
                 return
             nonlocal cf_ori_src_path
             if cf_entry_src_path.get() != '':
@@ -1191,9 +1238,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             root_info_checker.get_cf_error_state()
 
         def open_sf_saving(setting_name):
+            from syncfile import fixed_sf_config
             if setting_name == '':
                 return
-            if not sf_file.has_section(setting_name):
+            if not fixed_sf_config(sf_file, setting_name):
                 return
 
             if sf_entry_path_1.get() != '':
@@ -1221,6 +1269,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                         sf_entry_select_removable.current(count_i)
                         break
                     count_i += 1
+                sf_is_direct_sync.set(sf_file.getboolean(
+                    setting_name, 'direct_sync'))
             sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
             sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
             for folder in sf_file.get(setting_name, 'lock_folder').split(','):
@@ -1229,8 +1279,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             for file in sf_file.get(setting_name, 'lock_file').split(','):
                 if file != '':
                     sf_entry_lock_file.append_value(file)
-            sf_is_autorun.set(sf_file.get(
-                setting_name, 'autorun') == 'True')
+            sf_is_autorun.set(sf_file.getboolean(setting_name, 'autorun'))
+            set_realtime_state()
+            sf_is_real_time.set(sf_file.getboolean(setting_name, 'real_time'))
             Place('sf', place_mode)
             cf_or_sf.set('sf')
             current_sf_save_name.set(setting_name)
@@ -1293,10 +1344,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         if ask_path:
             ask_saving_root = tk.Toplevel(root)
             ask_saving_root.iconbitmap(MF_ICON_PATH)
-            if lang_num == 0:
-                ask_saving_root.geometry('680x35')
-            elif lang_num == 1:
-                ask_saving_root.geometry('700x35')
+            temp_adjust_value = ['680x35', '700x35']
+            ask_saving_root.geometry(temp_adjust_value[lang_num])
             ask_saving_root.title(
                 LT_Dic.r_label_text_dic['readfile_menu'][lang_num])
             ask_saving_root.focus_force()

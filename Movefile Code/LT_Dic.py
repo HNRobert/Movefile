@@ -49,7 +49,7 @@ r_label_text_dic = {
     'cf_option_mode_2': ['项目最后访问时刻', "Last Accessed Moment"],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
     'cf_option_is_auto': ['开机自动按上方设置清理', 'Automatically clean as settings above upon Startup'],
-    'cf_previous_files_init' : [r'旧文件', r'Previous Files'],
+    'cf_previous_files_init': [r'旧文件', r'Previous Files'],
 
     # Syncfile labels
     'sf_label_place_mode': ['同步模式：', 'Sync mode：'],
@@ -68,8 +68,10 @@ r_label_text_dic = {
     'sf_browse_lockfile_button': ['添加文件', 'Add Files'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
     'sf_option_autorun': [['磁盘接入自动同步', '开机自动同步'],
-                          ['Automatically run when this Removable Volume inserted',
-                           'Automatically run this config upon Startup']],
+                          ['Automatically sync when inserted',
+                           'Automatically sync upon startup']],
+    'sf_option_direct_sync': ['← 不显示提示弹窗', '← Skip reminder'],
+    'sf_option_real_time': ['实时同步', 'Real-time syncing'],
 
     # ComBoPicker select all label
     'select_all': ['全选', 'Select All'],
@@ -130,7 +132,7 @@ cfdic = {
     'main_progress_label2': ['扫描文件中...', 'Scanning items...'],
     'current_file_label': ['等待中...', 'Waiting...'],
     'current_file_label1': ['文件处理中：', 'File in process：'],
-    'preview_src': ['源路径: ', 'Source:       '],
+    'preview_src': ['源路径: ', 'Source: '],
     'preview_dest': ['移动到: ', 'Destination: '],
     'preview_item': ['下面的项目将被移动: ⬇', 'The following items would be moved: ⬇'],
     'preview_no_item': ['该设置下将没有项目被移动。', 'No item would be moved according to the settings above.']

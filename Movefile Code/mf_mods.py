@@ -325,14 +325,15 @@ def scan_removable_disks(s_uuid=None):
     return []
 
 
-def get_movable_autorun_ids():
+def get_movable_autorun_infos():
+    from syncfile import fixed_sf_config
     sf_dat = configparser.ConfigParser()
     sf_dat.read(SF_CONFIG_PATH)
     savings = sf_dat.sections()
     autorun_ids = []
     for saving in savings:
-        if sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.get(saving, 'autorun') == 'True':
-            autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving])
+        if fixed_sf_config(sf_dat, saving) and sf_dat.get(saving, 'place_mode') == 'movable' and sf_dat.getboolean(saving, 'autorun'):
+            autorun_ids.append([sf_dat.get(saving, 'disk_number'), saving, sf_dat.getboolean(saving, 'direct_sync')])
     return autorun_ids
 
 
@@ -373,13 +374,13 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
         synchronize their disk.
         """
     from syncfile import sf_autorun_operation
-    for autorun_id in get_movable_autorun_ids():
+    for autorun_info in get_movable_autorun_infos():
         msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
-        msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_id[1]}{msg_ps[3]}'
-        if str(new_area_data[2]) == autorun_id[0] and tkinter.messagebox.askokcancel(title='Movefile',
+        msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_info[1]}{msg_ps[3]}'
+        if str(new_area_data[2]) == autorun_info[0] and autorun_info[2] or tkinter.messagebox.askokcancel(title='Movefile',
                                                                                      message=msg_content):
             sf_autorun_operation(master_root, 'movable', [
-                                 new_area_data[0], new_area_data[1], autorun_id[1]])
+                                 new_area_data[0], new_area_data[1], autorun_info[1]])
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹
