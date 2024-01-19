@@ -7,18 +7,17 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.font as tkFont
 from threading import Thread
-from tkinter import BooleanVar, ttk
+from tkinter import BooleanVar, StringVar, ttk
 from typing import Callable
-from unittest import result
 
 from mttkinter import mtTkinter as tk
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
-from syncfile import sf_autorun_operation, sf_sync_dir
 from win32api import GetVolumeInformation
 
 import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
+from syncfile import sf_autorun_operation, sf_real_time_runner, sf_sync_dir
 from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
                       MF_ICON_PATH, SF_CONFIG_PATH)
@@ -141,7 +140,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         elif mode == 'sf':
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
-            preview_text.tag_config('underline', underline=True, foreground='green')
+            preview_text.tag_config(
+                'underline', underline=True, foreground='green')
             preview_text.tag_add('underline', '1.0', '1.end')
             for line in result:
                 s_path = line[0]
@@ -1118,10 +1118,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     sf_is_real_time.get()))
                 sf_data.write(
                     open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
-
+            gvar.set('sf_config_changed', True)
             tkinter.messagebox.showinfo(title=LT_Dic.r_label_text_dic['succ_save'][lang_num][0],
                                         message=LT_Dic.r_label_text_dic['succ_save'][lang_num][1])
-            continue_button.config(state=tk.NORMAL)
 
         def sure_save():
             ask_name_window.withdraw()
@@ -1293,10 +1292,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             nonlocal new_values
             try:
                 last_saving_data, cf_save_names, sf_save_names = list_saving_data()
-                if read_mode_entry.get() in ['清理文件(Cleanfile)', 'Cleanfile']:
+                if read_mode_entry.get() in LT_Dic.r_label_text_dic['read_mode_entry_s'][0]:
                     new_values = cf_save_names
                     read_name_entry['value'] = new_values
-                elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
+                elif read_mode_entry.get() in LT_Dic.r_label_text_dic['read_mode_entry_s'][1]:
                     new_values = sf_save_names
                     read_name_entry['value'] = new_values
                 else:
@@ -1306,36 +1305,43 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             except:
                 pass
 
+        def execute_del(cfg: configparser.ConfigParser, cfg_path: str, cur_label_var: StringVar, del_mode, del_mode_full, del_name, read_saving_method: Callable):
+            cfg.remove_section(del_name)
+            cfg.write(
+                open(cfg_path, 'w+', encoding='ANSI'))
+            if cfg.sections():
+                read_saving_method(cfg.sections()[0])
+            else:
+                cur_label_var.set('')
+                if cf_or_sf.get() == del_mode:
+                    current_save_name.set(
+                        LT_Dic.r_label_text_dic['current_save_name'][lang_num])
+            mf_log(
+                f"\nA config file of {del_mode_full} named {del_name} is deleted")
+
         def del_saving():
             del_mode = read_mode_entry.get()
             del_name = read_name_entry.get()
             is_continue = tkinter.messagebox.askyesno(
                 title='Movefile', message=LT_Dic.r_label_text_dic['sure_delete'][lang_num] + del_name + '" ?')
-            ini_file = configparser.ConfigParser()
-            if del_mode in ['清理文件(Cleanfile)', 'Cleanfile'] and is_continue:
-                ini_file.read(CF_CONFIG_PATH)
-                ini_file.remove_section(del_name)
-                ini_file.write(
-                    open(CF_CONFIG_PATH, 'w+', encoding='ANSI'))
-                mf_log(
-                    f"\nA config file of Cleanfile named {del_name} is deleted")
-            elif del_mode in ['同步文件(Syncfile)', 'Syncfile'] and is_continue:
-                ini_file.read(SF_CONFIG_PATH)
-                ini_file.remove_section(del_name)
-                ini_file.write(
-                    open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
-                mf_log(
-                    f"\nA config file of Syncfile named {del_name} is deleted")
+            next_saving = ''
+            # cf
+            if del_mode in LT_Dic.r_label_text_dic['read_mode_entry_s'][0] and is_continue:
+                execute_del(cf_file, CF_CONFIG_PATH, current_cf_save_name, 'cf', 'Clean Desktop', del_name, open_cf_saving)
+            # sf
+            elif del_mode in LT_Dic.r_label_text_dic['read_mode_entry_s'][1] and is_continue:
+                execute_del(sf_file, SF_CONFIG_PATH, current_sf_save_name, 'sf', 'Syncfile', del_name, open_sf_saving)
+                gvar.set('sf_config_changed', True)
+
             exit_asr()
 
         def sure_open():
             saving_name = read_name_entry.get()
-            if read_mode_entry.get() in ['清理文件(Cleanfile)', 'Cleanfile']:
+            if read_mode_entry.get() in LT_Dic.r_label_text_dic['read_mode_entry_s'][0]:
                 open_cf_saving(saving_name)
-            elif read_mode_entry.get() in ['同步文件(Syncfile)', 'Syncfile']:
+
+            elif read_mode_entry.get() in LT_Dic.r_label_text_dic['read_mode_entry_s'][1]:
                 open_sf_saving(saving_name)
-            current_save_name.set(
-                LT_Dic.r_label_text_dic['current_save_name'][lang_num] + saving_name)
             exit_asr()
 
         def exit_asr():
@@ -1571,6 +1577,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     background_detect = Thread(
         target=lambda: detect_removable_disks_thread(root, lang_num), daemon=True)
     background_detect.start()
+    sf_real_time_runner_thread = Thread(
+        target=lambda: sf_real_time_runner(), daemon=True)
+    sf_real_time_runner_thread.start()
 
     if visits_today == 1 and startup_visit:
         autorun_options = Thread(

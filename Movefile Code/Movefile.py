@@ -17,7 +17,8 @@ import time
 class GlobalsVar:
     def __init__(self):
         self.gvar = {
-            "program_finished": False
+            "program_finished": False,
+            "sf_config_changed": False
         }
 
     def get(self, key):

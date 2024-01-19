@@ -84,7 +84,8 @@ r_label_text_dic = {
 
     # Readfile options
     'read_name_label': ['     选择存档：', '   Pick a config：'],
-    'read_mode_entry': [['清理文件(Cleanfile)', '同步文件(Syncfile)'], ['Cleanfile', 'Syncfile']],
+    'read_mode_entry': [['清理桌面(Clean Desktop)', '同步文件(Syncfile)'], ['Cleanfile', 'Syncfile']],
+    'read_mode_entry_s': [['清理桌面(Clean Desktop)', 'Cleanfile'], ['同步文件(Syncfile)', 'Syncfile']],
     'del_save_button': ['删除存档', 'Delete'],
     'sure_name_bottom': ['读取存档', 'Read'],
 

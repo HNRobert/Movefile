@@ -11,6 +11,7 @@ from shutil import copy2 as shutil_copy2
 from threading import Thread
 
 import LT_Dic
+from Movefile import gvar
 from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
 from mf_mods import language_num, mf_log, mf_toaster
 
@@ -30,8 +31,6 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
     """
 
     from mfprogressbar import MFProgressBar
-
-    
 
     def diff_files_in(folderA_path, folderB_path):
         """
@@ -193,7 +192,8 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
         path_name_1 = path1.split('\\')[-1]
         if area_name:
             path_name_1 = area_name
-        sf_show_notice(path_name_1, path2.split('\\')[-1], sf_error_name, language_number=language_number)
+        sf_show_notice(path_name_1, path2.split(
+            '\\')[-1], sf_error_name, language_number=language_number)
         baroot.progress_root.destroy()
 
     if path1[-1] != ':' and not os.path.exists(path1):
@@ -243,6 +243,7 @@ def sf_show_notice(path_1, path_2, sf_error_name, language_number):
                               duration=10,
                               threaded=False)
 
+
 def sf_autorun_operation(master, place, saving_datas=None):
     """
     The function `sf_autorun_operation` performs an sync operation on a given place and optional saving data.
@@ -258,13 +259,6 @@ def sf_autorun_operation(master, place, saving_datas=None):
     sf_file.read(SF_CONFIG_PATH)
     mf_file = configparser.ConfigParser()
     mf_file.read(MF_CONFIG_PATH)
-
-    def get_sf_startup_savings():
-        sf_startup_settings = []
-        for section in sf_file.sections():
-            if sf_file.get(section, 'place_mode') == 'local' and sf_file.get(section, 'autorun') == 'True' and fixed_sf_config(sf_file, section):
-                sf_startup_settings.append(section)
-        return sf_startup_settings
 
     def autorun_movable_sf(data):
         for saving_data in data:
@@ -307,7 +301,8 @@ def fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str)
         return False
     if not sf_config_file.has_option(saving_name, 'path_2'):
         return False
-    option_names = ['lock_folder', 'lock_file', 'mode', 'autorun', 'real_time', 'direct_sync']
+    option_names = ['lock_folder', 'lock_file',
+                    'mode', 'autorun', 'real_time', 'direct_sync']
     default_values = ['', '', 'single', 'False', 'False', 'False']
     for option, value in zip(option_names, default_values):
         if not sf_config_file.has_option(saving_name, option):
@@ -315,5 +310,45 @@ def fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str)
     return True
 
 
+def get_sf_savings_with(*wants, **conditions):
+    sf_dat = configparser.ConfigParser()
+    sf_dat.read(SF_CONFIG_PATH)
+    target_savings = []  # [volume id, saving_name, direct_sync]
+    for saving in sf_dat.sections():
+        if not fixed_sf_config(sf_dat, saving):
+            continue
+        for key, value in conditions.items():
+            if sf_dat.get(saving, key) != value:
+                break
+        else:
+            target_savings.append([saving] +
+                                  [sf_dat.get(saving, want_item) for want_item in wants])
+    return target_savings
+
+
+def get_sf_startup_savings():
+    wants = []
+    conditions = {'place_mode': 'local', 'autorun': 'True'}
+    return get_sf_savings_with(*wants, **conditions)
+
+
+def get_movable_autorun_infos():
+    wants = ['disk_number', 'direct_sync']
+    conditions = {'place_mode': 'movable', 'autorun': 'True'}
+    return get_sf_savings_with(*wants, **conditions)
+
+
+def get_real_time_infos():
+    wants = ['path_2', 'place_mode']
+    conditions = {'autorun': 'True', 'real_time': 'True'}
+    return get_sf_savings_with(*wants, **conditions)
+
+
 def sf_real_time_runner():
-    pass
+    real_time_settings = get_real_time_infos()
+    while not gvar.get('program_finished'):
+        if gvar.get("sf_config_changed"):
+            gvar.set("sf_config_changed", False)
+            real_time_settings = get_real_time_infos()
+        print(real_time_settings)
+        time.sleep(1)
