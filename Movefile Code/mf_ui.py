@@ -1,23 +1,20 @@
 
 
 import configparser
+from email import message
 import os
 import time
 import tkinter.filedialog
-import tkinter.messagebox
 import tkinter.font as tkFont
+import tkinter.messagebox
+import webbrowser
+from functools import partial
 from threading import Thread
 from tkinter import BooleanVar, StringVar, ttk
 from typing import Callable
 
-from mttkinter import mtTkinter as tk
-from PIL import Image
-from pystray import Icon, Menu, MenuItem
-from win32api import GetVolumeInformation
-
 import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
-from syncfile import sf_autorun_operation, sf_real_time_runner, sf_sync_dir
 from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
                       MF_ICON_PATH, SF_CONFIG_PATH)
@@ -25,7 +22,65 @@ from mf_mods import (detect_removable_disks_thread, language_num,
                      list_saving_data, mf_log, mf_toaster,
                      put_desktop_shortcut, scan_removable_disks, set_auto_quit,
                      set_startup)
+from mttkinter import mtTkinter as tk
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
+from syncfile import sf_autorun_operation, sf_real_time_runner, sf_sync_dir
+from tkHyperlinkManager import HyperlinkManager
+from win32api import GetVolumeInformation
+
 from Movefile import gvar
+
+
+class MFInfoShower:
+    def __init__(self, master) -> None:
+        self.ntf_wd = tk.Toplevel(master=master)
+        self.ntf_wd.withdraw()
+        self.ntf_wd.title("Movefile Notification")
+        self.ntf_wd.geometry("300x200")
+        self.ntf_wd.protocol("WM_DELETE_WINDOW",
+                             lambda: self.ntf_wd.withdraw())
+        self.ntf_text = tk.Text(master=self.ntf_wd, width=30, height=10,
+                                wrap='word', state=tk.DISABLED, relief='flat', background='SystemButtonFace')
+        self.ntf_text.pack(padx=30, pady=40, fill=tk.BOTH, expand=True)
+
+    def show_info(self, title, message: str, **tags):
+        """
+        The notify function is used to display a notification message.
+
+        :param title: The title of the notification
+        :param message: The message to be displayed in the notification
+        :param tags: A dict of tags that can be used to customize the notification
+        tags format: text_color=[applied_lines_indexes(one_by_one)]
+        """
+        self.ntf_text.config(state=tk.NORMAL)
+        line_num = message.count("\n")
+        self.ntf_wd.title(title)
+        self.ntf_wd.geometry(f"600x{40+line_num*30}")
+        self.ntf_text.delete("1.0", tk.END)
+        self.ntf_wd.deiconify()
+        self.ntf_wd.bell()
+        self.ntf_text.insert(tk.END, message)
+        for key, value in tags.items():
+            self.ntf_text.tag_config(key, foreground=key)
+            for line_index in value:
+                self.ntf_text.tag_add(
+                    key, f"{line_index}.0", f"{line_index}.end")
+        self.ntf_text.config(state=tk.DISABLED)
+
+    def add_hyperlink(self, text, url, position_index=tk.END):
+        """
+        The add_hyperlink function is used to add a hyperlink to the notification.
+
+        :param text: The text to be displayed in the hyperlink
+        :param url: The URL to be navigated to when the hyperlink is clicked
+        :param line_index: The index of the line in the notification where the hyperlink should be added
+        """
+        self.ntf_text.config(state=tk.NORMAL)
+        hyperlink = HyperlinkManager(self.ntf_text)
+        self.ntf_text.insert(position_index, text, hyperlink.add(
+            partial(webbrowser.open, url)))
+        self.ntf_text.config(state=tk.DISABLED)
 
 
 def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_autorun=False):
@@ -325,7 +380,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 row=11, column=1, padx=10, pady=5, ipady=50, sticky='EN')
             preview_placed.set(True)
             root.update()
-            root.geometry('800x'+str(root.winfo_height()+180))
+            root.geometry(f'800x{root.winfo_height()+180}')
             root.resizable(False, False)
 
         @staticmethod
@@ -368,7 +423,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 temp_adjust_value = [150, 200]
                 cf_option_mode_2.grid(
                     row=9, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
-                root.geometry('800x' + str(340 + preview_height))
+                root.geometry(f'800x{340+preview_height}')
             else:
                 cf_label_src_path.grid_forget()
                 cf_entry_src_path.grid_forget()
@@ -382,7 +437,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_option_mode_1.grid_forget()
                 cf_option_mode_2.grid_forget()
                 cf_entry_time.grid_forget()
-                root.geometry('800x' + str(180 + preview_height))
+                root.geometry(f'800x{180+preview_height}')
 
         @staticmethod
         def sf_unfold_adv(state, preview_height):
@@ -397,7 +452,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     row=7, column=1, padx=10, pady=5, ipadx=190, sticky='W')
                 sf_browse_lockfile_button.grid(
                     row=7, column=1, padx=10, sticky='E', ipadx=3)
-                root.geometry('800x' + str(315 + preview_height))
+                root.geometry(f'800x{315+preview_height}')
             else:
                 sf_label_lock_folder.grid_forget()
                 sf_entry_lock_folder.grid_forget()
@@ -405,7 +460,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_label_lock_file.grid_forget()
                 sf_entry_lock_file.grid_forget()
                 sf_browse_lockfile_button.grid_forget()
-                root.geometry('800x' + str(250 + preview_height))
+                root.geometry(f'800x{250+preview_height}')
 
         @staticmethod
         def sf_change_place_mode(mode):
@@ -807,13 +862,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     class MF_Help:
         def __init__(self):
-            pass
+            self.info_shower = MFInfoShower(root)
 
-        def show_help(self, mf_message):
-            tkinter.messagebox.showinfo(title='Movefile', message=mf_message)
+        def show_help(self, message, **tags):
+            self.info_shower.show_info(title='Movefile', message=message, **tags)
 
         def help_main(self):
-            self.show_help(LT_Dic.help_main_text[lang_num])
+            self.show_help(message=LT_Dic.help_main_text[lang_num], red=[7])
+            self.info_shower.add_hyperlink(
+                'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '15.end')
 
         def help_before_use(self):
             self.show_help(LT_Dic.help_before_use_text[lang_num])
@@ -1327,10 +1384,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             next_saving = ''
             # cf
             if del_mode in LT_Dic.r_label_text_dic['read_mode_entry_s'][0] and is_continue:
-                execute_del(cf_file, CF_CONFIG_PATH, current_cf_save_name, 'cf', 'Clean Desktop', del_name, open_cf_saving)
+                execute_del(cf_file, CF_CONFIG_PATH, current_cf_save_name,
+                            'cf', 'Clean Desktop', del_name, open_cf_saving)
             # sf
             elif del_mode in LT_Dic.r_label_text_dic['read_mode_entry_s'][1] and is_continue:
-                execute_del(sf_file, SF_CONFIG_PATH, current_sf_save_name, 'sf', 'Syncfile', del_name, open_sf_saving)
+                execute_del(sf_file, SF_CONFIG_PATH, current_sf_save_name,
+                            'sf', 'Syncfile', del_name, open_sf_saving)
                 gvar.set('sf_config_changed', True)
 
             exit_asr()

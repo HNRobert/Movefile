@@ -350,5 +350,4 @@ def sf_real_time_runner():
         if gvar.get("sf_config_changed"):
             gvar.set("sf_config_changed", False)
             real_time_settings = get_real_time_infos()
-        print(real_time_settings)
         time.sleep(1)

@@ -166,44 +166,33 @@ help_main_text = ["""软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
 功能概述：
-本程序可将某个文件夹中满足一定设定要求的文件
-转移到另一个文件夹，或者与另外一个文件夹同步
-使你可以方便地整理文件
+本程序可将某个文件夹中满足一定设定要求的文件转移到另一个文件夹，或者与另外一个文件夹同步，使你可以方便地整理文件
 
-如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项-------------------------------------------------------------------
-使用本软件进行的所有操作会在Roaming中
-Movefile文件夹的Movefile.log记录
+如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
+使用本软件进行的所有操作会在用户AppData/Roaming/Movefile文件夹下的Movefile.log记录
 
 作者：Robert He
 如果对本软件有任何改进意见，请联系作者
 如果意见被采纳，新版本中会进行更改
 
-如有功能异常请先访问 Github 查看有无新版本，
-或者阅读 Github 中的其他注意事项和运行机制说明
-地址：https://github.com/HNRobert/Movefile
+如有功能异常请先访问 Github 查看有无新版本，或者阅读 Github 中的其他注意事项和运行机制说明
+地址：
 
 本窗口将不再自动弹出""", """Software name： Movefile
 Vision： """ + vision + """               Update time： """ + update_time + """
 
 Function overview:
-This program can make files in a folder that meet the given requirements
-Transfer to another folder or synchronize with another folder,
-Enabling you to organize documents easily
+This program can have files in a folder that meet the given requirements transferred to another folder or synchronize with another folder, Enabling you to organize documents easily
 
-If you have any doubts about the function of this software,
-you can check the "Help" option in the menu bar
-All operations performed by this software will be recorded
-in Roaming/Movefile/Movefile.log
+If you have any doubts about the function of this software, you can check the "Help" option in the menu bar
+All operations performed by this software will be recorded in Roaming/Movefile/Movefile.log
 
 Author: Robert He
-If you have any suggestions for improvement of this software, 
-please contact the author
+If you have any suggestions for improvement of this software, please contact the author.
 If the comments are adopted, changes will be made in the new version.
 
-If there is any function abnormality,
-please visit Github first to check whether there is a new version,
-Or read other precautions and operating mechanism instructions in Github.
-Address: https://github.com/HNRobert/Movefile
+If there is any function abnormality, please visit Github first to check whether there is a new version, or read other precautions and operating mechanism instructions in Github.
+Address: 
 
 This notice won't be shown automatically anymore"""]
 
