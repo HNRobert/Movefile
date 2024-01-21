@@ -1,7 +1,6 @@
 
 
 import configparser
-from email import message
 import os
 import time
 import tkinter.filedialog
@@ -25,7 +24,7 @@ from mf_mods import (detect_removable_disks_thread, language_num,
 from mttkinter import mtTkinter as tk
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
-from syncfile import sf_autorun_operation, sf_real_time_runner, sf_sync_dir
+from syncfile import sf_autorun_operation, run_sf_real_time, sf_sync_dir
 from tkHyperlinkManager import HyperlinkManager
 from win32api import GetVolumeInformation
 
@@ -858,14 +857,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_is_real_time = tk.BooleanVar()
     sf_option_real_time = ttk.Checkbutton(root,
                                           textvariable=sf_option_real_time_text,
-                                          variable=sf_is_real_time,)
+                                          variable=sf_is_real_time,
+                                          command=lambda: set_sf_real_time_state())
 
     class MF_Help:
         def __init__(self):
             self.info_shower = MFInfoShower(root)
 
         def show_help(self, message, **tags):
-            self.info_shower.show_info(title='Movefile', message=message, **tags)
+            self.info_shower.show_info(
+                title='Movefile', message=message, **tags)
 
         def help_main(self):
             self.show_help(message=LT_Dic.help_main_text[lang_num], red=[7])
@@ -1075,10 +1076,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_entry_mode.set('single')
 
     def request_saving(booleanvar: BooleanVar):
-        have_saved = current_save_name.get(
+        have_saved: bool = current_save_name.get(
         ) != LT_Dic.r_label_text_dic['current_save_name'][lang_num]
         if not booleanvar.get() or have_saved and is_startup_run.get():
-            set_realtime_state()
+            set_sf_autorun_state()
             return
         if tkinter.messagebox.askokcancel(
                 title='Movefile', message=LT_Dic.r_label_text_dic['request_save'][lang_num]):
@@ -1088,17 +1089,31 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 ask_save_name(booleanvar)
         else:
             booleanvar.set(False)
-        set_realtime_state()
+        set_sf_autorun_state()
 
-    def set_realtime_state():
+    def set_sf_autorun_state():
         if sf_is_autorun.get():
-            _state = tk.NORMAL
-        else:
-            _state = tk.DISABLED
+            state_dir = tk.NORMAL
+            state_real = tk.DISABLED
             sf_is_real_time.set(False)
+            sf_option_autorun.config(state=tk.NORMAL)
+        else:
+            state_dir = tk.DISABLED
+            state_real = tk.NORMAL
             sf_is_direct_sync.set(False)
-        sf_option_real_time.config(state=_state)
-        sf_option_direct_sync.config(state=_state)
+        sf_option_real_time.config(state=state_real)
+        sf_option_direct_sync.config(state=state_dir)
+
+    def set_sf_real_time_state():
+        if sf_is_real_time.get():
+            state_auto = tk.DISABLED
+            sf_is_direct_sync.set(False)
+            sf_is_autorun.set(False)
+            sf_option_real_time.config(state=tk.NORMAL)
+        else:
+            state_auto = tk.NORMAL
+        sf_option_autorun.config(state=state_auto)
+        sf_option_direct_sync.config(state=tk.DISABLED)
 
     def ask_save_name(booleanvar=None):
         last_saving_data, cf_save_names, sf_save_names = list_saving_data()
@@ -1336,8 +1351,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 if file != '':
                     sf_entry_lock_file.append_value(file)
             sf_is_autorun.set(sf_file.getboolean(setting_name, 'autorun'))
-            set_realtime_state()
+            set_sf_autorun_state()
             sf_is_real_time.set(sf_file.getboolean(setting_name, 'real_time'))
+            set_sf_real_time_state()
             Place('sf', place_mode)
             cf_or_sf.set('sf')
             current_sf_save_name.set(setting_name)
@@ -1637,7 +1653,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         target=lambda: detect_removable_disks_thread(root, lang_num), daemon=True)
     background_detect.start()
     sf_real_time_runner_thread = Thread(
-        target=lambda: sf_real_time_runner(), daemon=True)
+        target=lambda: run_sf_real_time(), daemon=True)
     sf_real_time_runner_thread.start()
 
     if visits_today == 1 and startup_visit:

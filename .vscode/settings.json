@@ -38,7 +38,7 @@
     "yscrollbar",
     "yscrollcommand"
   ],
-  "docwriter.progress.trackFunctions": true,
+  "docwriter.progress.trackFunctions": false,
   "docwriter.progress.trackMethods": true,
   "docwriter.progress.trackClasses": true,
   "outline.collapseItems": "alwaysCollapse"

@@ -1,6 +1,7 @@
 
 
 import configparser
+from threading import Thread
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -220,12 +221,16 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
     return sf_tasks
 
 
-def sf_show_notice(path_1, path_2, sf_error_name, language_number):
-    sf_notice_title = LT_Dic.sfdic["title_p1"][language_number]
-    sf_notice_content = LT_Dic.sfdic["title_p2_1"][language_number] + path_1 + \
-        LT_Dic.sfdic["title_p2_2"][language_number] + path_2 + \
-        LT_Dic.sfdic["title_p2_3"][language_number]
-    mf_log("\n" + sf_notice_title + "\n" + sf_notice_content)
+def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movable=False):
+    if not direct_movable:
+        sf_notice_title = LT_Dic.sfdic["title_p1"][language_number]
+        sf_notice_content = LT_Dic.sfdic["title_p2_1"][language_number] + path_1 + \
+            LT_Dic.sfdic["title_p2_2"][language_number] + path_2 + \
+            LT_Dic.sfdic["title_p2_3"][language_number]
+        mf_log("\n" + sf_notice_title + "\n" + sf_notice_content)
+    else:
+        sf_notice_title = ''
+        sf_notice_content = ''
     mf_toaster.show_toast(sf_notice_title,
                           sf_notice_content,
                           icon_path=MF_ICON_PATH,
@@ -327,27 +332,60 @@ def get_sf_savings_with(*wants, **conditions):
 
 
 def get_sf_startup_savings():
-    wants = []
     conditions = {'place_mode': 'local', 'autorun': 'True'}
-    return get_sf_savings_with(*wants, **conditions)
+    return get_sf_savings_with(**conditions)
 
 
 def get_movable_autorun_infos():
     wants = ['disk_number', 'direct_sync']
-    conditions = {'place_mode': 'movable', 'autorun': 'True'}
+    conditions = {'place_mode': 'movable',
+                  'autorun': 'True', 'real_time': 'False'}
     return get_sf_savings_with(*wants, **conditions)
 
 
 def get_real_time_infos():
-    wants = ['path_2', 'place_mode']
-    conditions = {'autorun': 'True', 'real_time': 'True'}
+    wants = ['place_mode']
+    conditions = {'real_time': 'True'}
     return get_sf_savings_with(*wants, **conditions)
 
 
-def sf_real_time_runner():
-    real_time_settings = get_real_time_infos()
+def run_sf_real_time():
+    """
+    The function `run_sf_real_time` manages a pool of real-time processes based on the configuration
+    settings.
+    """
+
+
+    def sf_real_time_precess(setting_name):
+        if setting_name not in running_process.keys():
+            assert False, "This setting is not running"
+        while not gvar.get('program_finished') and running_process[setting_name]:
+            print(setting_name)
+            time.sleep(1)
+
+
+    def add_process(proc_info_list: list):
+        for setting_info in proc_info_list:  # add process
+            running_process[setting_info[0]] = True
+            Thread(target=sf_real_time_precess, args=(setting_info[0],)).start()
+
+    sf_data = configparser.ConfigParser()
+    sf_data.read(SF_CONFIG_PATH)
+    running_process = {}
+    real_time_settings_info = get_real_time_infos()
+    add_process(real_time_settings_info)
+
     while not gvar.get('program_finished'):
         if gvar.get("sf_config_changed"):
             gvar.set("sf_config_changed", False)
-            real_time_settings = get_real_time_infos()
+            sf_data.read(SF_CONFIG_PATH)
+            real_time_settings_info = get_real_time_infos()
+            real_time_setting_names = [setting_info[0]
+                                       for setting_info in real_time_settings_info]
+            # add process
+            add_process(list(filter(lambda i: i[0] not in running_process.keys(), real_time_settings_info)))
+
+            # cut process
+            for pre_only in list(filter(lambda i: i not in real_time_setting_names, running_process.keys())):
+                running_process[pre_only] = False
         time.sleep(1)
