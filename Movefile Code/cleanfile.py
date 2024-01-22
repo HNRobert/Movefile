@@ -219,9 +219,9 @@ def cf_autorun_operation(master):
                     src__path=cf_file.get(save_name, 'old_path'),
                     dest__path=cf_file.get(save_name, 'new_path'),
                     pass__file=cf_file.get(
-                        save_name, 'pass_filename').split(','),
+                        save_name, 'pass_filename').split('|'),
                     pass__format=cf_file.get(
-                        save_name, 'pass_format').split(','),
+                        save_name, 'pass_format').split('|'),
                     overdue__time=cf_file.getint(save_name, 'set_hour') * 3600,
                     check__mode=cf_file.getint(save_name, 'mode'),
                     is__move__folder=cf_file.getboolean(

@@ -19,6 +19,7 @@ r_label_text_dic = {
     'cf_expire_menu': ['过期时间设定', 'Expire time setting'],
     'sf_removable_menu': ['可移动磁盘同步', 'Removable Volume mode'],
     'sf_lock_menu': ['锁定文件/文件夹选择', 'Lock folder/sile setting'],
+    'log_menu': ['使用日志', 'Movefile Log'],
     'menu_hide': ['隐藏至后台', 'Hide to Backend'],
 
     # Taskbar options
@@ -79,6 +80,7 @@ r_label_text_dic = {
     # Func labels
     'preview_button': ['移动项目预览', 'Action Preview'],
     'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button\nto check the settings above and view which items will be moved'],
+    'preview_cost': ['检测耗时：', 'Time Costing: '],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行', 'Run'],
 
@@ -144,6 +146,9 @@ sfdic = {
     'title_p2_1': ['"', 'The files in "'],
     'title_p2_2': ['" 与 "', '" and "'],
     'title_p2_3': ['" 中的文件已被成功同步', '" are synchronized'],
+    'err_title_p1': ['配置文件出现错误', 'Error in config file:'],
+    'err_title_p2_1': ['该配置文件内容出现错误：', 'We found some errors in this config file:'],
+    'err_title_p2_2': ['请重新进行设置并保存，\n且不要直接手动更改配置文件', 'Please Save it again,\nand please do NOT edit the config file directly'],
     'cltitle': [' 目前很干净', ' is pretty clean now'],
     'clcontent': ['没有文件被移除', 'Nothing is moved away'],
     'errtitle': ['无法同步一些文件', "Couldn't synchronize several files"],
@@ -162,7 +167,8 @@ progress_root_label_dic = {
     'confirm_exit_text': ['''文件正在复制中，\n确定中断进程并退出?''', '''The file is currently being copied,\nAre you sure to interrupt the process and exit?''']
 }
 
-help_main_text = ["""软件名称： Movefile
+help_main_text = ["""关于
+软件名称： Movefile
 软件版本： """ + vision + """               更新时间： """ + update_time + """
 
 功能概述：
@@ -178,7 +184,8 @@ help_main_text = ["""软件名称： Movefile
 如有功能异常请先访问 Github 查看有无新版本，或者阅读 Github 中的其他注意事项和运行机制说明
 地址：
 
-本窗口将不再自动弹出""", """Software name： Movefile
+本窗口将不再自动弹出""", """About
+Software name： Movefile
 Vision： """ + vision + """               Update time： """ + update_time + """
 
 Function overview:
@@ -196,46 +203,28 @@ Address:
 
 This notice won't be shown automatically anymore"""]
 
-help_before_use_text = ["""使用前特别注意事项：
+help_before_use_text = ["""使用前特别注意事项
 1.本软件必须在64位操作系统下运行，
-2.本exe文件的名称请不要改变："Movefile.exe"
-  否则会影响开机自启功能
-3.使用本软件前请打开Windows设置中的
-  系统/通知和操作/通知/
-  “获取来自应用和其他发送者的通知” 选项，
-  否则会影响操作结果通知功能
-5.如果经过版本更新后软件无法运行，
-  可以尝试删除位于Roaming文件夹中的配置文件
-6.若有其他原因导致软件功能无法正常运行，
-  且无法按上面的解释修复，可以访问 Github 官方网站:
-  https://github.com/HNRobert/Movefile
-  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use:
+2.本exe文件的名称请不要改变："Movefile.exe"，否则会影响开机自启功能
+3.使用本软件前请打开Windows设置中的 系统/通知和操作/通知/获取来自应用和其他发送者的通知 选项，否则会影响操作结果通知功能
+5.如果经过版本更新后软件无法运行，可以尝试删除位于Roaming文件夹中的配置文件
+6.若有其他原因导致软件功能无法正常运行，且无法按上面的解释修复，可以访问 Github 官方网站: 
+  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use
 1.This software must be run under a 64-bit operating system.
-2.Please do not change the name of this exe file："Movefile.exe"
-   Otherwise, the startup function will be affected.
-3.Please check the option in Windows Setting:
-   System/notification and operation/notification/
-   "Get notifications from apps and other senders",
-   Otherwise, the operation result notification function will be affected
-5.If the software cannot run after updating the new version,
-   You can try to delete the profile located in the Roaming folder
-6.If the software fails to run normally due to other reasons, and
-   Also can't be repaired as explained above,
-   You can visit our Github website https://github.com/HNRobert/Movefile
-   Or contact the author directly (QQ: 2567466856), 
-   I'll try to repair it for you as soon as possible"""]
+2.Please do not change the name of this exe file："Movefile.exe", otherwise the startup function will be affected.
+3.Please check the option in Windows Setting: System/Notifications/Notifications/Get notifications from apps and other senders, otherwise the operation result notifying function would be affected
+5.If the software cannot run after updating the new version, you can try to delete the profile located in the Roaming folder
+6.If the software fails to run normally due to other reasons, and also can't be fixed as explained above, you can visit our Github website: 
+   Or contact the author directly (QQ: 2567466856), I'll try to repair it for you as soon as possible"""]
 
-cf_help_text = ["""Cleanfile
-清理文件工具
-
+cf_help_text = ["""Clean Desktop：清理文件工具
 这是一个用来整理文件夹（尤其是桌面）的程序，
 也是Movefile推出的第一个程序块
 包含选取保留文件，保留文件类型
 设定是否移动文件夹，
 设定过期时间以及判断方式
-开机自动运行存档等功能""", """Cleanfile
-Clean up file tool
-
+开机自动运行存档等功能""", """Clean Desktop
+Clean-up tool for files
 This is a program used to organize folders (especially the desktop),
 It is also the first program block launched by Movefile
 Include selecting reserved files and reserved files' format,
@@ -244,15 +233,13 @@ Set expiration time and judgment method
 Start up and automatically run archiving and other functions
 """]
 
-cf_help_keep_text = ["""保留项目/文件格式选择功能详解：
-
+cf_help_keep_text = ["""保留项目/文件格式选择功能详解
 保留项目选择：
 选中的项目不会被转移
 
 保留文件格式选择：
 某种格式类型的文件都不会被转移
-比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""", """Preserve project/file format selection function:
-
+比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""", """Preserve item
 Keep item selection:
 The selected items will not be transferred
 
@@ -261,13 +248,12 @@ Files of a certain format type will not be transferred
 For example, selecting '. lnk' means that
 all shortcuts in the original folder will not be transferred"""]
 
-cf_help_timeset_text = ["""过期时间功能详解：
-
+cf_help_timeset_text = ["""过期时间功能详解
 本软件可以获取文件的最后修改、访问时间
 可以保留一定时间内修改/访问过的文件
 例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
 则运行日期前两天内修改过的文件不会被删除
-如果不想用此方法，则过期时间设为"0"即可""", '''Expiration time setting:
+如果不想用此方法，则过期时间设为"0"即可""", '''Expiration time setting
 The software can obtain the latest modification and access time of the file
 
 You can reserve files that have been modified/accessed for a certain period of time.
@@ -279,9 +265,7 @@ the files modified within two days before the operation date will not be deleted
 If you do not want to use this method, 
 set the expiration time to "0" ''']
 
-sf_help_text = ['''Syncfile
-同步文件工具
-
+sf_help_text = ['''Syncfile：文件同步工具
 这是一个用来同步文件两个路径下文件的程序，
 也可以将U盘数据与电脑同步
 
@@ -289,8 +273,7 @@ sf_help_text = ['''Syncfile
 选择单向与双向同步模式，保留最新更改文件
 开机自动运行存档
 自动检测选定的可移动磁盘接入并自动同步等功能''', '''Syncfile
-Synchronize File Tool
-
+Synchronize tool for Files
 This is a program used to synchronize files in two paths,
 You can also synchronize USB flash disk data with the computer
 
@@ -302,8 +285,7 @@ Automatically detect the access of recorded removable disks
 and automatically synchronize them
 and so on''']
 
-sf_removable_help_text = ['''可移动磁盘同步功能详解：
-
+sf_removable_help_text = ['''可移动磁盘同步功能详解
 工作原理：
 读取所有 属于当前接入的可移动磁盘设备 的卷，加入待选列表中
 为了防止同一个卷在不同时间接入设备时被分配了不同的卷标，
@@ -312,8 +294,7 @@ sf_removable_help_text = ['''可移动磁盘同步功能详解：
 打开软件后，会实时获取当前设备上可移动卷的接入情况
 如果发现新接入的卷在存档中，且选中了自动运行选项，
 那会弹窗提示进行同步。
-''', '''Removable Disk Synchronization:
-
+''', '''Removable Disk Sync
 Working principle:
 Read all volumes belonging to the connected removable disk devices 
 and add them to the list of candidates
@@ -328,8 +309,7 @@ and the automatic run option is selected,
 a pop-up prompt will ask you whether to synchronize or not.
 ''']
 
-sf_lock_help_text = ['''锁定文件夹/文件功能：
-
+sf_lock_help_text = ['''锁定文件夹/文件功能
 锁定文件夹：
 当你添加了一个文件夹，这个文件夹将会被显示在待选列表中。
 在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改或删除。
@@ -337,8 +317,7 @@ sf_lock_help_text = ['''锁定文件夹/文件功能：
 锁定文件：
 添加原理与锁定文件夹相同，
 如果勾选一个文件，那么这个文件不会被修改。
-''', '''Lock folder/file function:
-
+''', '''Lock folder/file function
 Lock folder:
 When you add a folder, it will be displayed in the waiting list.
 Check this folder in the list to be selected, 

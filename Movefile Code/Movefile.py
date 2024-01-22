@@ -40,8 +40,7 @@ def main():
         return
     init_data = Initialization()
     time.sleep(0.1)
-    mf_log(
-        f"\nMovefile Start\nVisits today: {init_data.ask_time_today}\nStartup visit: {str(init_data.startup_visit)}")
+    mf_log("Movefile Start")
 
     make_ui(first_visit=init_data.first_visit, startup_visit=init_data.startup_visit,
             visits_today=init_data.ask_time_today, quit_after_autorun=init_data.quit_after_autorun)

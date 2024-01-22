@@ -3,6 +3,7 @@ import configparser
 import logging
 import os
 import sys
+from threading import Thread
 import time
 import tkinter.messagebox
 from base64 import b64decode
@@ -162,9 +163,14 @@ class Initialization:
         self.mf_ico.close()
 
     def set_log_writer(self):
-        if not os.path.exists(MF_LOG_PATH):
-            logfile = open(MF_LOG_PATH, 'a')
+        logfile = open(MF_LOG_PATH, 'r')
+        data = logfile.readlines()
+        if len(data)>500:
+            data=data[-500:]
             logfile.close()
+            logfile = open(MF_LOG_PATH, 'w')
+            logfile.writelines(data)
+        logfile.close()
         formatter = "[%(asctime)s] - [%(levelname)s]: %(message)s"
         logging.basicConfig(level=logging.INFO,
                             filename=MF_LOG_PATH,
@@ -285,7 +291,7 @@ def list_saving_data():
     return last_saving_data, cf_save_names, sf_save_names
 
 
-def scan_removable_disks(s_uuid=None):
+def get_removable_disks(s_uuid=None):
     """
     This function scans for removable disks and returns their UUIDs.
 
@@ -306,22 +312,22 @@ def scan_removable_disks(s_uuid=None):
     if disk_list:
         for pf in disk_list:
             seria_data = GetVolumeInformation(pf)
-            area_name = seria_data[0]
-            area_number = seria_data[1]
+            volume_name = seria_data[0]
+            volume_id = seria_data[1]
             fso = Dispatch("Scripting.FileSystemObject")
             drv = fso.GetDrive(pf)
             total_space = drv.TotalSize / 2 ** 30
-            show_name = area_name + \
+            show_name = volume_name + \
                 ' (' + pf[:-1] + ')' + '   ' + \
                 str(total_space // 0.01 / 100) + ' GB'
             show_list.append(show_name)
-            uuid_disk_pairs.append([str(area_number), show_name])
+            uuid_disk_pairs.append([str(volume_id), show_name, pf[:-1]])
         if s_uuid is None:
             return show_list
         else:
             for pair in uuid_disk_pairs:
                 if pair[0] == s_uuid:
-                    return pair[1]
+                    return pair[1:]
     return []
 
 
@@ -365,10 +371,10 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
     for autorun_info in get_movable_autorun_infos():
         msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
         msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_info[0]}{msg_ps[3]}'
-        if str(new_area_data[2]) == autorun_info[1] and autorun_info[2] == 'True' or tkinter.messagebox.askokcancel(title='Movefile',
-                                                                                                                    message=msg_content):
-            sf_autorun_operation(master_root, 'movable', [
-                                 new_area_data[0], new_area_data[1], autorun_info[0]])
+        if str(new_area_data[2]) == autorun_info[1] and (autorun_info[2] == 'True' or tkinter.messagebox.askokcancel(title='Movefile',
+                                                                                                                     message=msg_content)):
+            Thread(target=sf_autorun_operation(master_root,
+                   'movable', autorun_info[0]), daemon=True).start()
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹

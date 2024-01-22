@@ -9,8 +9,9 @@ from mttkinter import mtTkinter as tk
 
 # The ProgressBar class generate a root used to display the progress of a task.
 class MFProgressBar:
-    def __init__(self, title, label1, label2, lang_num):
+    def __init__(self, title, label1, label2, lang_num, hidden=False):
         self.initialization_done = False
+        self.hidden = hidden
         self.title = title
         self.label1 = label1
         self.label2 = label2
@@ -34,6 +35,8 @@ class MFProgressBar:
 
     def launch(self, root_master):
         self.progress_root = tk.Toplevel(root_master)
+        if self.hidden:
+            self.progress_root.withdraw()
         self.progress_root.title(self.title)
         self.progress_root.geometry('420x115')
         self.progress_root.iconbitmap(MF_ICON_PATH)

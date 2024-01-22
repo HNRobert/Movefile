@@ -10,14 +10,16 @@ from pathlib import Path
 from shutil import Error as shutil_Error
 from shutil import copy2 as shutil_copy2
 from threading import Thread
+from win32api import GetVolumeInformation
+
 
 import LT_Dic
 from Movefile import gvar
 from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
-from mf_mods import language_num, mf_log, mf_toaster
+from mf_mods import language_num, mf_log, mf_toaster, get_removable_disks
 
 
-def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_name=None, pass_file_paths='', pass_folder_paths='', preview=False):
+def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_saving_details):
     """
     The `sf_sync_dir` function synchronizes files between two directories, displaying progress using a progress bar.
 
@@ -27,8 +29,8 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
     :param single_sync: A boolean value indicating whether to perform a single sync or not. If True, only files present in the first folder will be synced to the second folder. If False, files present in both folders will be synced
     :param language_number: The `language_number` parameter is an integer that represents the language code to be used for displaying messages and notifications. It is used to select the appropriate language from a dictionary of language translations
     :param area_name: The `area_name` parameter is an optional parameter that represents the label of the partitions being synchronized. It is used in the notification message to indicate which area of files has been synchronized. If not provided, the default name will be the last part of the `path1`
-    :param pass_file_paths: The `pass_file_paths` parameter is a string that represents a comma-separated list of file paths that should be excluded from the synchronization process. These files will not be moved or replaced during the synchronization
-    :param pass_folder_paths: The `pass_folder_paths` parameter is a string that represents the paths of folders that should be excluded from the synchronization process. These folders will not be compared or synchronized with the other folders. Multiple folder paths can be separated by commas
+    :param lock_file: The `lock_file` parameter is a string that represents a comma-separated list of file paths that should be excluded from the synchronization process. These files will not be moved or replaced during the synchronization
+    :param lock_folder: The `lock_folder` parameter is a string that represents the paths of folders that should be excluded from the synchronization process. These folders will not be compared or synchronized with the other folders. Multiple folder paths can be separated by commas
     """
 
     from mfprogressbar import MFProgressBar
@@ -42,35 +44,14 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
         :param folderB_path: The path to the second folder that you want to compare
         """
 
-        def all_files_in(item_dir: str, B_side: bool):
-            all_files = []
-            ort_path, opp_path = folderA_path, folderB_path
-            if B_side:
-                opp_path, ort_path = ort_path, opp_path
-            for itroot, itdirs, itfiles in os.walk(item_dir):
-                for itfile in itfiles:
-                    itfile_path = os.path.join(itroot, itfile)
-                    if ort_path[-1] == '\\':
-                        ort_path = ort_path[:-1]
-                    opp_file_path = itfile_path.replace(ort_path, opp_path)
-                    '''
-                    print(itfile_path)
-                    print(ort_path + ' | '+ opp_path)
-                    print(opp_file_path)
-                    print(" ")
-                    '''
-                    all_files.append([itfile_path, opp_file_path])
-
-            return all_files
-
         def add_diff_data(index, data_list, r_only=False):
             for item in data_list:
                 if r_only and os.path.isdir(os.path.join(folderB_path, item)):
                     diff_data[index].extend(all_files_in(
-                        os.path.join(folderB_path, item), True))
+                        os.path.join(folderB_path, item), folderB_path, folderA_path))
                 elif os.path.isdir(os.path.join(folderA_path, item)):
                     diff_data[index].extend(all_files_in(
-                        os.path.join(folderA_path, item), False))
+                        os.path.join(folderA_path, item), folderA_path, folderB_path))
                 elif r_only:
                     diff_data[index].append(
                         [os.path.join(folderB_path, item), os.path.join(folderA_path, item)])
@@ -121,8 +102,8 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
                 if single_sync:
                     return None
                 fileA, fileB = fileB, fileA
-            if any(fileB.startswith(p_folder) and p_folder != '' for p_folder in pass_folder_paths.split(',')) or any(
-                    fileB == p_file for p_file in pass_file_paths.split(',')):
+            if any(fileB.startswith(p_folder) and p_folder != '' for p_folder in lock_folder) or any(
+                    fileB == p_file for p_file in lock_file):
                 return None
             _bar_root.set_label1(
                 LT_Dic.sfdic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
@@ -191,20 +172,27 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
 
         baroot.progress_root.withdraw()
         path_name_1 = path1.split('\\')[-1]
-        if area_name:
-            path_name_1 = area_name
-        sf_show_notice(path_name_1, path2.split(
-            '\\')[-1], sf_error_name, language_number=language_number)
+        if sf_saving_details['place_mode'] == 'movable':
+            path_name_1 = GetVolumeInformation(path1)[0]
+        if not hidden:
+            sf_show_notice(path_name_1, path2.split(
+                '\\')[-1], sf_error_name, language_number=language_number)
         baroot.progress_root.destroy()
 
+    path1 = sf_saving_details['path_1']
+    path2 = sf_saving_details['path_2']
+    single_sync = sf_saving_details['single_sync']
+    lock_folder = sf_saving_details['lock_folder']
+    lock_file = sf_saving_details['lock_file']
+
     if path1[-1] != ':' and not os.path.exists(path1):
-        os.mkdir(path1)
+        os.makedirs(path1)
     if not os.path.exists(path2):
-        os.mkdir(path2)
+        os.makedirs(path2)
     sync_bar_root = MFProgressBar('Movefile  -Syncfile Progress',
                                   LT_Dic.sfdic["main_progress_label2"][language_number],
                                   LT_Dic.sfdic["current_file_label"][language_number],
-                                  language_number)
+                                  language_number, hidden=hidden)
     sync_bar_root_task = Thread(
         target=lambda: sync_bar_root.launch(root_master=master_root), daemon=True)
     sync_bar_root_task.start()
@@ -219,6 +207,12 @@ def sf_sync_dir(master_root, path1, path2, single_sync, language_number, area_na
     sync_bar_root.progress_root_destruction()
     sync_bar_root_task.join()
     return sf_tasks
+
+def sf_show_config_error(config_name, language_number):
+    sf_notice_title = LT_Dic.sfdic["err_title_p1"][language_number]
+    sf_notice_content = LT_Dic.sfdic["err_title_p2_1"][language_number] + config_name + \
+        LT_Dic.sfdic["err_title_p2_2"][language_number]
+    mf_log("\n" + sf_notice_title + "\n" + sf_notice_content)
 
 
 def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movable=False):
@@ -249,7 +243,7 @@ def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movabl
                               threaded=False)
 
 
-def sf_autorun_operation(master, place, saving_datas=None):
+def sf_autorun_operation(master, place, mv_saving_name: str = ''):
     """
     The function `sf_autorun_operation` performs an sync operation on a given place and optional saving data.
 
@@ -265,54 +259,43 @@ def sf_autorun_operation(master, place, saving_datas=None):
     mf_file = configparser.ConfigParser()
     mf_file.read(MF_CONFIG_PATH)
 
-    def autorun_movable_sf(data):
-        for saving_data in data:
-            path1 = saving_data[0]
-            path2 = sf_file.get(saving_data[2], 'path_2')
-            lockfolder = sf_file.get(saving_data[2], 'lock_folder')
-            lockfile = sf_file.get(saving_data[2], 'lock_file')
-            single_sync = True
-            if sf_file.get(saving_data[2], 'mode') == 'double':
-                single_sync = False
-            sf_sync_dir(master, path1, path2, single_sync, language_num(mf_file.get('General', 'language')), saving_data[1],
-                        lockfile, lockfolder)
+    def autorun_movable_sf(save: str):
+        lang_num = language_num(mf_file.get('General', 'language'))
+        sf_options = sf_read_config(save)
+        if not sf_options:
+            sf_show_config_error(save, lang_num)  # show notice
+            return
+        hidden = sf_options['direct_sync']
+        sf_sync_dir(master, lang_num, False, hidden, **sf_options)
 
     def autorun_local_sf(data_names):
+        lang_num = language_num(mf_file.get('General', 'language'))
         for saving_data in data_names:
-            path1 = sf_file.get(saving_data, 'path_1')
-            path2 = sf_file.get(saving_data, 'path_2')
-            lockfolder = sf_file.get(saving_data, 'lock_folder')
-            lockfile = sf_file.get(saving_data, 'lock_file')
-            single_sync = sf_file.get(saving_data, 'mode') == 'single'
-            sf_sync_dir(master, path1, path2, single_sync, language_number=language_num(mf_file.get('General', 'language')),
-                        pass_folder_paths=lockfolder, pass_file_paths=lockfile)
+            sf_options = sf_read_config(saving_data)
+            if not sf_options:
+                sf_show_config_error(saving_data, lang_num)  # show notice
+                continue
+            sf_sync_dir(master, lang_num, False, False, **sf_options)
             mf_log(
                 f'\nAutomatically ran Syncfile operation as config "{saving_data}"')
 
     if place == 'movable':
-        autorun_movable_sf(saving_datas)
+        autorun_movable_sf(mv_saving_name)
     elif place == 'local':
         autorun_local_sf(get_sf_startup_savings())
 
 
-def fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str):
-    if not sf_config_file.has_section(saving_name):
-        return False
-    if not sf_config_file.has_option(saving_name, 'place_mode'):
-        return False
-    if not sf_config_file.has_option(saving_name, 'path_1') and sf_config_file.get(saving_name, 'place_mode') == 'local':
-        return False
-    if not sf_config_file.has_option(saving_name, 'disk_number') and sf_config_file.get(saving_name, 'place_mode') == 'movable':
-        return False
-    if not sf_config_file.has_option(saving_name, 'path_2'):
-        return False
-    option_names = ['lock_folder', 'lock_file',
-                    'mode', 'autorun', 'real_time', 'direct_sync']
-    default_values = ['', '', 'single', 'False', 'False', 'False']
-    for option, value in zip(option_names, default_values):
-        if not sf_config_file.has_option(saving_name, option):
-            sf_config_file.set(saving_name, option, value)
-    return True
+def all_files_in(item_dir: str, folderA_path, folderB_path):
+    all_files = []
+    for itroot, itdirs, itfiles in os.walk(item_dir):
+        for itfile in itfiles:
+            itfile_path = os.path.join(itroot, itfile)
+            if folderA_path[-1] == '\\':
+                folderA_path = folderA_path[:-1]
+            opp_file_path = itfile_path.replace(folderA_path, folderB_path)
+            all_files.append([itfile_path, opp_file_path])
+
+    return all_files
 
 
 def get_sf_savings_with(*wants, **conditions):
@@ -349,25 +332,103 @@ def get_real_time_infos():
     return get_sf_savings_with(*wants, **conditions)
 
 
+def fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str):
+    if not saving_name:
+        return False
+    if not sf_config_file.has_section(saving_name):
+        return False
+    if not sf_config_file.has_option(saving_name, 'place_mode'):
+        return False
+    if not sf_config_file.has_option(saving_name, 'path_1') and sf_config_file.get(saving_name, 'place_mode') == 'local':
+        return False
+    if not sf_config_file.has_option(saving_name, 'disk_number') and sf_config_file.get(saving_name, 'place_mode') == 'movable':
+        return False
+    if not sf_config_file.has_option(saving_name, 'path_2'):
+        return False
+    option_names = ['path_1', 'lock_folder', 'lock_file',
+                    'mode', 'autorun', 'real_time', 'direct_sync']
+    default_values = ['', '', '', 'single', 'False', 'False', 'False']
+    for option, value in zip(option_names, default_values):
+        if not sf_config_file.has_option(saving_name, option):
+            sf_config_file.set(saving_name, option, value)
+    return True
+
+
+def sf_read_config(saving_name):
+    sf_file = configparser.ConfigParser()
+    sf_file.read(SF_CONFIG_PATH)
+    if not fixed_sf_config(sf_file, saving_name):
+        return False
+    sf_options = {}
+    sf_options['place_mode'] = sf_file.get(saving_name, 'place_mode')
+    if sf_options['place_mode'] == 'local':
+        sf_options['path_1'] = sf_file.get(saving_name, 'path_1')
+    else:
+        sf_disk_data = get_removable_disks(
+            sf_file.get(saving_name, 'disk_number'))
+        sf_options['path_1'] = sf_disk_data[1]
+        sf_options['disk_show_data'] = sf_disk_data[0]
+    sf_options['path_2'] = sf_file.get(saving_name, 'path_2')
+    sf_options['single_sync'] = sf_file.get(saving_name, 'mode') == 'single'
+    sf_options['mode'] = sf_file.get(saving_name, 'mode')
+    sf_options['lock_folder'] = list(
+        filter(None, sf_file.get(saving_name, 'lock_folder').split('|')))
+    sf_options['lock_file'] = list(
+        filter(None, sf_file.get(saving_name, 'lock_file').split('|')))
+    sf_options['autorun'] = sf_file.getboolean(saving_name, 'autorun')
+    sf_options['direct_sync'] = sf_file.getboolean(saving_name, 'direct_sync')
+    sf_options['real_time'] = sf_file.getboolean(saving_name, 'real_time')
+
+    return sf_options
+
+
+def sf_save_config(save_name, **configs):
+    if not os.path.exists(SF_CONFIG_PATH):
+        file = open(SF_CONFIG_PATH,
+                    'w', encoding='ANSI')
+        file.close()
+    sf_file = configparser.ConfigParser()
+    sf_file.read(SF_CONFIG_PATH)
+    if not sf_file.has_section(str(save_name)):
+        sf_file.add_section(str(save_name))
+    sf_file.set(save_name, '_last_edit_', 'True')
+    sf_file.set(save_name, 'place_mode', configs['place_mode'])
+    if configs['place_mode'] == 'local':
+        sf_file.set(save_name, 'path_1', configs['path_1'])
+    else:
+        sf_file.set(save_name, 'disk_number',
+                    str(GetVolumeInformation(configs['path_1'].split(':')[0][-1] + ':')[1]))
+    sf_file.set(save_name, 'path_2', configs['path_2'])
+    sf_file.set(save_name, 'mode', configs['mode'])
+    sf_file.set(save_name, 'lock_folder',
+                configs['lock_folder'])
+    sf_file.set(save_name, 'lock_file', configs['lock_file'])
+    sf_file.set(save_name, 'autorun', str(configs['autorun']))
+    sf_file.set(save_name, 'direct_sync', str(configs['direct_sync']))
+    sf_file.set(save_name, 'real_time', str(configs['real_time']))
+    sf_file.write(
+        open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
+
+
 def run_sf_real_time():
     """
     The function `run_sf_real_time` manages a pool of real-time processes based on the configuration
     settings.
     """
 
-
     def sf_real_time_precess(setting_name):
         if setting_name not in running_process.keys():
             assert False, "This setting is not running"
+
         while not gvar.get('program_finished') and running_process[setting_name]:
             print(setting_name)
-            time.sleep(1)
-
+            time.sleep(10)
 
     def add_process(proc_info_list: list):
         for setting_info in proc_info_list:  # add process
             running_process[setting_info[0]] = True
-            Thread(target=sf_real_time_precess, args=(setting_info[0],)).start()
+            Thread(target=sf_real_time_precess,
+                   args=(setting_info[0],)).start()
 
     sf_data = configparser.ConfigParser()
     sf_data.read(SF_CONFIG_PATH)
@@ -383,7 +444,8 @@ def run_sf_real_time():
             real_time_setting_names = [setting_info[0]
                                        for setting_info in real_time_settings_info]
             # add process
-            add_process(list(filter(lambda i: i[0] not in running_process.keys(), real_time_settings_info)))
+            add_process(list(
+                filter(lambda i: i[0] not in running_process.keys(), real_time_settings_info)))
 
             # cut process
             for pre_only in list(filter(lambda i: i not in real_time_setting_names, running_process.keys())):

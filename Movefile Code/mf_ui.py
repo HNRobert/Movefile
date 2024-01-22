@@ -6,6 +6,7 @@ import time
 import tkinter.filedialog
 import tkinter.font as tkFont
 import tkinter.messagebox
+from turtle import title
 import webbrowser
 from functools import partial
 from threading import Thread
@@ -16,10 +17,10 @@ import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
 from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
-                      MF_ICON_PATH, SF_CONFIG_PATH)
+                      MF_ICON_PATH, MF_LOG_PATH, SF_CONFIG_PATH)
 from mf_mods import (detect_removable_disks_thread, language_num,
                      list_saving_data, mf_log, mf_toaster,
-                     put_desktop_shortcut, scan_removable_disks, set_auto_quit,
+                     put_desktop_shortcut, get_removable_disks, set_auto_quit,
                      set_startup)
 from mttkinter import mtTkinter as tk
 from PIL import Image
@@ -36,12 +37,30 @@ class MFInfoShower:
         self.ntf_wd = tk.Toplevel(master=master)
         self.ntf_wd.withdraw()
         self.ntf_wd.title("Movefile Notification")
-        self.ntf_wd.geometry("300x200")
+        self.title_var = tk.StringVar()
+        self.ntf_wd.geometry("300x400")
+        self.ntf_wd.iconbitmap(MF_ICON_PATH)
         self.ntf_wd.protocol("WM_DELETE_WINDOW",
-                             lambda: self.ntf_wd.withdraw())
+                             lambda: self.hide())
+        self.ntf_title = tk.Label(master=self.ntf_wd, textvariable=self.title_var,
+                                  font=tkFont.Font(family='Microsoft YaHei UI', size=20, weight="bold"))
+        self.ntf_title.grid(row=0, column=0, pady=10, sticky='NSEW')
         self.ntf_text = tk.Text(master=self.ntf_wd, width=30, height=10,
-                                wrap='word', state=tk.DISABLED, relief='flat', background='SystemButtonFace')
-        self.ntf_text.pack(padx=30, pady=40, fill=tk.BOTH, expand=True)
+                                wrap='word', state=tk.DISABLED, relief='groove')
+        self.ntf_text.grid(row=1, column=0, padx=15, pady=15, sticky='NSEW')
+        ntf_yscrollbar = tk.Scrollbar(master=self.ntf_wd)
+        self.ntf_text.config(yscrollcommand=ntf_yscrollbar.set)
+        ntf_yscrollbar.config(command=self.ntf_text.yview)
+        ntf_yscrollbar.grid(row=1, column=0, padx=5, pady=15, sticky='NSE')
+        self.ntf_wd.rowconfigure(1, weight=1, minsize=50)
+        self.ntf_wd.columnconfigure(0, weight=1, minsize=300)
+
+    def hide(self):
+        self.ntf_wd.withdraw()
+        self.ntf_wd.geometry("300x400")
+
+    def move_to_bottom(self):
+        self.ntf_text.see(tk.END)
 
     def show_info(self, title, message: str, **tags):
         """
@@ -54,11 +73,11 @@ class MFInfoShower:
         """
         self.ntf_text.config(state=tk.NORMAL)
         line_num = message.count("\n")
-        self.ntf_wd.title(title)
-        self.ntf_wd.geometry(f"600x{40+line_num*30}")
         self.ntf_text.delete("1.0", tk.END)
         self.ntf_wd.deiconify()
+        self.ntf_wd.geometry(f"400x{min(70+line_num*30, 600)}")
         self.ntf_wd.bell()
+        self.title_var.set(title)
         self.ntf_text.insert(tk.END, message)
         for key, value in tags.items():
             self.ntf_text.tag_config(key, foreground=key)
@@ -114,7 +133,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             if item.is_file() and (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk') and item.name != 'desktop.ini':
                 file_names.append(item.name)
                 all_ends.append('.' + suffix)
-            elif item.is_dir() and cf_is_folder_move.get() and os.path.isdir(dest_path) and os.path.commonpath([item.path, dest_path]) != dest_path:
+            elif item.is_dir() and cf_is_folder_move.get() and os.path.isdir(dest_path) and os.path.splitdrive(item.path)[0] == os.path.splitdrive(dest_path)[0] and os.path.commonpath([item.path, dest_path]) != dest_path:
                 folder_names.append(item.name)
 
         exist_ends = sorted(set(filter(lambda suff: suff != '.lnk', all_ends)))
@@ -125,7 +144,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         item_names.close()
 
     def sf_refresh_disk_list(blank_entry=False):
-        disk_list = scan_removable_disks()
+        disk_list = get_removable_disks()
         if disk_list:
             sf_entry_select_removable['values'] = disk_list
         else:
@@ -159,7 +178,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 for file in file_path_:
                     sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
-    def set_preview(result=[], mode='cf', content=''):
+    def set_preview(result=[], mode='cf', content='', time_cost=0.0):
         """
         The function `set_preview` is used to update the preview text widget based on the given parameters.
 
@@ -178,25 +197,29 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             preview_text.tag_config('green', foreground='green')
             preview_text.tag_config('underline', underline=True)
             preview_text.insert(
+                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
+            preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
             preview_text.tag_add(
-                'green', '1.' + str(len(LT_Dic.cfdic['preview_src'][lang_num])), '1.end')
+                'green', '2.' + str(len(LT_Dic.cfdic['preview_src'][lang_num])), '2.end')
             preview_text.tag_add(
-                'green', '2.' + str(len(LT_Dic.cfdic['preview_dest'][lang_num])), '2.end')
+                'green', '3.' + str(len(LT_Dic.cfdic['preview_dest'][lang_num])), '3.end')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
-            preview_text.tag_add('underline', '3.0', '3.end')
+            preview_text.tag_add('underline', '4.0', '4.end')
             for line in result:
                 s_path = os.path.basename(line[1])
                 preview_text.insert(tk.END, s_path + '\n')
         elif mode == 'sf':
             preview_text.insert(
+                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
+            preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
             preview_text.tag_config(
                 'underline', underline=True, foreground='green')
-            preview_text.tag_add('underline', '1.0', '1.end')
+            preview_text.tag_add('underline', '2.0', '2.end')
             for line in result:
                 s_path = line[0]
                 d_path = line[1]
@@ -326,6 +349,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['sf_removable_menu'][lang_number])
         sf_lock_menu_text.set(
             LT_Dic.r_label_text_dic['sf_lock_menu'][lang_number])
+        log_menu_text.set(LT_Dic.r_label_text_dic['log_menu'][lang_number])
         menu_hide_text.set(LT_Dic.r_label_text_dic['menu_hide'][lang_number])
 
         taskbar_setting_text.set(
@@ -699,6 +723,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_removable_menu_text = tk.StringVar()
     sf_lock_menu_text = tk.StringVar()
     taskbar_setting_text = tk.StringVar()
+    log_menu_text = tk.StringVar()
     menu_hide_text = tk.StringVar()
     taskbar_hide_text = tk.StringVar()
     taskbar_exit_text = tk.StringVar()
@@ -813,7 +838,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                                          command=lambda: select_path(place='1', ori_content=sf_entry_path_1.get()))
 
     sf_entry_select_removable = ttk.Combobox(
-        root, values=scan_removable_disks(), state='readonly')
+        root, values=get_removable_disks(), state='readonly')
     sf_entry_select_removable.bind(
         '<Button-1>', lambda event: sf_refresh_disk_list())
 
@@ -864,35 +889,63 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         def __init__(self):
             self.info_shower = MFInfoShower(root)
 
-        def show_help(self, message, **tags):
+        def show_help(self, title, message, **tags):
             self.info_shower.show_info(
-                title='Movefile', message=message, **tags)
+                title=title, message=message, **tags)
 
         def help_main(self):
-            self.show_help(message=LT_Dic.help_main_text[lang_num], red=[7])
+            title = LT_Dic.help_main_text[lang_num].split('\n')[0]
+            message = LT_Dic.help_main_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message, red=[6])
             self.info_shower.add_hyperlink(
                 'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '15.end')
 
         def help_before_use(self):
-            self.show_help(LT_Dic.help_before_use_text[lang_num])
+            title = LT_Dic.help_before_use_text[lang_num].split('\n')[0]
+            message = LT_Dic.help_before_use_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
+            self.info_shower.add_hyperlink(
+                'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '5.end')
 
         def cf_help(self):
-            self.show_help(LT_Dic.cf_help_text[lang_num])
+            title = LT_Dic.cf_help_text[lang_num].split('\n')[0]
+            message = LT_Dic.cf_help_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
 
         def cf_help_keep(self):
-            self.show_help(LT_Dic.cf_help_keep_text[lang_num])
+            title = LT_Dic.cf_help_keep_text[lang_num].split('\n')[0]
+            message = LT_Dic.cf_help_keep_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
 
         def cf_help_timeset(self):
-            self.show_help(LT_Dic.cf_help_timeset_text[lang_num])
+            title = LT_Dic.cf_help_timeset_text[lang_num].split('\n')[0]
+            message = LT_Dic.cf_help_timeset_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
 
         def sf_help(self):
-            self.show_help(LT_Dic.sf_help_text[lang_num])
+            title = LT_Dic.sf_help_text[lang_num].split('\n')[0]
+            message = LT_Dic.sf_help_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
 
         def sf_removable_help(self):
-            self.show_help(LT_Dic.sf_removable_help_text[lang_num])
+            title = LT_Dic.sf_removable_help_text[lang_num].split('\n')[0]
+            message = LT_Dic.sf_removable_help_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
 
         def sf_lock_help(self):
-            self.show_help(LT_Dic.sf_lock_help_text[lang_num])
+            title = LT_Dic.sf_lock_help_text[lang_num].split('\n')[0]
+            message = LT_Dic.sf_lock_help_text[lang_num][len(title)+1:]
+            self.show_help(title=title, message=message)
+
+        def mf_show_log(self):
+            content = ''
+            with open(MF_LOG_PATH, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                for line in lines:
+                    content += line
+            self.show_help(
+                LT_Dic.r_label_text_dic['log_menu'][lang_num], content)
+            self.info_shower.move_to_bottom()
 
     class MF_Info_Checker:
         def __init__(self):
@@ -1003,10 +1056,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 return 'same_path_error'
             # _path1 in _path2 or _path2 in _path1  # previous way
             # not included in each other
-            elif _mode != 'movable' and os.path.commonpath([_path1, _path2]) in [_path1, _path2]:
+            elif _mode != 'movable' and os.path.splitdrive(_path1)[0] == os.path.splitdrive(_path2)[0] and os.path.commonpath([_path1, _path2]) in [_path1, _path2]:
                 return 'in_path_error'
             elif _mode == 'movable':
-                if os.path.commonpath([_disk_path, _path2]) == _disk_path:
+                if os.path.splitdrive(_path1)[0] == os.path.splitdrive(_path2)[0]:
                     return 'in_disk_path_error'
             return False
 
@@ -1288,10 +1341,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_entry_keep_formats.delete(0, 'end')
             if cf_entry_time.get() != '':
                 cf_entry_time.delete(0, 'end')
-            for file in cf_file.get(setting_name, 'pass_filename').split(','):
+            for file in cf_file.get(setting_name, 'pass_filename').split('|'):
                 if file != '':
                     cf_entry_keep_files.append_value(file)  # 设置跳过白名单
-            for format in cf_file.get(setting_name, 'pass_format').split(','):
+            for format in cf_file.get(setting_name, 'pass_format').split('|'):
                 if format != '':
                     cf_entry_keep_formats.append_value(format)  # 设置跳过格式
             cf_entry_time.insert(0, cf_file.get(
@@ -1309,11 +1362,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             root_info_checker.get_cf_error_state()
 
         def open_sf_saving(setting_name):
-            from syncfile import fixed_sf_config
-            if setting_name == '':
-                return
-            if not fixed_sf_config(sf_file, setting_name):
-                return
+            from syncfile import sf_read_config
+            sf_options = sf_read_config(setting_name)
+            if not sf_options:
+                return  # show notice
 
             if sf_entry_path_1.get() != '':
                 sf_entry_path_1.delete(0, 'end')
@@ -1324,35 +1376,28 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             if sf_entry_lock_file.get() != '':
                 sf_entry_lock_file.delete(0, 'end')
 
-            place_mode = sf_file.get(setting_name, 'place_mode')
+            place_mode = sf_options['place_mode']
             sf_place_mode.set(place_mode)
-            if place_mode == 'local':
-                sf_entry_path_1.insert(0, sf_file.get(setting_name, 'path_1'))
-            else:
+            sf_entry_path_1.insert(0, sf_options['path_1'])
+            if place_mode == 'movable':
                 sf_refresh_disk_list()
                 time.sleep(0.1)
-                area_number = sf_file.get(setting_name, 'disk_number')
                 sf_entry_select_removable.delete(0, 'end')
-                sf_last_data = scan_removable_disks(area_number)
-                count_i = 0
-                for value in sf_entry_select_removable['values']:
-                    if sf_last_data == value:
-                        sf_entry_select_removable.current(count_i)
+                sf_disk_show_data = sf_options['disk_show_data']
+                for index, value in enumerate(sf_entry_select_removable['values']):
+                    if sf_disk_show_data == value:
+                        sf_entry_select_removable.current(index)
                         break
-                    count_i += 1
-                sf_is_direct_sync.set(sf_file.getboolean(
-                    setting_name, 'direct_sync'))
-            sf_entry_path_2.insert(0, sf_file.get(setting_name, 'path_2'))
-            sf_entry_mode.set(sf_file.get(setting_name, 'mode'))
-            for folder in sf_file.get(setting_name, 'lock_folder').split(','):
-                if folder != '':
-                    sf_entry_lock_folder.append_value(folder)
-            for file in sf_file.get(setting_name, 'lock_file').split(','):
-                if file != '':
-                    sf_entry_lock_file.append_value(file)
-            sf_is_autorun.set(sf_file.getboolean(setting_name, 'autorun'))
+                sf_is_direct_sync.set(sf_options['direct_sync'])
+            sf_entry_path_2.insert(0, sf_options['path_2'])
+            sf_entry_mode.set(sf_options['mode'])
+            for folder in sf_options['lock_folder']:
+                sf_entry_lock_folder.append_value(folder)
+            for file in sf_options['lock_file']:
+                sf_entry_lock_file.append_value(file)
+            sf_is_autorun.set(sf_options['autorun'])
             set_sf_autorun_state()
-            sf_is_real_time.set(sf_file.getboolean(setting_name, 'real_time'))
+            sf_is_real_time.set(sf_options['real_time'])
             set_sf_real_time_state()
             Place('sf', place_mode)
             cf_or_sf.set('sf')
@@ -1474,8 +1519,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     def cf_operate_from_root(preview=False):
         src_path = cf_entry_src_path.get()  # 旧文件夹
         dest_path = cf_entry_dest_path.get()  # 新文件夹
-        pass_file = cf_entry_keep_files.get().split(',')  # 设置跳过白名单
-        pass_format = cf_entry_keep_formats.get().split(',')  # 设置跳过格式
+        pass_file = cf_entry_keep_files.get().split('|')  # 设置跳过白名单
+        pass_format = cf_entry_keep_formats.get().split('|')  # 设置跳过格式
         time_ = int(cf_entry_time.get()) * 3600  # 设置过期时间(hour)
         mode = int(cf_entry_mode.get())  # 设置判断模式
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
@@ -1491,14 +1536,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             path1 = sf_entry_path_1.get()
         path2 = sf_entry_path_2.get()
         mode = sf_entry_mode.get()
-        area_name = None
-        lockfolder = sf_entry_lock_folder.get()
-        lockfile = sf_entry_lock_file.get()
-        if path1[-1] == ":":
-            area_name = GetVolumeInformation(path1)[0]
+        lockfolder = sf_entry_lock_folder.get().split('|')
+        lockfile = sf_entry_lock_file.get().split('|')
 
-        return sf_sync_dir(master_root=root, path1=path1, path2=path2, single_sync=mode == 'single', language_number=lang_num,
-                           area_name=area_name, pass_file_paths=lockfile, pass_folder_paths=lockfolder, preview=preview)
+        return sf_sync_dir(master_root=root, language_number=lang_num, preview=preview, hidden=False, path_1=path1, path_2=path2, single_sync=mode == 'single', lock_file=lockfile, lock_folder=lockfolder)
 
     def startup_autorun():
         time.sleep(1)
@@ -1523,9 +1564,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             root.withdraw()
         elif not preview_placed.get():
             Place.put_preview()
+        time_start = time.time()
         _result = operator_(preview=preview_)  # run
+        time_end = time.time()
+        time_c = time_end - time_start
         if preview_:
-            set_preview(result=_result, mode=mode_)
+            set_preview(result=_result, mode=mode_, time_cost=time_c)
 
     def execute_as_root(exe_preview=False):
         if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
@@ -1538,7 +1582,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root.withdraw()
         mf_toaster.stop_notification_thread()
 
-        mf_log("\nMovefile Quit\n")
+        mf_log("Movefile Quit\n")
         root.quit()
         task_menu.stop()
 
@@ -1605,6 +1649,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
     main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
+    main_menu.add_command(label=log_menu_text.get(),
+                          command=help_shower.mf_show_log)
 
     # main_menu.add_command(
     #     label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')

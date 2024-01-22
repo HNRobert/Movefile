@@ -64,7 +64,7 @@ class Picker(ttk.Frame):
             self.dict_checkbutton[item].grid(
                 row=index, column=0, sticky=tk.NSEW, padx=5)
             self.dict_intvar_item[item].set(0)
-            if item in self._entry_wid.get().split(','):
+            if item in self._entry_wid.get().split('|'):
                 self.dict_intvar_item[item].set(1)
         self.canvas.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         self.canvas.bind("<MouseWheel>", self.processwheel)
@@ -156,12 +156,12 @@ class Combopicker(ttk.Entry, Picker):
     
     def update_values(self, values_in):
         self.values = [self.allname_var.get()] + values_in
-        previous_values = self.get().split(',')
+        previous_values = self.get().split('|')
         result = ''
         for pre_value in previous_values:
             if pre_value in values_in:
-                result += pre_value + ','
-        if not result == '' and result[-1] == ',':
+                result += pre_value + '|'
+        if not result == '' and result[-1] == '|':
             result = result[:-1]
         self.delete(0, 'end')
         self.insert(0, result)
@@ -180,7 +180,7 @@ class Combopicker(ttk.Entry, Picker):
 
         if self.entry_var.get() != "" and self.entry_var.get() is not None:
             temp_value = self.entry_var.get()
-            value = temp_value.split(",")
+            value = temp_value.split('|')
         if str(SELECTED) in value:
             if all_name == str(SELECTED):
                 value.clear()  # 清空选项
@@ -204,10 +204,10 @@ class Combopicker(ttk.Entry, Picker):
         temp_value = ""
         for index, item in enumerate(value):
             if item != "" and index > 0:
-                temp_value += ","
+                temp_value += '|'
             temp_value += str(item)
         self.entry_var.set(temp_value)
-        if all_name in self.entry_var.get().split(','):
+        if all_name in self.entry_var.get().split('|'):
             self.show_var.set(self.entry_var.get()[len(all_name)+1:])
         else:
             self.show_var.set(self.entry_var.get())
