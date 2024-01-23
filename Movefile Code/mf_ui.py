@@ -25,7 +25,7 @@ from mf_mods import (detect_removable_disks_thread, language_num,
 from mttkinter import mtTkinter as tk
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
-from syncfile import sf_autorun_operation, run_sf_real_time, sf_sync_dir
+from syncfile import sf_autorun_operation, run_sf_real_time, sf_sync_dir, sf_read_config, sf_save_config
 from tkHyperlinkManager import HyperlinkManager
 from win32api import GetVolumeInformation
 
@@ -112,7 +112,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     """
 
     cf_data = configparser.ConfigParser()
-    sf_data = configparser.ConfigParser()
     general_data = configparser.ConfigParser()
     general_data.read(MF_CONFIG_PATH)
     cf_ori_src_path = ''
@@ -133,7 +132,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             if item.is_file() and (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk') and item.name != 'desktop.ini':
                 file_names.append(item.name)
                 all_ends.append('.' + suffix)
-            elif item.is_dir() and cf_is_folder_move.get() and os.path.isdir(dest_path) and os.path.splitdrive(item.path)[0] == os.path.splitdrive(dest_path)[0] and os.path.commonpath([item.path, dest_path]) != dest_path:
+            elif item.is_dir() and cf_is_folder_move.get() and os.path.isdir(dest_path) and (
+                    os.path.splitdrive(item.path)[0] != os.path.splitdrive(dest_path)[0] or os.path.commonpath([item.path, dest_path]) != dest_path):
                 folder_names.append(item.name)
 
         exist_ends = sorted(set(filter(lambda suff: suff != '.lnk', all_ends)))
@@ -167,16 +167,21 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 path_2.set(path_)
 
     def choose_lock_items(mode):
+        init_path = sf_entry_path_2.get()
+        if not os.path.isdir(init_path):
+            init_path = None
         if mode == 'lockfolder':
-            folder_path_ = tkinter.filedialog.askdirectory()
-            if folder_path_ != '':
-                sf_entry_lock_folder.append_value(
-                    folder_path_.replace('/', '\\'))
+            folder_path_ = tkinter.filedialog.askdirectory(initialdir=init_path)
+            if not folder_path_:
+                return
+            sf_entry_lock_folder.append_value(
+                folder_path_.replace('/', '\\'))
         elif mode == 'lockfile':
-            file_path_ = tkinter.filedialog.askopenfilenames()
-            if file_path_ != '':
-                for file in file_path_:
-                    sf_entry_lock_file.append_value(file.replace('/', '\\'))
+            file_path_ = tkinter.filedialog.askopenfilenames(initialdir=init_path)
+            if not file_path_:
+                return
+            for file in file_path_:
+                sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
     def set_preview(result=[], mode='cf', content='', time_cost=0.0):
         """
@@ -188,16 +193,22 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         """
         preview_text.config(state='normal')
         preview_text.delete('1.0', tk.END)
+        if mode == 'sf':
+            result = result[0] + result[1]
         if content:
-            preview_text.insert(tk.END, content)
+            preview_text.insert(tk.END, content)    
         elif len(result) == 0:  # no item in result
+            preview_text.insert(
+                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
         elif mode == 'cf':
             preview_text.tag_config('green', foreground='green')
             preview_text.tag_config('underline', underline=True)
             preview_text.insert(
-                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
+                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's       ')
+            preview_text.insert(
+                tk.END, LT_Dic.r_label_text_dic['preview_num_found'][lang_num] + str(len(result)) + '\n')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
             preview_text.insert(
@@ -214,7 +225,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 preview_text.insert(tk.END, s_path + '\n')
         elif mode == 'sf':
             preview_text.insert(
-                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
+                tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's       ')
+            preview_text.insert(
+                tk.END, LT_Dic.r_label_text_dic['preview_num_found'][lang_num] + str(len(result)) + '\n')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
             preview_text.tag_config(
@@ -1173,23 +1186,24 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         if booleanvar is None:
             booleanvar = tk.BooleanVar()
 
-        def remove_last_edit(mode_data: configparser.ConfigParser, config_file_path):
+        def remove_last_edit(config_file_path):
+            mode_data = configparser.ConfigParser()
+            mode_data.read(config_file_path)
             if not mode_data.sections():  # 更改上次修改项
                 return
             for save_name in mode_data.sections():
                 try:
                     mode_data.set(save_name, '_last_edit_', 'False')
-                    mode_data.write(
-                        open(config_file_path, 'w+', encoding='ANSI'))
                 except:
                     mf_log(f'remove_last_edit error: {save_name}')
+                finally:
+                    mode_data.write(
+                        open(config_file_path, 'w+', encoding='ANSI'))
 
         def savefile(function, save_name='New_Setting'):  # 保存文件
-            cf_data.read(CF_CONFIG_PATH)
-            sf_data.read(SF_CONFIG_PATH)
 
             if function == 'cf':  # 如果当前界面为cf
-                remove_last_edit(cf_data, CF_CONFIG_PATH)
+                remove_last_edit(CF_CONFIG_PATH)
                 if not os.path.exists(CF_CONFIG_PATH):
                     file = open(CF_CONFIG_PATH,
                                 'w', encoding='ANSI')
@@ -1214,14 +1228,33 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     open(CF_CONFIG_PATH, "w+", encoding='ANSI'))
 
             elif function == 'sf':  # 如果当前界面为sf
-                remove_last_edit(sf_data, SF_CONFIG_PATH)
+                remove_last_edit(SF_CONFIG_PATH)
                 if not os.path.exists(SF_CONFIG_PATH):
                     file = open(SF_CONFIG_PATH,
                                 'w', encoding='ANSI')
                     file.close()
+                config = {
+                    'place_mode': sf_place_mode.get(),
+                    'path_1': sf_entry_path_1.get(),
+                    'path_2': sf_entry_path_2.get(),
+                    'mode': sf_entry_mode.get(),
+                    'lock_folder': sf_entry_lock_folder.get(),
+                    'lock_file': sf_entry_lock_file.get(),
+                    'autorun': str(sf_is_autorun.get()),
+                    'real_time': str(sf_is_real_time.get()),
+                    'direct_sync': str(sf_is_direct_sync.get()),
+                    'disk_show_data': sf_entry_select_removable.get()
+                    # 'disk_number': sf_entry_select_removable.get()
+                    # 'disk_number': GetVolumeInformation(sf_disk_data[0].split(':')[0][-1] + ':')[1]
+                    # 'disk_data': sf_disk_data[1]
+
+                }
+                sf_save_config(save_name, )
+                """
                 sf_data.read(SF_CONFIG_PATH)
                 if not sf_data.has_section(str(save_name)):
                     sf_data.add_section(str(save_name))
+                
                 sf_data.set(save_name, '_last_edit_', 'True')
                 sf_data.set(save_name, 'place_mode', sf_place_mode.get())
                 if sf_place_mode.get() == 'local':
@@ -1243,6 +1276,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     sf_is_real_time.get()))
                 sf_data.write(
                     open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
+                """
             gvar.set('sf_config_changed', True)
             tkinter.messagebox.showinfo(title=LT_Dic.r_label_text_dic['succ_save'][lang_num][0],
                                         message=LT_Dic.r_label_text_dic['succ_save'][lang_num][1])
@@ -1308,8 +1342,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             booleanvar.set(False)
 
     def read_saving(ask_path=False):
-        cf_file = configparser.ConfigParser()
-        cf_file.read(CF_CONFIG_PATH)  # 获取配置文件
         sf_file = configparser.ConfigParser()
         sf_file.read(SF_CONFIG_PATH)
         new_values = []
@@ -1320,10 +1352,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         def open_cf_saving(setting_name):
             from cleanfile import fixed_cf_config
+            cf_file = configparser.ConfigParser()
+            cf_file.read(CF_CONFIG_PATH)  # 获取配置文件
             if setting_name == '':
                 return
-            if not fixed_cf_config(cf_file, setting_name):
+            fix_cond = fixed_cf_config(cf_file, setting_name)
+            if fix_cond is False:
                 return
+            elif fix_cond is True:
+                cf_file.write(open(CF_CONFIG_PATH, 'w+', encoding='ANSI'))
             nonlocal cf_ori_src_path
             if cf_entry_src_path.get() != '':
                 cf_entry_src_path.delete(0, 'end')
@@ -1362,7 +1399,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             root_info_checker.get_cf_error_state()
 
         def open_sf_saving(setting_name):
-            from syncfile import sf_read_config
             sf_options = sf_read_config(setting_name)
             if not sf_options:
                 return  # show notice
@@ -1423,7 +1459,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             except:
                 pass
 
-        def execute_del(cfg: configparser.ConfigParser, cfg_path: str, cur_label_var: StringVar, del_mode, del_mode_full, del_name, read_saving_method: Callable):
+        def execute_del(cfg_path: str, cur_label_var: StringVar, del_mode, del_mode_full, del_name, read_saving_method: Callable):
+            cfg = configparser.ConfigParser()
+            cfg.read(cfg_path)
             cfg.remove_section(del_name)
             cfg.write(
                 open(cfg_path, 'w+', encoding='ANSI'))
@@ -1442,14 +1480,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             del_name = read_name_entry.get()
             is_continue = tkinter.messagebox.askyesno(
                 title='Movefile', message=LT_Dic.r_label_text_dic['sure_delete'][lang_num] + del_name + '" ?')
-            next_saving = ''
             # cf
             if del_mode in LT_Dic.r_label_text_dic['read_mode_entry_s'][0] and is_continue:
-                execute_del(cf_file, CF_CONFIG_PATH, current_cf_save_name,
+                execute_del(CF_CONFIG_PATH, current_cf_save_name,
                             'cf', 'Clean Desktop', del_name, open_cf_saving)
             # sf
             elif del_mode in LT_Dic.r_label_text_dic['read_mode_entry_s'][1] and is_continue:
-                execute_del(sf_file, SF_CONFIG_PATH, current_sf_save_name,
+                execute_del(SF_CONFIG_PATH, current_sf_save_name,
                             'sf', 'Syncfile', del_name, open_sf_saving)
                 gvar.set('sf_config_changed', True)
 
@@ -1699,7 +1736,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         target=lambda: detect_removable_disks_thread(root, lang_num), daemon=True)
     background_detect.start()
     sf_real_time_runner_thread = Thread(
-        target=lambda: run_sf_real_time(), daemon=True)
+        target=lambda: run_sf_real_time(root, lang_num), daemon=True)
     sf_real_time_runner_thread.start()
 
     if visits_today == 1 and startup_visit:
@@ -1708,3 +1745,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         autorun_options.start()
 
     root.mainloop()
+
+
+if __name__ == '__main__':
+    make_ui()

@@ -272,10 +272,13 @@ def language_num(language_name):
 def list_saving_data():
 
     def get_last_edit_in(configer, savings):
+        if not savings:
+            return ''
         for saving_name in savings:
             if configer.get(saving_name, '_last_edit_') == 'True':
                 return saving_name
-        return ''
+        else:
+            return savings[0]
 
     cf_file = configparser.ConfigParser()
     cf_file.read(CF_CONFIG_PATH)

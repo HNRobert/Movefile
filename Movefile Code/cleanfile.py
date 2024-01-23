@@ -194,10 +194,12 @@ def fixed_cf_config(cf_config_file: configparser.ConfigParser, saving_name: str)
     option_names = ['pass_filename', 'pass_format',
                     'set_hour', 'mode', 'move_folder', 'move_lnk']
     default_values = ['', '', '0', '0', 'False', 'False']
+    flag = None
     for option, value in zip(option_names, default_values):
         if not cf_config_file.has_option(saving_name, option):
             cf_config_file.set(saving_name, option, value)
-    return True
+            flag = True
+    return flag
 
 
 def cf_autorun_operation(master):
@@ -211,7 +213,12 @@ def cf_autorun_operation(master):
 
     autorun_savings = []
     for cf_name in cf_file.sections():
-        if cf_file.has_option(cf_name, 'autorun') and cf_file.get(cf_name, 'autorun') == 'True' and fixed_cf_config(cf_file, cf_name):
+        fix_cond = fixed_cf_config(cf_file, cf_name)
+        if fix_cond is True:
+            cf_file.write(open(CF_CONFIG_PATH, 'w+', encoding='ANSI'))
+        elif fix_cond is False:
+            continue
+        if cf_file.has_option(cf_name, 'autorun') and cf_file.get(cf_name, 'autorun') == 'True':
             autorun_savings.append(cf_name)
 
     for save_name in autorun_savings:

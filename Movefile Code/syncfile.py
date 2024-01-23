@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from filecmp import dircmp
 from pathlib import Path
 from shutil import Error as shutil_Error
-from shutil import copy2 as shutil_copy2
+from shutil import copy2 as shutil_copy2, copytree as shutil_copytree
 from threading import Thread
 from win32api import GetVolumeInformation
 
@@ -35,7 +35,7 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
 
     from mfprogressbar import MFProgressBar
 
-    def diff_files_in(folderA_path, folderB_path):
+    def diff_items_in(folderA, folderB, _bar_root):
         """
         The function takes two folder paths as input and returns the files that are present in one
         folder but not in the other.
@@ -44,37 +44,34 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         :param folderB_path: The path to the second folder that you want to compare
         """
 
-        def add_diff_data(index, data_list, r_only=False):
+        def add_only_data(index, data_list, src_base, tar_base):
+            if tar_base in lock_folder:
+                return
             for item in data_list:
-                if r_only and os.path.isdir(os.path.join(folderB_path, item)):
-                    diff_data[index].extend(all_files_in(
-                        os.path.join(folderB_path, item), folderB_path, folderA_path))
-                elif os.path.isdir(os.path.join(folderA_path, item)):
-                    diff_data[index].extend(all_files_in(
-                        os.path.join(folderA_path, item), folderA_path, folderB_path))
-                elif r_only:
-                    diff_data[index].append(
-                        [os.path.join(folderB_path, item), os.path.join(folderA_path, item)])
-                else:
-                    diff_data[index].append(
-                        [os.path.join(folderA_path, item), os.path.join(folderB_path, item)])
+                idx = 0
+                src_path, tar_path = os.path.join(
+                    src_base, item), os.path.join(tar_base, item)
+                if os.path.isdir(src_path):
+                    idx = 2
+                elif tar_path in lock_file:  # file in lockfile
+                    continue
+                diff_data[index+idx].append([src_path, tar_path])
+                _bar_root.set_label1(
+                    LT_Dic.sfdic['main_progress_label'][language_number] + item)
 
-        diff_data = [[], [], []]
-        cmp_data = dircmp(folderA_path, folderB_path, ignore=[])
-        add_diff_data(0, cmp_data.diff_files)
-        add_diff_data(1, cmp_data.left_only)
-        add_diff_data(2, cmp_data.right_only, True)
-        """
-        print("--------------------------------\n" + folderA_path + "\n" + folderB_path)
-        print(cmp_data.diff_files)
-        print(cmp_data.left_only)
-        print(cmp_data.right_only)
-        print("\n")
-        """
+        # [diff_files, left_only_files, right_only_files, left_only_folders, right_only_folders]
+        diff_data = [[], [], [], [], []]
+        cmp_data = dircmp(folderA, folderB, ignore=[])
+        for dfile in cmp_data.diff_files:
+            diff_data[0].append(
+                [os.path.join(folderA, dfile), os.path.join(folderB, dfile)])
+        add_only_data(1, cmp_data.left_only, folderA, folderB)
+        add_only_data(2, cmp_data.right_only, folderB, folderA)
+
         for com_dir in cmp_data.common_dirs:
-            dir_data = diff_files_in(os.path.join(
-                folderA_path, com_dir), os.path.join(folderB_path, com_dir))
-            for i in range(3):
+            dir_data = diff_items_in(os.path.join(
+                folderA, com_dir), os.path.join(folderB, com_dir), _bar_root)
+            for i in range(5):
                 diff_data[i].extend(dir_data[i])
         return diff_data
 
@@ -86,45 +83,48 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         root node or starting point of a tree or hierarchy structure. It could be used to navigate or
         perform operations on the tree or hierarchy
         """
-        def judged_task(fileA: str, fileB: str, only_one: bool = False):
+        def judged_task(*items):
             """
-            The function `judge_and_append` takes two file names as input and a boolean value indicating
-            whether to append the contents of fileB to fileA or not.
+            The function `judged_task` compares the modification times of two items and returns the
+            items in a list if certain conditions are met.
 
-            :param fileA: A string representing the path to the first file
-            :type fileA: str
-            :param fileB: The `fileB` parameter is a string that represents the file name or file path
-            of the second file
-            :type fileB: str
+            :param only_one: The `only_one` parameter is a boolean flag that determines if there is only one
+            of the item in items exists. If True, the compare between their mtime would be skipped
+            :type only_one: bool (optional)
+            :return: a list containing the values of itemA and itemB.
             """
 
-            if not only_one and int(os.stat(fileA).st_mtime) < int(os.stat(fileB).st_mtime):
+            itemA, itemB = items
+            if int(os.stat(itemA).st_mtime) < int(os.stat(itemB).st_mtime):
                 if single_sync:
                     return None
-                fileA, fileB = fileB, fileA
-            if any(fileB.startswith(p_folder) and p_folder != '' for p_folder in lock_folder) or any(
-                    fileB == p_file for p_file in lock_file):
+                itemA, itemB = itemB, itemA
+            if any(itemB.startswith(p_folder) for p_folder in lock_folder) or itemB in lock_file:
                 return None
             _bar_root.set_label1(
-                LT_Dic.sfdic['main_progress_label'][language_number] + fileA[0].split('\\')[-1])
-            return [fileA, fileB]
+                LT_Dic.sfdic['main_progress_label'][language_number] + itemA.split('\\')[-1])
+            return [itemA, itemB]
 
-        sync_tasks = []  # task items' format: [source_file_path, dest_file_path]
-        diff_item_data = diff_files_in(path1, path2)
-        for a_only_item in diff_item_data[1]:
-            sync_tasks.append(judged_task(
-                a_only_item[0], a_only_item[1], True))
+        # task items' format: [source_file_path, dest_file_path]
+        sync_tasks = [[], []]
+        diff_item_data = diff_items_in(path1, path2, _bar_root)
+        for a_only_folder in diff_item_data[3]:
+            sync_tasks[0].append(a_only_folder)
+        for a_only_file in diff_item_data[1]:
+            sync_tasks[1].append(a_only_file)
         if not single_sync:
-            for b_only_item in diff_item_data[2]:
-                sync_tasks.append(judged_task(
-                    b_only_item[0], b_only_item[1], True))
-        for diff_item in diff_item_data[0]:
-            sync_tasks.append(judged_task(diff_item[0], diff_item[1]))
+            for b_only_folder in diff_item_data[4]:
+                sync_tasks[0].append(b_only_folder)
+            for b_only_file in diff_item_data[2]:
+                sync_tasks[1].append(b_only_file)
 
-        sync_tasks = list(filter(None, sync_tasks))
+        for diff_file in diff_item_data[0]:
+            sync_tasks[1].append(judged_task(diff_file))
+        for i in range(2):
+            sync_tasks[i] = list(filter(None, sync_tasks[i]))
         return sync_tasks
 
-    def synchronize_files(baroot: MFProgressBar, task):
+    def synchronize_files(baroot: MFProgressBar, task, is_folder=False):
         """
         The function `synchronize_files` takes two parameters, `baroot` and `task`, and does some kind of file synchronization operation.
 
@@ -139,7 +139,10 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         # Create parent directories if needed
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            shutil_copy2(source_file_path, dest_file_path)
+            if is_folder:
+                shutil_copytree(source_file_path, dest_file_path)
+            else:
+                shutil_copy2(source_file_path, dest_file_path)
         except shutil_Error:
             return source_file_path
         return None
@@ -150,31 +153,40 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
 
         :param baroot: The progress bar root object
         """
+
+        def execute_sf_tasks(_tasks, _is_folder):
+            nonlocal sf_error_name
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(
+                    synchronize_files, baroot, _task, _is_folder) for _task in _tasks]
+
+                for future in as_completed(futures):
+                    result = future.result()
+                    if result:
+                        sf_error_name += result + ' , '
+
+                    baroot.main_progress_bar['value'] += 1
+                    baroot.set_label1(
+                        f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(task_len)}  {LT_Dic.    sfdic["main_progress_label1"][language_number][1]}')
+                    baroot.progress_root.update_idletasks()
+
         sf_error_name = ''
+        folder_tasks, file_tasks = tasks[0], tasks[1]
+        task_len = len(folder_tasks) + len(file_tasks)
         baroot.main_progress_bar['value'] = 0
         baroot.progress_root.update_idletasks()
-        baroot.main_progress_bar['maximum'] = len(tasks)
+        baroot.main_progress_bar['maximum'] = task_len
         baroot.set_label1(
-            f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}')
-        with ThreadPoolExecutor() as executor:
-            futures = [executor.submit(
-                synchronize_files, baroot, task) for task in tasks]
-
-            for future in as_completed(futures):
-                result = future.result()
-                if result:
-                    sf_error_name += result + ' , '
-
-                baroot.main_progress_bar['value'] += 1
-                baroot.set_label1(
-                    f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(len(tasks))}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}')
-                baroot.progress_root.update_idletasks()
+            f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(task_len)}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}')
+        
+        execute_sf_tasks(folder_tasks, True)
+        execute_sf_tasks(file_tasks, False)
 
         baroot.progress_root.withdraw()
-        path_name_1 = path1.split('\\')[-1]
-        if sf_saving_details['place_mode'] == 'movable':
-            path_name_1 = GetVolumeInformation(path1)[0]
         if not hidden:
+            path_name_1 = path1.split('\\')[-1]
+            if sf_saving_details['place_mode'] == 'movable':
+                path_name_1 = GetVolumeInformation(path1)[0]
             sf_show_notice(path_name_1, path2.split(
                 '\\')[-1], sf_error_name, language_number=language_number)
         baroot.progress_root.destroy()
@@ -184,6 +196,8 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
     single_sync = sf_saving_details['single_sync']
     lock_folder = sf_saving_details['lock_folder']
     lock_file = sf_saving_details['lock_file']
+    lock_folder = list(filter(None, lock_folder))
+    lock_file = list(filter(None, lock_file))
 
     if path1[-1] != ':' and not os.path.exists(path1):
         os.makedirs(path1)
@@ -206,7 +220,8 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         run_tasks.join()
     sync_bar_root.progress_root_destruction()
     sync_bar_root_task.join()
-    return sf_tasks
+    return sf_tasks  # [folder_task, file_task]
+
 
 def sf_show_config_error(config_name, language_number):
     sf_notice_title = LT_Dic.sfdic["err_title_p1"][language_number]
@@ -285,6 +300,7 @@ def sf_autorun_operation(master, place, mv_saving_name: str = ''):
         autorun_local_sf(get_sf_startup_savings())
 
 
+"""
 def all_files_in(item_dir: str, folderA_path, folderB_path):
     all_files = []
     for itroot, itdirs, itfiles in os.walk(item_dir):
@@ -296,6 +312,7 @@ def all_files_in(item_dir: str, folderA_path, folderB_path):
             all_files.append([itfile_path, opp_file_path])
 
     return all_files
+"""
 
 
 def get_sf_savings_with(*wants, **conditions):
@@ -303,7 +320,7 @@ def get_sf_savings_with(*wants, **conditions):
     sf_dat.read(SF_CONFIG_PATH)
     target_savings = []  # [volume id, saving_name, direct_sync]
     for saving in sf_dat.sections():
-        if not fixed_sf_config(sf_dat, saving):
+        if not _fixed_sf_config(sf_dat, saving):
             continue
         for key, value in conditions.items():
             if sf_dat.get(saving, key) != value:
@@ -332,7 +349,7 @@ def get_real_time_infos():
     return get_sf_savings_with(*wants, **conditions)
 
 
-def fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str):
+def _fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str):
     if not saving_name:
         return False
     if not sf_config_file.has_section(saving_name):
@@ -348,16 +365,20 @@ def fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str)
     option_names = ['path_1', 'lock_folder', 'lock_file',
                     'mode', 'autorun', 'real_time', 'direct_sync']
     default_values = ['', '', '', 'single', 'False', 'False', 'False']
+    flag = False
     for option, value in zip(option_names, default_values):
         if not sf_config_file.has_option(saving_name, option):
             sf_config_file.set(saving_name, option, value)
+            flag = True
+    if flag:
+        sf_config_file.write(open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
     return True
 
 
 def sf_read_config(saving_name):
     sf_file = configparser.ConfigParser()
     sf_file.read(SF_CONFIG_PATH)
-    if not fixed_sf_config(sf_file, saving_name):
+    if not _fixed_sf_config(sf_file, saving_name):
         return False
     sf_options = {}
     sf_options['place_mode'] = sf_file.get(saving_name, 'place_mode')
@@ -395,22 +416,24 @@ def sf_save_config(save_name, **configs):
     sf_file.set(save_name, 'place_mode', configs['place_mode'])
     if configs['place_mode'] == 'local':
         sf_file.set(save_name, 'path_1', configs['path_1'])
+        sf_file.set(save_name, 'disk_number', '')
+        sf_file.set(save_name, 'direct_sync', 'False')
     else:
+        sf_file.set(save_name, 'path_1', '')
         sf_file.set(save_name, 'disk_number',
                     str(GetVolumeInformation(configs['path_1'].split(':')[0][-1] + ':')[1]))
+        sf_file.set(save_name, 'direct_sync', str(configs['direct_sync']))
     sf_file.set(save_name, 'path_2', configs['path_2'])
     sf_file.set(save_name, 'mode', configs['mode'])
-    sf_file.set(save_name, 'lock_folder',
-                configs['lock_folder'])
+    sf_file.set(save_name, 'lock_folder', configs['lock_folder'])
     sf_file.set(save_name, 'lock_file', configs['lock_file'])
     sf_file.set(save_name, 'autorun', str(configs['autorun']))
-    sf_file.set(save_name, 'direct_sync', str(configs['direct_sync']))
     sf_file.set(save_name, 'real_time', str(configs['real_time']))
     sf_file.write(
         open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
 
 
-def run_sf_real_time():
+def run_sf_real_time(master, lang_num):
     """
     The function `run_sf_real_time` manages a pool of real-time processes based on the configuration
     settings.
@@ -418,10 +441,14 @@ def run_sf_real_time():
 
     def sf_real_time_precess(setting_name):
         if setting_name not in running_process.keys():
-            assert False, "This setting is not running"
-
+            return
+        sf_options = sf_read_config(setting_name)
+        if not sf_options:
+            sf_show_config_error(setting_name, lang_num)  # show notice
+            return
         while not gvar.get('program_finished') and running_process[setting_name]:
-            print(setting_name)
+            print(setting_name + 'Running(real time)')
+            sf_sync_dir(master, lang_num, False, True, **sf_options)
             time.sleep(10)
 
     def add_process(proc_info_list: list):
@@ -437,17 +464,19 @@ def run_sf_real_time():
     add_process(real_time_settings_info)
 
     while not gvar.get('program_finished'):
-        if gvar.get("sf_config_changed"):
-            gvar.set("sf_config_changed", False)
-            sf_data.read(SF_CONFIG_PATH)
-            real_time_settings_info = get_real_time_infos()
-            real_time_setting_names = [setting_info[0]
-                                       for setting_info in real_time_settings_info]
-            # add process
-            add_process(list(
-                filter(lambda i: i[0] not in running_process.keys(), real_time_settings_info)))
+        if not gvar.get("sf_config_changed"):
+            time.sleep(1)
+            continue
+        gvar.set("sf_config_changed", False)
+        sf_data.read(SF_CONFIG_PATH)
+        real_time_settings_info = get_real_time_infos()
+        real_time_setting_names = [setting_info[0]
+                                   for setting_info in real_time_settings_info]
+        # add process
+        add_process(list(
+            filter(lambda i: i[0] not in running_process.keys(), real_time_settings_info)))
 
-            # cut process
-            for pre_only in list(filter(lambda i: i not in real_time_setting_names, running_process.keys())):
-                running_process[pre_only] = False
+        # cut process
+        for pre_only in list(filter(lambda i: i not in real_time_setting_names, running_process.keys())):
+            running_process[pre_only] = False
         time.sleep(1)

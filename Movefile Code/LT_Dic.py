@@ -81,6 +81,7 @@ r_label_text_dic = {
     'preview_button': ['移动项目预览', 'Action Preview'],
     'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button\nto check the settings above and view which items will be moved'],
     'preview_cost': ['检测耗时：', 'Time Costing: '],
+    'preview_num_found': ['找到需要同步的项目： ', "Need-to-Sync Objects' number： "],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行', 'Run'],
 
