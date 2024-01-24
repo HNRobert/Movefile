@@ -18,7 +18,7 @@ class GlobalsVar:
     def __init__(self):
         self.gvar = {
             "program_finished": False,
-            "sf_config_changed": False
+            "sf_config_changed": True
         }
 
     def get(self, key):

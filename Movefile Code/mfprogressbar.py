@@ -17,6 +17,7 @@ class MFProgressBar:
         self.label2 = label2
         self.label_dic = LT_Dic.progress_root_label_dic
         self.lang_num = lang_num
+        self.stop_running = False
 
         """
         self.main_progress_label = None
@@ -27,11 +28,31 @@ class MFProgressBar:
         self.roll_bar = None
         """
 
-    def set_label1(self, content):
-        self.main_progress_label.config(text=content)
+    def set_label1(self, content, add_value=False):
+        if not self.hidden:
+            self.main_progress_label.config(text=content)
+            if add_value:
+                self.main_progress_bar.step(1)
+                self.progress_root.update_idletasks()
 
     def set_label2(self, content):
-        self.current_file_label.config(text=content)
+        if not self.hidden:
+            self.current_file_label.config(text=content)
+
+    def set_maximum(self, num):
+        if not self.hidden:
+            self.main_progress_bar.config(maximum=num)
+            self.main_progress_bar.config(value=0)
+            self.progress_root.update_idletasks()
+
+    def withdraw_root(self):
+        if not self.hidden:
+            self.progress_root.withdraw()
+
+    def destroy_root(self):
+        if not self.hidden:
+            self.progress_root.destroy()
+        self.stop_running = True
 
     def launch(self, root_master):
         self.progress_root = tk.Toplevel(root_master)
@@ -62,15 +83,19 @@ class MFProgressBar:
         self.initialization_done = True
 
     def show_running(self):
-        self.show_running_bar.start(10)
+        if not self.hidden:
+            self.show_running_bar.start(10)
 
     def sync_bar_on_exit(self):
+        if self.hidden:
+            return
         if tkinter.messagebox.askyesno(title='Syncfile', message=self.label_dic['confirm_exit_text'][self.lang_num]):
             self.progress_root.destroy()
             self.roll_bar.join()
-            return True
+            self.stop_running = True
         else:
-            return False
+            self.stop_running = False
 
     def progress_root_destruction(self):
-        self.progress_root.destroy()
+        if not self.hidden:
+            self.progress_root.destroy()

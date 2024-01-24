@@ -96,9 +96,7 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
         cf_move_name = ''
         cf_error_name = ''
         task_len = str(len(tasks))
-        baroot.main_progress_bar['maximum'] = len(tasks)
-        baroot.main_progress_bar['value'] = 0
-        baroot.progress_root.update_idletasks()
+        baroot.set_maximum(len(tasks))
         baroot.set_label1(
             f'{LT_Dic.cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{task_len}  {LT_Dic.cfdic["main_progress_label1"][lang_num][1]}')
         for task in tasks:
@@ -121,14 +119,12 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
                 result = del_item(item_path)
                 cf_move_name += result[0]
                 cf_error_name += result[1]
-            baroot.main_progress_bar['value'] += 1
             baroot.set_label1(
-                f'{LT_Dic.cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{task_len}  {LT_Dic.cfdic["main_progress_label1"][lang_num][1]}')
-            baroot.progress_root.update_idletasks()
-        baroot.progress_root.withdraw()
+                f'{LT_Dic.cfdic["main_progress_label1"][lang_num][0]}{str(baroot.main_progress_bar["value"])}/{task_len}  {LT_Dic.cfdic["main_progress_label1"][lang_num][1]}', add_value=True)
+        baroot.withdraw_root()
         cf_show_notice(src__path, dest__path, cf_move_name,
                        cf_error_name, lang_num)
-        baroot.progress_root.withdraw()
+        baroot.destroy_root()
 
     if dest__path != '' and not os.path.exists(dest__path):
         os.mkdir(dest__path)
@@ -146,7 +142,8 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
         run_cf_thread = Thread(target=lambda: run_cleanfile(
             clean_bar_root, cf_tasks), daemon=True)
         run_cf_thread.start()
-        run_cf_thread.join()
+        while not clean_bar_root.stop_running:
+            time.sleep(0.5)
     clean_bar_root.progress_root_destruction()
     clean_bar_root_task.join()
     return cf_tasks

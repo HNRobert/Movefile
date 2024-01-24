@@ -16,7 +16,7 @@ from win32api import GetVolumeInformation
 import LT_Dic
 from Movefile import gvar
 from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
-from mf_mods import language_num, mf_log, mf_toaster, get_removable_disks
+from mf_mods import language_num, mf_log, mf_toaster, get_removable_disks, remove_last_edit
 
 
 def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_saving_details):
@@ -131,7 +131,6 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         :param baroot: The `baroot` parameter is a string that represents the root directory of the source files. It is the directory from which the files will be synchronized
         :param task: The `task` parameter is a string that represents the specific task or operation that needs to be performed on the files
         """
-        baroot.main_progress_bar['value'] += 0
         baroot.set_label2(
             LT_Dic.sfdic["current_file_label1"][language_number] + task[0].split('\\')[-1])
         source_file_path, dest_file_path = task
@@ -154,42 +153,38 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         :param baroot: The progress bar root object
         """
 
-        def execute_sf_tasks(_tasks, _is_folder):
+        def execute_sf_tasks(_baroot: MFProgressBar, _tasks, _is_folder):
             nonlocal sf_error_name
             with ThreadPoolExecutor() as executor:
                 futures = [executor.submit(
-                    synchronize_files, baroot, _task, _is_folder) for _task in _tasks]
+                    synchronize_files, _baroot, _task, _is_folder) for _task in _tasks]
 
                 for future in as_completed(futures):
                     result = future.result()
                     if result:
                         sf_error_name += result + ' , '
 
-                    baroot.main_progress_bar['value'] += 1
-                    baroot.set_label1(
-                        f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(task_len)}  {LT_Dic.    sfdic["main_progress_label1"][language_number][1]}')
-                    baroot.progress_root.update_idletasks()
+                    _baroot.set_label1(
+                        f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(_baroot.main_progress_bar["value"])}/{str(task_len)}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}', add_value=True)
 
         sf_error_name = ''
         folder_tasks, file_tasks = tasks[0], tasks[1]
         task_len = len(folder_tasks) + len(file_tasks)
-        baroot.main_progress_bar['value'] = 0
-        baroot.progress_root.update_idletasks()
-        baroot.main_progress_bar['maximum'] = task_len
+        baroot.set_maximum(task_len)
         baroot.set_label1(
-            f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(baroot.main_progress_bar["value"])}/{str(task_len)}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}')
-        
-        execute_sf_tasks(folder_tasks, True)
-        execute_sf_tasks(file_tasks, False)
+            f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}0/{str(task_len)}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}')
 
-        baroot.progress_root.withdraw()
+        execute_sf_tasks(baroot, folder_tasks, True)
+        execute_sf_tasks(baroot, file_tasks, False)
+
+        baroot.withdraw_root()
         if not hidden:
             path_name_1 = path1.split('\\')[-1]
             if sf_saving_details['place_mode'] == 'movable':
                 path_name_1 = GetVolumeInformation(path1)[0]
             sf_show_notice(path_name_1, path2.split(
                 '\\')[-1], sf_error_name, language_number=language_number)
-        baroot.progress_root.destroy()
+        baroot.destroy_root()
 
     path1 = sf_saving_details['path_1']
     path2 = sf_saving_details['path_2']
@@ -203,23 +198,25 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         os.makedirs(path1)
     if not os.path.exists(path2):
         os.makedirs(path2)
+
     sync_bar_root = MFProgressBar('Movefile  -Syncfile Progress',
                                   LT_Dic.sfdic["main_progress_label2"][language_number],
                                   LT_Dic.sfdic["current_file_label"][language_number],
                                   language_number, hidden=hidden)
-    sync_bar_root_task = Thread(
-        target=lambda: sync_bar_root.launch(root_master=master_root), daemon=True)
-    sync_bar_root_task.start()
-    while not sync_bar_root.initialization_done:
-        time.sleep(0.01)
+    if not hidden:
+        sync_bar_root_task = Thread(
+            target=lambda: sync_bar_root.launch(root_master=master_root), daemon=True)
+        sync_bar_root_task.start()
+        while not sync_bar_root.initialization_done:
+            time.sleep(0.01)
     sf_tasks = get_sf_tasks(sync_bar_root)
     if not preview:
         run_tasks = Thread(
             target=lambda: run_sync_tasks(sync_bar_root, sf_tasks), daemon=True)
         run_tasks.start()
-        run_tasks.join()
+        while not sync_bar_root.stop_running:
+            time.sleep(0.5)
     sync_bar_root.progress_root_destruction()
-    sync_bar_root_task.join()
     return sf_tasks  # [folder_task, file_task]
 
 
@@ -408,6 +405,7 @@ def sf_save_config(save_name, **configs):
         file = open(SF_CONFIG_PATH,
                     'w', encoding='ANSI')
         file.close()
+    remove_last_edit(SF_CONFIG_PATH)
     sf_file = configparser.ConfigParser()
     sf_file.read(SF_CONFIG_PATH)
     if not sf_file.has_section(str(save_name)):
@@ -446,10 +444,11 @@ def run_sf_real_time(master, lang_num):
         if not sf_options:
             sf_show_config_error(setting_name, lang_num)  # show notice
             return
-        while not gvar.get('program_finished') and running_process[setting_name]:
-            print(setting_name + 'Running(real time)')
+        while not gvar.get('program_finished') and keep_running:
+            print(setting_name + ' Running (real time)')
             sf_sync_dir(master, lang_num, False, True, **sf_options)
-            time.sleep(10)
+            time.sleep(3)
+        running_process[setting_name] = False
 
     def add_process(proc_info_list: list):
         for setting_info in proc_info_list:  # add process
@@ -457,26 +456,20 @@ def run_sf_real_time(master, lang_num):
             Thread(target=sf_real_time_precess,
                    args=(setting_info[0],)).start()
 
-    sf_data = configparser.ConfigParser()
-    sf_data.read(SF_CONFIG_PATH)
+    keep_running = True
     running_process = {}
-    real_time_settings_info = get_real_time_infos()
-    add_process(real_time_settings_info)
 
     while not gvar.get('program_finished'):
         if not gvar.get("sf_config_changed"):
-            time.sleep(1)
+            time.sleep(2)
             continue
         gvar.set("sf_config_changed", False)
-        sf_data.read(SF_CONFIG_PATH)
-        real_time_settings_info = get_real_time_infos()
-        real_time_setting_names = [setting_info[0]
-                                   for setting_info in real_time_settings_info]
-        # add process
-        add_process(list(
-            filter(lambda i: i[0] not in running_process.keys(), real_time_settings_info)))
 
-        # cut process
-        for pre_only in list(filter(lambda i: i not in real_time_setting_names, running_process.keys())):
-            running_process[pre_only] = False
-        time.sleep(1)
+        keep_running = False
+        while any(running_process.values()):
+            time.sleep(1)
+        keep_running = True
+
+        add_process(get_real_time_infos())
+
+        time.sleep(2)

@@ -269,6 +269,21 @@ def language_num(language_name):
     return l_num
 
 
+def remove_last_edit(config_file_path):
+    mode_data = configparser.ConfigParser()
+    mode_data.read(config_file_path)
+    if not mode_data.sections():  # 更改上次修改项
+        return
+    for save_name in mode_data.sections():
+        try:
+            mode_data.set(save_name, '_last_edit_', 'False')
+        except:
+            mf_log(f'remove_last_edit error: {save_name}')
+        finally:
+            mode_data.write(
+                open(config_file_path, 'w+', encoding='ANSI'))
+
+
 def list_saving_data():
 
     def get_last_edit_in(configer, savings):
