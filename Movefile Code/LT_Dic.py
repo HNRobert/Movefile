@@ -43,7 +43,7 @@ r_label_text_dic = {
     'cf_option_move_lnk': ['移动快捷方式', 'Move Shortcuts (.lnk)'],
     'cf_button_adv': ['高级选项 ↓', 'Advanced Options ↓'],
     'cf_label_keep_files': ['强制保留项目：', 'Reserved Files：'],
-    'cf_label_keep_formats': ['按文件格式保留：', 'Reserved Fmts：'],
+    'cf_label_keep_formats': ['按文件格式保留：', 'Reserved Formats：'],
     'cf_label_time': ['项目保留时长(小时)：', 'Retain Item for(h)：'],
     'cf_label_expire_options': ['↑ 开始计时节点：', "↑ Since the Item's："],
     'cf_option_mode_1': ['项目最后修改时刻', "Last Modified Moment"],
@@ -80,8 +80,8 @@ r_label_text_dic = {
     # Func labels
     'preview_button': ['移动项目预览', 'Action Preview'],
     'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button\nto check the settings above and view which items will be moved'],
-    'preview_cost': ['检测耗时：', 'Time Costing: '],
-    'preview_num_found': ['找到需要同步的项目： ', "Need-to-Sync Objects' number： "],
+    'preview_cost': ['扫描耗时：', 'Scan Cost: '],
+    'preview_num_found': ['找到需要移动的项目： ', "Need-to-Move Objects' number： "],
     'save_button': ['保存', 'Save'],
     'continue_button': ['运行', 'Run'],
 

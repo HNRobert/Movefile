@@ -196,7 +196,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         """
         preview_text.config(state='normal')
         preview_text.delete('1.0', tk.END)
-        if mode == 'sf':
+        if mode == 'sf' and result:
             result = result[0] + result[1]
         if content:
             preview_text.insert(tk.END, content)
@@ -205,9 +205,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
+            preview_text.tag_add('purple', '2.0', '2.end')
         elif mode == 'cf':
-            preview_text.tag_config('green', foreground='green')
-            preview_text.tag_config('underline', underline=True)
             preview_text.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's       ')
             preview_text.insert(
@@ -222,7 +221,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 'green', '3.' + str(len(LT_Dic.cfdic['preview_dest'][lang_num])), '3.end')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
-            preview_text.tag_add('underline', '4.0', '4.end')
+            preview_text.tag_add('underline_green', '4.0', '4.end')
             for line in result:
                 s_path = os.path.basename(line[1])
                 preview_text.insert(tk.END, s_path + '\n')
@@ -231,21 +230,31 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's       ')
             preview_text.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_num_found'][lang_num] + str(len(result)) + '\n')
+            s_path = ' '
+            if sf_entry_select_removable.get():
+                s_path = sf_entry_select_removable.get().split(':')[
+                    0][-1] + ':'
+            if sf_place_mode.get() == 'local':
+                s_path = sf_entry_path_1.get()
+            d_path = sf_entry_path_2.get()
+            preview_text.insert(tk.END, 'A:  ' + s_path + '\n')
+            preview_text.tag_add('A', '2.0', '2.end')
+            preview_text.insert(tk.END, 'B:  ' + d_path + '\n')
+            preview_text.tag_add('B', '3.0', '3.end')
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
-            preview_text.tag_config(
-                'underline', underline=True, foreground='green')
-            preview_text.tag_add('underline', '2.0', '2.end')
-            for line in result:
-                s_path = line[0]
-                d_path = line[1]
-                _preview_line: str = s_path + '  →  ' + d_path
-                _preview_line = _preview_line.replace(
-                    sf_entry_path_2.get(), 'B')
-                if sf_place_mode.get() == 'local':
-                    _preview_line = _preview_line.replace(
-                        sf_entry_path_1.get(), 'A')
+            preview_text.tag_add('underline_green', '4.0', '4.end')
+            for index, line in enumerate(result):
+                _preview_line: str = line[0] + '  →  ' + line[1]
+                _preview_line = _preview_line.replace(s_path, 'A')
+                _preview_line = _preview_line.replace(d_path, 'B')
+
                 preview_text.insert(tk.END, _preview_line + '\n')
+                preview_text.tag_add(
+                    _preview_line[0], f'{index+5}.0', f'{index+5}.1')
+                dst_pth0 = len(_preview_line.split('  →  ')[0])+5
+                preview_text.tag_add(
+                    _preview_line[dst_pth0], f'{index+5}.{dst_pth0}', f'{index+5}.{dst_pth0+1}')
         else:
             assert False, "No Such Mode"
         preview_text.insert(tk.END, '\n')
@@ -382,9 +391,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             if pre_cs.get() == self.mode:
                 self.keep_preview = True
             pre_cs.set(self.mode)
-            blank_c0.grid(row=124, column=0, ipadx=67, pady=4,
+            blank_c0.grid(row=13, column=0, ipadx=67, pady=4,
                           padx=0, sticky='E')  # This is a Placeholder
-            blank_c1.grid(row=124, column=1, padx=321,
+            blank_c1.grid(row=11, column=1, padx=321,
                           pady=4, sticky='W')  # So do this
             label_choose_state.grid(row=1, column=0, pady=4, sticky='E')
             option_is_cleanfile.grid(
@@ -403,6 +412,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                              pady=4, padx=10, sticky='W')
             continue_button.grid(row=13, column=1, ipadx=100,
                                  pady=4, padx=10, sticky='E')
+            preview_text.grid(row=11, column=1, padx=10,
+                              pady=5, ipadx=129, sticky='NSEW')
+            preview_xscrollbar.grid(
+                row=11, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
+            preview_yscrollbar.grid(
+                row=11, column=1, padx=10, pady=5, sticky='ESN')
             # continue_button.config(state=tk.DISABLED)
             if self.mode == 'cf':
                 self.cf_state()
@@ -411,16 +426,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         @staticmethod
         def put_preview():
-            preview_text.grid(row=11, column=1, padx=10,
-                              pady=5, ipadx=129, ipady=40, sticky='NSEW')
-            preview_xscrollbar.grid(
-                row=11, column=1, padx=10, pady=5, ipadx=288, sticky='WS')
-            preview_yscrollbar.grid(
-                row=11, column=1, padx=10, pady=5, ipady=50, sticky='EN')
             preview_placed.set(True)
             root.update()
-            root.geometry(f'800x{root.winfo_height()+180}')
-            root.resizable(False, False)
+            root.geometry(f'800x{min(root.winfo_height()+180, 600)}')
 
         @staticmethod
         def unfold_adv(booleanvar: BooleanVar, unfold_method: Callable, stay=False):
@@ -463,6 +471,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_option_mode_2.grid(
                     row=9, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
                 root.geometry(f'800x{340+preview_height}')
+                root.minsize(800, 340+preview_height)
             else:
                 cf_label_src_path.grid_forget()
                 cf_entry_src_path.grid_forget()
@@ -477,6 +486,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_option_mode_2.grid_forget()
                 cf_entry_time.grid_forget()
                 root.geometry(f'800x{180+preview_height}')
+                root.minsize(800, 180+preview_height)
 
         @staticmethod
         def sf_unfold_adv(state, preview_height):
@@ -492,6 +502,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_browse_lockfile_button.grid(
                     row=7, column=1, padx=10, sticky='E', ipadx=3)
                 root.geometry(f'800x{315+preview_height}')
+                root.minsize(800, 315+preview_height)
             else:
                 sf_label_lock_folder.grid_forget()
                 sf_entry_lock_folder.grid_forget()
@@ -500,6 +511,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_entry_lock_file.grid_forget()
                 sf_browse_lockfile_button.grid_forget()
                 root.geometry(f'800x{250+preview_height}')
+                root.minsize(800, 250+preview_height)
 
         @staticmethod
         def sf_change_place_mode(mode):
@@ -658,6 +670,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root.withdraw()
     root.resizable(False, True)
     root.geometry("800x180")
+    root.minsize(800, 180)
     root.iconbitmap(MF_ICON_PATH)
     root.title('Movefile Setting')
     root.attributes('-topmost', True)
@@ -823,6 +836,14 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     preview_xscrollbar = tk.Scrollbar(orient='horizontal')
     preview_text.config(xscrollcommand=preview_xscrollbar.set)
     preview_xscrollbar.config(command=preview_text.xview)
+
+    preview_text.tag_config('purple', foreground='purple')
+    preview_text.tag_config('green', foreground='green')
+    preview_text.tag_config('A', foreground='red')
+    preview_text.tag_config('B', foreground='blue')
+    preview_text.tag_config('underline', underline=True)
+    preview_text.tag_config(
+        'underline_green', underline=True, foreground='green')
 
     preview_placed = tk.BooleanVar()
 
@@ -1614,8 +1635,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         task_menu.stop()
 
     # 创建按键
-    blank_c0 = ttk.Label(root)  # Placeholder
-    blank_c1 = ttk.Label(root)
+    blank_c0 = ttk.Frame(root)  # Placeholder
+    blank_c1 = ttk.Frame(root)
     save_button = ttk.Button(
         root, textvariable=save_button_text, command=lambda: ask_save_name())
     continue_button = ttk.Button(
@@ -1721,6 +1742,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             Place('cf')
             pre_cs.set('cf')
 
+    set_preview(content=LT_Dic.r_label_text_dic['default_preview'][lang_num])
     butt_icon = Thread(target=lambda: task_menu.run(), daemon=True)
     butt_icon.start()
     background_detect = Thread(
