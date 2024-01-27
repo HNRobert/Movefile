@@ -1,22 +1,23 @@
 
 
 import configparser
-from threading import Thread
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from filecmp import dircmp
 from pathlib import Path
 from shutil import Error as shutil_Error
-from shutil import copy2 as shutil_copy2, copytree as shutil_copytree
+from shutil import copy2 as shutil_copy2
+from shutil import copytree as shutil_copytree
 from threading import Thread
-from win32api import GetVolumeInformation
-
 
 import LT_Dic
-from Movefile import gvar
 from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
-from mf_mods import language_num, mf_log, mf_toaster, get_removable_disks, remove_last_edit
+from mf_mods import (get_removable_disks, language_num, mf_log, mf_toaster,
+                     remove_last_edit)
+from win32api import GetVolumeInformation
+
+from Movefile import gvar
 
 
 def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_saving_details):
@@ -44,16 +45,23 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         :param folderB_path: The path to the second folder that you want to compare
         """
 
-        def add_only_data(index, data_list, src_base, tar_base):
-            if tar_base in lock_folder:
+        def add_only_data(index, data_list, src_base: str, tar_base: str):
+            if any(tar_base.startswith(p_folder) for p_folder in lock_folders):
                 return
+            if src_base.endswith(':'):
+                src_base += '\\'
+            if tar_base.endswith(':'):
+                tar_base += '\\'
             for item in data_list:
                 idx = 0
                 src_path, tar_path = os.path.join(
                     src_base, item), os.path.join(tar_base, item)
-                if os.path.isdir(src_path):
+                item_is_folder = os.path.isdir(src_path)
+                if item_is_folder and any(tar_path.startswith(p_folder) for p_folder in lock_folders):
+                    continue
+                elif item_is_folder:
                     idx = 2
-                elif tar_path in lock_file:  # file in lockfile
+                elif tar_path in lock_files:  # file in lockfile
                     continue
                 diff_data[index+idx].append([src_path, tar_path])
                 _bar_root.set_label1(
@@ -61,6 +69,8 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
 
         # [diff_files, left_only_files, right_only_files, left_only_folders, right_only_folders]
         diff_data = [[], [], [], [], []]
+        if not os.path.isdir(folderA) or not os.path.isdir(folderB):
+            return diff_data
         cmp_data = dircmp(folderA, folderB, ignore=[])
         for dfile in cmp_data.diff_files:
             diff_data[0].append(
@@ -99,7 +109,7 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
                 if single_sync:
                     return None
                 itemA, itemB = itemB, itemA
-            if any(itemB.startswith(p_folder) for p_folder in lock_folder) or itemB in lock_file:
+            if any(itemB.startswith(p_folder) for p_folder in lock_folders) or itemB in lock_files:
                 return None
             _bar_root.set_label1(
                 LT_Dic.sfdic['main_progress_label'][language_number] + itemA.split('\\')[-1])
@@ -119,18 +129,20 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
                 sync_tasks[1].append(b_only_file)
 
         for diff_file in diff_item_data[0]:
-            sync_tasks[1].append(judged_task(diff_file))
+            sync_tasks[1].append(judged_task(*diff_file))
         for i in range(2):
             sync_tasks[i] = list(filter(None, sync_tasks[i]))
         return sync_tasks
 
-    def synchronize_files(baroot: MFProgressBar, task, is_folder=False):
+    def synchronize_files(baroot: MFProgressBar, is_folder=False, *task):
         """
         The function `synchronize_files` takes two parameters, `baroot` and `task`, and does some kind of file synchronization operation.
 
         :param baroot: The `baroot` parameter is a string that represents the root directory of the source files. It is the directory from which the files will be synchronized
         :param task: The `task` parameter is a string that represents the specific task or operation that needs to be performed on the files
         """
+        if baroot.stop_running_flag:
+            return
         baroot.set_label2(
             LT_Dic.sfdic["current_file_label1"][language_number] + task[0].split('\\')[-1])
         source_file_path, dest_file_path = task
@@ -157,7 +169,7 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
             nonlocal sf_error_name
             with ThreadPoolExecutor() as executor:
                 futures = [executor.submit(
-                    synchronize_files, _baroot, _task, _is_folder) for _task in _tasks]
+                    synchronize_files, _baroot, _is_folder, *_task) for _task in _tasks]
 
                 for future in as_completed(futures):
                     result = future.result()
@@ -165,7 +177,7 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
                         sf_error_name += result + ' , '
 
                     _baroot.set_label1(
-                        f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(_baroot.main_progress_bar["value"])}/{str(task_len)}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}', add_value=True)
+                        f'{LT_Dic.sfdic["main_progress_label1"][language_number][0]}{str(_baroot.get_value())}/{str(task_len)}  {LT_Dic.sfdic["main_progress_label1"][language_number][1]}', add_value=True)
 
         sf_error_name = ''
         folder_tasks, file_tasks = tasks[0], tasks[1]
@@ -184,15 +196,23 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
                 path_name_1 = GetVolumeInformation(path1)[0]
             sf_show_notice(path_name_1, path2.split(
                 '\\')[-1], sf_error_name, language_number=language_number)
+        if folder_tasks or file_tasks:
+            _result = ''
+            for _item in folder_tasks + file_tasks:
+                _result += _item[0] + ' -> ' + _item[1] + '\n'
+            mf_log('\nSynced items:\n' + _result)
+
         baroot.destroy_root()
 
     path1 = sf_saving_details['path_1']
     path2 = sf_saving_details['path_2']
     single_sync = sf_saving_details['single_sync']
-    lock_folder = sf_saving_details['lock_folder']
-    lock_file = sf_saving_details['lock_file']
-    lock_folder = list(filter(None, lock_folder))
-    lock_file = list(filter(None, lock_file))
+    lock_folders: list = sf_saving_details['lock_folder']
+    lock_folders += [path1+'\\System Volume Information',
+                    path2+'\\System Volume Information']
+    lock_files = sf_saving_details['lock_file']
+    lock_folders = list(filter(None, lock_folders))
+    lock_files = list(filter(None, lock_files))
 
     if path1[-1] != ':' and not os.path.exists(path1):
         os.makedirs(path1)
@@ -214,8 +234,8 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         run_tasks = Thread(
             target=lambda: run_sync_tasks(sync_bar_root, sf_tasks), daemon=True)
         run_tasks.start()
-        while not sync_bar_root.stop_running:
-            time.sleep(0.5)
+        while not sync_bar_root.stop_running_flag:
+            time.sleep(0.02)
     sync_bar_root.progress_root_destruction()
     return sf_tasks  # [folder_task, file_task]
 
@@ -224,6 +244,11 @@ def sf_show_config_error(config_name, language_number):
     sf_notice_title = LT_Dic.sfdic["err_title_p1"][language_number]
     sf_notice_content = LT_Dic.sfdic["err_title_p2_1"][language_number] + config_name + \
         LT_Dic.sfdic["err_title_p2_2"][language_number]
+    mf_toaster.show_toast(sf_notice_title,
+                          sf_notice_content,
+                          icon_path=MF_ICON_PATH,
+                          duration=10,
+                          threaded=False)
     mf_log("\n" + sf_notice_title + "\n" + sf_notice_content)
 
 
@@ -243,7 +268,7 @@ def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movabl
                           duration=10,
                           threaded=False)
 
-    if len(sf_error_name) > 0:
+    if len(sf_error_name):
         sf_error_title = LT_Dic.sfdic["errtitle"][language_number]
         sf_error_content = sf_error_name + \
             LT_Dic.sfdic['can_not_move_notice'][language_number]
@@ -267,9 +292,9 @@ def sf_autorun_operation(master, place, mv_saving_name: str = ''):
     will default to `None`
     """
     sf_file = configparser.ConfigParser()
-    sf_file.read(SF_CONFIG_PATH)
+    sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
     mf_file = configparser.ConfigParser()
-    mf_file.read(MF_CONFIG_PATH)
+    mf_file.read(MF_CONFIG_PATH, encoding='utf-8')
 
     def autorun_movable_sf(save: str):
         lang_num = language_num(mf_file.get('General', 'language'))
@@ -314,7 +339,7 @@ def all_files_in(item_dir: str, folderA_path, folderB_path):
 
 def get_sf_savings_with(*wants, **conditions):
     sf_dat = configparser.ConfigParser()
-    sf_dat.read(SF_CONFIG_PATH)
+    sf_dat.read(SF_CONFIG_PATH, encoding='utf-8')
     target_savings = []  # [volume id, saving_name, direct_sync]
     for saving in sf_dat.sections():
         if not _fixed_sf_config(sf_dat, saving):
@@ -345,6 +370,11 @@ def get_real_time_infos():
     conditions = {'real_time': 'True'}
     return get_sf_savings_with(*wants, **conditions)
 
+def get_removable_real_time_infos():
+    wants = ['disk_number']
+    conditions = {'real_time': 'True', 'place_mode': 'movable'}
+    return get_sf_savings_with(*wants, **conditions)
+
 
 def _fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str):
     if not saving_name:
@@ -368,13 +398,13 @@ def _fixed_sf_config(sf_config_file: configparser.ConfigParser, saving_name: str
             sf_config_file.set(saving_name, option, value)
             flag = True
     if flag:
-        sf_config_file.write(open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
+        sf_config_file.write(open(SF_CONFIG_PATH, 'w+', encoding='utf-8'))
     return True
 
 
 def sf_read_config(saving_name):
     sf_file = configparser.ConfigParser()
-    sf_file.read(SF_CONFIG_PATH)
+    sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
     if not _fixed_sf_config(sf_file, saving_name):
         return False
     sf_options = {}
@@ -384,6 +414,8 @@ def sf_read_config(saving_name):
     else:
         sf_disk_data = get_removable_disks(
             sf_file.get(saving_name, 'disk_number'))
+        if not sf_disk_data:
+            return {}
         sf_options['path_1'] = sf_disk_data[1]
         sf_options['disk_show_data'] = sf_disk_data[0]
     sf_options['path_2'] = sf_file.get(saving_name, 'path_2')
@@ -403,11 +435,11 @@ def sf_read_config(saving_name):
 def sf_save_config(save_name, **configs):
     if not os.path.exists(SF_CONFIG_PATH):
         file = open(SF_CONFIG_PATH,
-                    'w', encoding='ANSI')
+                    'w', encoding='utf-8')
         file.close()
     remove_last_edit(SF_CONFIG_PATH)
     sf_file = configparser.ConfigParser()
-    sf_file.read(SF_CONFIG_PATH)
+    sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
     if not sf_file.has_section(str(save_name)):
         sf_file.add_section(str(save_name))
     sf_file.set(save_name, '_last_edit_', 'True')
@@ -419,7 +451,7 @@ def sf_save_config(save_name, **configs):
     else:
         sf_file.set(save_name, 'path_1', '')
         sf_file.set(save_name, 'disk_number',
-                    str(GetVolumeInformation(configs['path_1'].split(':')[0][-1] + ':')[1]))
+                    str(GetVolumeInformation(configs['disk_show_data'].split(':')[0][-1] + ':')[1]))
         sf_file.set(save_name, 'direct_sync', str(configs['direct_sync']))
     sf_file.set(save_name, 'path_2', configs['path_2'])
     sf_file.set(save_name, 'mode', configs['mode'])
@@ -428,7 +460,7 @@ def sf_save_config(save_name, **configs):
     sf_file.set(save_name, 'autorun', str(configs['autorun']))
     sf_file.set(save_name, 'real_time', str(configs['real_time']))
     sf_file.write(
-        open(SF_CONFIG_PATH, 'w+', encoding='ANSI'))
+        open(SF_CONFIG_PATH, 'w+', encoding='utf-8'))
 
 
 def run_sf_real_time(master, lang_num):
@@ -442,34 +474,55 @@ def run_sf_real_time(master, lang_num):
             return
         sf_options = sf_read_config(setting_name)
         if not sf_options:
-            sf_show_config_error(setting_name, lang_num)  # show notice
+            print("Removable Volume Not Found")
             return
+        gvar.set('sf_real_time_running', True)
         while not gvar.get('program_finished') and keep_running:
+            s_time = time.time()
             print(setting_name + ' Running (real time)')
-            sf_sync_dir(master, lang_num, False, True, **sf_options)
-            time.sleep(3)
+            if not os.path.isdir(sf_options['path_1']) or not os.path.isdir(sf_options['path_2']):
+                print('Path Not Found')
+                break
+            _result = sf_sync_dir(master, lang_num, False, True, **sf_options)
+            if _result[0] + _result[1]:  # contents moved
+                time.sleep(3)
+                continue
+            space_time = max(3, (time.time()-s_time)**0.5*20)  # that makes sense, for longer scanning time means more cpu usage
+            print(f'{setting_name} costed {time.time()-s_time} to check')
+            print(f'{setting_name} will check again after: {space_time}')
+            time.sleep(space_time)
         running_process[setting_name] = False
 
     def add_process(proc_info_list: list):
+        """
+        The function adds processes to a running process list and starts a thread for each process.
+        
+        :param proc_info_list: The `proc_info_list` parameter is a list of process information. Each
+        element in the list is a list itself, containing information about a specific process. The
+        information includes the setting's name (setting_info[0]) and other details that are not specified
+        in the code snippet
+        :type proc_info_list: list
+        """
         for setting_info in proc_info_list:  # add process
             running_process[setting_info[0]] = True
             Thread(target=sf_real_time_precess,
                    args=(setting_info[0],)).start()
 
-    keep_running = True
-    running_process = {}
+    keep_running = True  # a global flag for all the real-time syncing threads that determines shall they keep scanning or end
+    running_process = {}  # a dictionary for the real-time syncing threads that shows if they are running
 
     while not gvar.get('program_finished'):
-        if not gvar.get("sf_config_changed"):
+        if not gvar.get("sf_config_changed"):  # While the config isn't changed, there's no need to scan it again
             time.sleep(2)
             continue
-        gvar.set("sf_config_changed", False)
+        gvar.set("sf_config_changed", False)  # refresh
 
         keep_running = False
-        while any(running_process.values()):
+        while any(running_process.values()):  # wait for all the real-time syncing threads to end
             time.sleep(1)
+        gvar.set('sf_real_time_running', False)
         keep_running = True
 
-        add_process(get_real_time_infos())
+        add_process(get_real_time_infos())  # add real-time syncing threads
 
         time.sleep(2)

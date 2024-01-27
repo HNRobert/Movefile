@@ -1,5 +1,5 @@
-vision = 'v2.4.0'
-update_time = '2024/1/10'
+vision = 'v3.0.0'
+update_time = '2024/1/28'
 r_label_text_dic = {
 
     # Menu options
@@ -58,9 +58,9 @@ r_label_text_dic = {
     'sf_option_mode_local': ['本地文件夹间同步', 'Between Local Folders'],
     'sf_option_mode_single': ['单向同步（仅从A向B同步）', 'Unidirectional Sync (A to B Only)'],
     'sf_option_mode_double': ['双向同步（皆保留最新版本）', 'Bidirectional Sync (Two way)'],
-    'sf_label_path_1': [['选择可移动磁盘：', '文件夹路径-A：'], ['Removable Volume：', 'Folder Path-A：']],
-    'sf_label_path_2': [['本地文件夹路径：', '文件夹路径-B：'], ['Local Path：', 'Folder Path-B：']],
-    'sf_no_disk': ['未检测到可移动磁盘', 'No removable disk detected'],
+    'sf_label_path_1': [['选择可移动磁盘：', '源文件夹：'], ['Removable Volume：', 'Source Folder：']],
+    'sf_label_path_2': [['本地文件夹：', '目标文件夹：'], ['Local Path：', 'Target Folder：']],
+    'sf_no_disk': ['未检测到可移动磁盘', 'No removable volume detected'],
     'sf_browse_path_1_button': ['浏览', 'Browse'],
     'sf_browse_path_2_button': ['浏览', 'Browse'],
     'sf_label_lock_folder': ['禁止修改文件夹：', 'Locked Folders：'],
@@ -79,10 +79,10 @@ r_label_text_dic = {
 
     # Func labels
     'preview_button': ['移动项目预览', 'Action Preview'],
-    'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click "Preview" button\nto check the settings above and view which items will be moved'],
+    'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click the "Action Preview" button above\nto check the settings above and view which items will be moved'],
     'preview_cost': ['扫描耗时：', 'Scan Cost: '],
     'preview_num_found': ['找到需要移动的项目： ', "Need-to-Move Objects' number： "],
-    'save_button': ['保存', 'Save'],
+    'save_button': ['保存当前配置', 'Save the config'],
     'continue_button': ['运行', 'Run'],
 
     # Readfile options
@@ -111,11 +111,13 @@ r_label_text_dic = {
     'request_save': ['提示：若要让该功能更好地运作，需要保存该配置，\n并设置本软件为开机自启，\n\n注：开机自启可以在菜单栏"选项"中关闭，\n也可以设定自动化运行完毕后自动退出。\n\n选择"确定"以继续', "Notice: You must save the current config\n and set Movefile to start upon startup\nto ensure the normal functioning of this autorun function\n\nTip: this feature could be disabled\n by unchecking the startup option in 'Option' Menu,\nand you can also set Movefile to quit after startup automation there\n\nClick 'OK' to continue"],
     'suggest_save': ['提示：使用此功能需要保存， \n且建议设定开机自启。\n\n选择"确定"来进行推荐设置(可选)', "Tip: You need to save the current config when using,\nand setting Movefile to start upon startup is suggested.\n\nClick 'OK' to follow the suggestions above (Optional)"],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
-    'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the software\nto make the language of some labels changed'''],
+    'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the app\nto make the language of some labels changed'''],
     'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
     'create_path_notice': ['\n选择 "是" 来创建该路径', '\nChoose "Yes" to create this path'],
     'blank': [138, 117],
-    'sure_delete': ['确认删除配置 "', 'Sure about deleting the config named "']
+    'sure_delete': ['确认删除配置 "', 'Sure about deleting the config named "'],
+    'sf_running_notice': ['提醒： 当前有实时同步进程正在运行\n如果希望其继续运行可以选"否"来隐藏本软件到后台\n(等于菜单栏上的"隐藏至后台")\n若要退出请选择"是"',
+                          "Notice： There's a real-time syncing task running.\nIf you want it to keep running, \nclick 'NO' to hide this app to backend.\nElse if you want to quit, click 'Yes'"],
 }
 
 
@@ -162,11 +164,14 @@ sfdic = {
     'current_file_label1': ['加入复制进程的文件：', 'File added into ThreadPool：'],
     'exit_sync': ['''文件正在同步中，\n确定中断同步进程并退出?''', '''Synchronization is in progress,\nAre you sure to interrupt the process and exit?'''],
     'can_not_move_notice': ["""\n无法被同步，请在关闭文件或移除重名文件后重试""", """\nCouldn't be synchronized, Please try again after closing the file\nor removing the duplicate file """],
-    'new_disk_detected': [['检测到可移动磁盘 "', '" 接入,\n', '确定按配置 "', '" 进行同步?'], ['Removable partition "', '" detected,\n', 'Synchronize as config "', '" ?']]
+    'new_disk_detected': [['检测到可移动磁盘 "', '" 接入,\n', '确定按配置 "', '" 进行同步?'], ['Removable partition "', '" detected,\n', 'Synchronize as config "', '" ?']],
+
 }
 
 progress_root_label_dic = {
-    'confirm_exit_text': ['''文件正在复制中，\n确定中断进程并退出?''', '''The file is currently being copied,\nAre you sure to interrupt the process and exit?''']
+    'confirm_exit_text': ['''文件正在移动中，\n确定中断进程并退出?''', '''The file is currently being moved,\nAre you sure to interrupt the process and exit?'''],
+    'stopping_label': ['正在结束...', 'Quitting...'],
+    'waiting_label': ['请等待片刻...', 'Please wait for a while...'],
 }
 
 help_main_text = ["""关于
@@ -187,17 +192,17 @@ help_main_text = ["""关于
 地址：
 
 本窗口将不再自动弹出""", """About
-Software name： Movefile
+App name： Movefile
 Vision： """ + vision + """               Update time： """ + update_time + """
 
 Function overview:
 This program can have files in a folder that meet the given requirements transferred to another folder or synchronize with another folder, Enabling you to organize documents easily
 
-If you have any doubts about the function of this software, you can check the "Help" option in the menu bar
-All operations performed by this software will be recorded in Roaming/Movefile/Movefile.log
+If you have any doubts about the function of this app, you can check the "Help" option in the menu bar
+All operations performed by this app will be recorded in Roaming/Movefile/Movefile.log
 
 Author: Robert He
-If you have any suggestions for improvement of this software, please contact the author.
+If you have any suggestions for improvement of this app, please contact the author.
 If the comments are adopted, changes will be made in the new version.
 
 If there is any function abnormality, please visit Github first to check whether there is a new version, or read other precautions and operating mechanism instructions in Github.
@@ -206,31 +211,31 @@ Address:
 This notice won't be shown automatically anymore"""]
 
 help_before_use_text = ["""使用前特别注意事项
-1.本软件必须在64位操作系统下运行，
+1.本软件必须在64位Windows10及以上操作系统下运行
 2.本exe文件的名称请不要改变："Movefile.exe"，否则会影响开机自启功能
 3.使用本软件前请打开Windows设置中的 系统/通知和操作/通知/获取来自应用和其他发送者的通知 选项，否则会影响操作结果通知功能
 5.如果经过版本更新后软件无法运行，可以尝试删除位于Roaming文件夹中的配置文件
 6.若有其他原因导致软件功能无法正常运行，且无法按上面的解释修复，可以访问 Github 官方网站: 
   或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use
-1.This software must be run under a 64-bit operating system.
+1.This app must be run under a 64-bit Windows 10 or above operating system.
 2.Please do not change the name of this exe file："Movefile.exe", otherwise the startup function will be affected.
 3.Please check the option in Windows Setting: System/Notifications/Notifications/Get notifications from apps and other senders, otherwise the operation result notifying function would be affected
-5.If the software cannot run after updating the new version, you can try to delete the profile located in the Roaming folder
-6.If the software fails to run normally due to other reasons, and also can't be fixed as explained above, you can visit our Github website: 
+5.If the app can't run after updating the new version, you can try to delete the profile located in the Roaming folder
+6.If the app fails to run normally due to other reasons, and also can't be fixed as explained above, you can visit our Github website: 
    Or contact the author directly (QQ: 2567466856), I'll try to repair it for you as soon as possible"""]
 
 cf_help_text = ["""Clean Desktop：清理文件工具
 这是一个用来整理文件夹（尤其是桌面）的程序，
-也是Movefile推出的第一个程序块
-包含选取保留文件，保留文件类型
-设定是否移动文件夹，
+
+包含设定是否移动文件夹与快捷方式，
+选取强制保留文件，按文件类型强制保留，
 设定过期时间以及判断方式
 开机自动运行存档等功能""", """Clean Desktop
 Clean-up tool for files
-This is a program used to organize folders (especially the desktop),
-It is also the first program block launched by Movefile
-Include selecting reserved files and reserved files' format,
-Set whether to move the folder,
+This is a useful program to organize folders (especially the desktop),
+
+Include setting whether to move the folders and shortcuts,
+Selecting reserved files and reserved files' format,
 Set expiration time and judgment method
 Start up and automatically run archiving and other functions
 """]
@@ -241,14 +246,14 @@ cf_help_keep_text = ["""保留项目/文件格式选择功能详解
 
 保留文件格式选择：
 某种格式类型的文件都不会被转移
-比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移""", """Preserve item
+比如选中'.exe'，即表示原文件夹中所有exe应用程序不会被转移""", """Preserve item
 Keep item selection:
 The selected items will not be transferred
 
 Keep file format selection:
 Files of a certain format type will not be transferred 
-For example, selecting '. lnk' means that
-all shortcuts in the original folder will not be transferred"""]
+For example, selecting '.exe' means that
+all executable files in the original folder will not be transferred"""]
 
 cf_help_timeset_text = ["""过期时间功能详解
 本软件可以获取文件的最后修改、访问时间
@@ -256,7 +261,7 @@ cf_help_timeset_text = ["""过期时间功能详解
 例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
 则运行日期前两天内修改过的文件不会被删除
 如果不想用此方法，则过期时间设为"0"即可""", '''Expiration time setting
-The software can obtain the latest modification and access time of the file
+The app can obtain the latest modification and access time of the file
 
 You can reserve files that have been modified/accessed for a certain period of time.
 
@@ -273,7 +278,7 @@ sf_help_text = ['''Syncfile：文件同步工具
 
 包括 可移动磁盘与本地磁盘 和 本地磁盘间同步 两种模式选择，
 选择单向与双向同步模式，保留最新更改文件
-开机自动运行存档
+开机自动运行存档， 实时同步， 
 自动检测选定的可移动磁盘接入并自动同步等功能''', '''Syncfile
 Synchronize tool for Files
 This is a program used to synchronize files in two paths,
@@ -282,7 +287,8 @@ You can also synchronize USB flash disk data with the computer
 It includes two modes of synchronization: 
 sync between a removable disk and a local disk, or between local disks,
 also select one-way or two-way synchronization mode, 
-auto run archive after startup, keep the latest changed files,
+Automatically run archive after startup, keep the latest changed files,
+Real-time synchronization, 
 Automatically detect the access of recorded removable disks 
 and automatically synchronize them
 and so on''']
@@ -304,7 +310,7 @@ To prevent the same volume from being assigned different volume labels when acce
 the way to determine whether it is the same volume 
 is to obtain the volume IDs and compare them with saved data.
 
-After opening the software, it will obtain the access status 
+After starting the app, it will obtain the access status 
 of removable volumes on the current device in real-time
 If a newly accessed volume is found in the archive
 and the automatic run option is selected,

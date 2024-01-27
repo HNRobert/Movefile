@@ -142,7 +142,7 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
         run_cf_thread = Thread(target=lambda: run_cleanfile(
             clean_bar_root, cf_tasks), daemon=True)
         run_cf_thread.start()
-        while not clean_bar_root.stop_running:
+        while not clean_bar_root.stop_running_flag:
             time.sleep(0.5)
     clean_bar_root.progress_root_destruction()
     clean_bar_root_task.join()

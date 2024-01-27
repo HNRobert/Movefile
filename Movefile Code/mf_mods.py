@@ -3,12 +3,12 @@ import configparser
 import logging
 import os
 import sys
-from threading import Thread
 import time
 import tkinter.messagebox
 from base64 import b64decode
 from ctypes import windll
 from datetime import datetime
+from threading import Thread
 
 import LT_Dic
 import mf_icon as icon
@@ -17,6 +17,7 @@ from mf_const import (CF_CONFIG_PATH, CF_DATA_PATH, DESKTOP_PATH,
                       ROAMING_PATH, SF_CONFIG_PATH, SF_DATA_PATH, STARTUP_PATH)
 from mttkinter.mtTkinter import Tk
 from psutil import disk_partitions
+from pythoncom import CoInitialize
 from win10toast_edited import ToastNotifier
 from win32api import GetVolumeInformation
 from win32com.client import Dispatch
@@ -69,7 +70,7 @@ class Initialization:
         self.check_data_path()
 
         self.mf_data = configparser.ConfigParser()
-        self.mf_data.read(MF_CONFIG_PATH)
+        self.mf_data.read(MF_CONFIG_PATH, encoding='utf-8')
 
         # self.log_file_path = os.path.join(MF_DATA_PATH, r'Movefile.log')
         self.set_log_writer()
@@ -155,7 +156,7 @@ class Initialization:
             self.mf_data.set('General', 'autorun', 'False')
 
         self.mf_data.write(
-            open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
+            open(MF_CONFIG_PATH, "w+", encoding='utf-8'))
 
     def load_icon(self):
         self.mf_ico = open(MF_ICON_PATH, 'wb')
@@ -163,18 +164,18 @@ class Initialization:
         self.mf_ico.close()
 
     def set_log_writer(self):
-        logfile = open(MF_LOG_PATH, 'r')
+        logfile = open(MF_LOG_PATH, 'r', encoding='utf-8')
         data = logfile.readlines()
-        if len(data)>500:
-            data=data[-500:]
+        if len(data) > 500:
+            data = data[-500:]
             logfile.close()
-            logfile = open(MF_LOG_PATH, 'w')
+            logfile = open(MF_LOG_PATH, 'w', encoding='utf-8')
             logfile.writelines(data)
         logfile.close()
         formatter = "[%(asctime)s] - [%(levelname)s]: %(message)s"
         logging.basicConfig(level=logging.INFO,
-                            filename=MF_LOG_PATH,
-                            filemode='a+',
+                            handlers=[logging.FileHandler(
+                                MF_LOG_PATH, 'a+', 'utf-8')],
                             format=formatter)
 
 
@@ -195,7 +196,7 @@ def set_startup(state=True, lang_n=0):
     shortcut_path = os.path.join(STARTUP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(MF_CONFIG_PATH)
+    gen_cf.read(MF_CONFIG_PATH, encoding='utf-8')
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -209,7 +210,7 @@ def set_startup(state=True, lang_n=0):
     else:
         gen_cf.set('General', 'autorun', 'False')
     gen_cf.write(
-        open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
+        open(MF_CONFIG_PATH, "w+", encoding='utf-8'))
 
 
 def put_desktop_shortcut(state=True, lang_n=0):
@@ -224,7 +225,7 @@ def put_desktop_shortcut(state=True, lang_n=0):
     shortcut_path = os.path.join(DESKTOP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
     gen_cf = configparser.ConfigParser()
-    gen_cf.read(MF_CONFIG_PATH)
+    gen_cf.read(MF_CONFIG_PATH, encoding='utf-8')
     if os.path.exists(shortcut_path):
         os.remove(shortcut_path)
     if state:
@@ -237,7 +238,7 @@ def put_desktop_shortcut(state=True, lang_n=0):
     else:
         gen_cf.set('General', 'desktop_shortcut', 'False')
     gen_cf.write(
-        open(MF_CONFIG_PATH, "w+", encoding='ANSI'))
+        open(MF_CONFIG_PATH, "w+", encoding='utf-8'))
 
 
 def set_auto_quit(state=True):
@@ -248,7 +249,7 @@ def set_auto_quit(state=True):
     """
 
     ca_cf = configparser.ConfigParser()
-    ca_cf.read(MF_CONFIG_PATH)
+    ca_cf.read(MF_CONFIG_PATH, encoding='utf-8')
     ca_cf.set('General', 'quit_after_autorun', str(state))
     mf_log(f"Set quit-after-autorun to {state}")
 
@@ -271,7 +272,7 @@ def language_num(language_name):
 
 def remove_last_edit(config_file_path):
     mode_data = configparser.ConfigParser()
-    mode_data.read(config_file_path)
+    mode_data.read(config_file_path, encoding='utf-8')
     if not mode_data.sections():  # 更改上次修改项
         return
     for save_name in mode_data.sections():
@@ -281,7 +282,7 @@ def remove_last_edit(config_file_path):
             mf_log(f'remove_last_edit error: {save_name}')
         finally:
             mode_data.write(
-                open(config_file_path, 'w+', encoding='ANSI'))
+                open(config_file_path, 'w+', encoding='utf-8'))
 
 
 def list_saving_data():
@@ -296,10 +297,10 @@ def list_saving_data():
             return savings[0]
 
     cf_file = configparser.ConfigParser()
-    cf_file.read(CF_CONFIG_PATH)
+    cf_file.read(CF_CONFIG_PATH, encoding='utf-8')
     cf_save_names = cf_file.sections()
     sf_file = configparser.ConfigParser()
-    sf_file.read(SF_CONFIG_PATH)
+    sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
     sf_save_names = sf_file.sections()
 
     cf_latest_saving = get_last_edit_in(cf_file, cf_save_names)
@@ -332,7 +333,7 @@ def get_removable_disks(s_uuid=None):
             seria_data = GetVolumeInformation(pf)
             volume_name = seria_data[0]
             volume_id = seria_data[1]
-            fso = Dispatch("Scripting.FileSystemObject")
+            fso = Dispatch("Scripting.FileSystemObject", CoInitialize())
             drv = fso.GetDrive(pf)
             total_space = drv.TotalSize / 2 ** 30
             show_name = volume_name + \
@@ -385,7 +386,8 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
         The function "ask_sync_disk" is used to prompt the user to input whether they want to
         synchronize their disk.
         """
-    from syncfile import sf_autorun_operation, get_movable_autorun_infos
+    from syncfile import (get_movable_autorun_infos,
+                          get_removable_real_time_infos, sf_autorun_operation)
     for autorun_info in get_movable_autorun_infos():
         msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
         msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_info[0]}{msg_ps[3]}'
@@ -393,6 +395,10 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
                                                                                                                      message=msg_content)):
             Thread(target=sf_autorun_operation(master_root,
                    'movable', autorun_info[0]), daemon=True).start()
+    for real_time_info in get_removable_real_time_infos():  # [saving_name, uuid]
+        if str(new_area_data[2]) == real_time_info[1]:
+            gvar.set('sf_config_changed', True)
+            break
 
 
 def scan_items(folder_path):  # 扫描路径下所有文件夹
