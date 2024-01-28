@@ -91,6 +91,7 @@ r_label_text_dic = {
     'read_mode_entry_s': [['清理桌面(Clean Desktop)', 'Cleanfile'], ['同步文件(Syncfile)', 'Syncfile']],
     'del_save_button': ['删除存档', 'Delete'],
     'sure_name_bottom': ['读取存档', 'Read'],
+    'sf_disk_not_found': ['请插入该存档指定的可移动磁盘来将其读取', 'Please insert the specified removable disk for this archive to read it'],
 
     # Savefile options
     'ask_name_window': ['设置配置存档名称', "Set Config's Name"],
@@ -108,7 +109,7 @@ r_label_text_dic = {
     'in_path_warning': ['警告：两个待同步的文件夹不能为包含关系！', '''Warning：Two folders to be synchronized \ncannot have a containing relationship！'''],
     'in_disk_path_warning': ['警告：不能将一个分区与位于该分区内的文件夹同步！', '''Warning：Cannot synchronize a partition \nwith a folder located within that partition！'''],
     'ini_error': ['''错误：配置信息有误\n请尽量不要手动更改配置文件''', """Error：Config invalid, \nplease don't edit the config file directly"""],
-    'request_save': ['提示：若要让该功能更好地运作，需要保存该配置，\n并设置本软件为开机自启，\n\n注：开机自启可以在菜单栏"选项"中关闭，\n也可以设定自动化运行完毕后自动退出。\n\n选择"确定"以继续', "Notice: You must save the current config\n and set Movefile to start upon startup\nto ensure the normal functioning of this autorun function\n\nTip: this feature could be disabled\n by unchecking the startup option in 'Option' Menu,\nand you can also set Movefile to quit after startup automation there\n\nClick 'OK' to continue"],
+    'request_save': ['提示：若要让该功能更好地运作，需要保存该配置，\n并设置本软件为开机自启，\n\n注：开机自启可以在菜单栏"选项"中关闭，\n也可以设定自动化运行完毕后自动退出。\n\n选择"确定"以继续', "Notice: You must save the current config\n and set Movefile to start upon startup\nto ensure the normal functioning of this autorun function\n\nTip: this feature could be disabled\n by unchecking the startup option in 'Option' Menu,\nand you can also set Movefile to quit after running startup automation there\n\nClick 'OK' to continue"],
     'suggest_save': ['提示：使用此功能需要保存， \n且建议设定开机自启。\n\n选择"确定"来进行推荐设置(可选)', "Tip: You need to save the current config when using,\nand setting Movefile to start upon startup is suggested.\n\nClick 'OK' to follow the suggestions above (Optional)"],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the app\nto make the language of some labels changed'''],

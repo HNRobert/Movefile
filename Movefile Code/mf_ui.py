@@ -165,6 +165,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             if blank_entry:
                 sf_entry_select_removable.delete(0, 'end')
 
+    def sf_check_empty_value():
+        if sf_entry_select_removable.get() == sf_no_disk_text.get():
+            sf_entry_select_removable.set('')
+
     def select_path(place, ori_content):
         path_ = tkinter.filedialog.askdirectory()
         path_ = path_.replace("/", "\\")
@@ -890,6 +894,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root, values=get_removable_disks(), state='readonly')
     sf_entry_select_removable.bind(
         '<Button-1>', lambda event: sf_refresh_disk_list())
+    sf_entry_select_removable.bind('<<ComboboxSelected>>', lambda event: sf_check_empty_value())
 
     sf_label_path_2 = ttk.Label(root, textvariable=sf_label_path_2_text)
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
@@ -1193,9 +1198,31 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             ask_save_name(booleanvar)
 
     def request_saving(booleanvar: BooleanVar, set_state_func: Callable = lambda: None, must=True):
+        """
+        The function `request_saving` checks if a boolean variable is true and if certain conditions are
+        met, prompts the user to save their progress.
+        
+        :param booleanvar: The `booleanvar` parameter is a `BooleanVar` object, which is a variable that
+        can hold either `True` or `False` values. It is used to determine whether a saving action should
+        be requested or not
+        :type booleanvar: BooleanVar
+        :param set_state_func: The `set_state_func` parameter is a function that will be called to
+        update the state of the program after the saving process is completed. It is an optional
+        parameter and has a default value of `lambda: None`, which means it does nothing by default. You
+        can pass a different function to this
+        :type set_state_func: Callable
+        :param must: The `must` parameter is a boolean value that indicates whether the saving action is
+        mandatory or not. If `must` is `True`, the function will prompt the user to save the file. If
+        `must` is `False`, the function will suggest the user to save the file but not require, defaults
+        to True (optional)
+        :return: nothing.
+        """
         have_saved: bool = current_save_name.get(
         ) != LT_Dic.r_label_text_dic['current_save_name'][lang_num]
         if not booleanvar.get() or have_saved and is_startup_run.get():
+            set_state_func()
+            return
+        elif booleanvar.get() and cf_or_sf.get() == 'sf' and sf_place_mode.get() == 'movable':
             set_state_func()
             return
         if must and tkinter.messagebox.askokcancel(
@@ -1208,7 +1235,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             booleanvar.set(False)
         set_state_func()
 
-    def set_sf_autorun_state():
+    def set_sf_autorun_state():  # Obviously
         if sf_is_autorun.get():
             state_dir = tk.NORMAL
             state_real = tk.DISABLED
@@ -1221,7 +1248,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         sf_option_real_time.config(state=state_real)
         sf_option_direct_sync.config(state=state_dir)
 
-    def set_sf_real_time_state():
+    def set_sf_real_time_state():  # Same
         if sf_is_real_time.get():
             state_auto = tk.DISABLED
             sf_is_direct_sync.set(False)
@@ -1232,7 +1259,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         sf_option_autorun.config(state=state_auto)
         sf_option_direct_sync.config(state=tk.DISABLED)
 
-    def ask_save_name(booleanvar=None):
+    def ask_save_name(booleanvar=None):  # A function which Prompts users to save a config
         last_saving_data, cf_save_names, sf_save_names = list_saving_data()
         if booleanvar is None:
             booleanvar = tk.BooleanVar()
@@ -1287,7 +1314,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             tkinter.messagebox.showinfo(title=LT_Dic.r_label_text_dic['succ_save'][lang_num][0],
                                         message=LT_Dic.r_label_text_dic['succ_save'][lang_num][1])
 
-        def sure_save():
+        def sure_save():  # When clicking 'Confirm'
             ask_name_window.withdraw()
             savefile(function=cf_or_sf.get(), save_name=name_entry.get())
             log_function = 'Syncfile'
@@ -1299,8 +1326,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + name_entry.get())
             exit_asn(True)
 
-        def exit_asn(complete=False):
-            booleanvar.set(complete)
+        def exit_asn(complete=False):  # Exit the prompt window
+            booleanvar.set(complete)  # Flag that indicates if the config was successfully saved
             ask_name_window.destroy()
 
         mode = cf_or_sf.get()
@@ -1343,20 +1370,29 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                                           command=lambda: sure_save())
             sure_name_button.grid(row=0, column=2, sticky='W')
             ask_name_window.bind('<Return>', lambda event: sure_save())
-            ask_name_window.protocol('WM_DELETE_WINDOW', exit_asn)
+            ask_name_window.protocol('WM_DELETE_WINDOW', exit_asn)  # safe exit
         else:
             booleanvar.set(False)
 
     def read_saving(ask_path=False):
+        """
+        The function `read_saving` reads a Movefile config and returns its contents.
+        
+        :param ask_path: A boolean parameter that determines whether the user should be prompted to
+        enter the file path for reading the saving data. If set to True, the function will ask the user
+        for the file path. If set to False, the function will not ask for the file path and will use a
+        default file path instead, defaults to False (optional)
+        """
         sf_file = configparser.ConfigParser()
         sf_file.read(SF_CONFIG_PATH)
         new_values = []
 
-        last_data = list_saving_data()[0]
+        last_data, cf_configs, sf_configs = list_saving_data()
         cf_save_name = last_data[1]
         sf_save_name = last_data[2]
+        tried_saving_num = -1
 
-        def open_cf_saving(setting_name):
+        def open_cf_saving(setting_name):  # Obviously
             from cleanfile import fixed_cf_config
             cf_file = configparser.ConfigParser()
             cf_file.read(CF_CONFIG_PATH, encoding='utf-8')  # 获取配置文件
@@ -1373,10 +1409,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             if cf_entry_dest_path.get() != '':
                 cf_entry_dest_path.delete(0, 'end')
             cf_entry_src_path.insert(0, cf_file.get(
-                setting_name, 'old_path'))  # 旧文件夹
+                setting_name, 'old_path'))  # Source path
             cf_ori_src_path = cf_entry_src_path.get()
             cf_entry_dest_path.insert(0, cf_file.get(
-                setting_name, 'new_path'))  # 新文件夹
+                setting_name, 'new_path'))  # Dest Path
             cf_refresh_whitelist_entry()
             if cf_entry_keep_files.get() != '':
                 cf_entry_keep_files.delete(0, 'end')
@@ -1386,28 +1422,37 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_entry_time.delete(0, 'end')
             for file in cf_file.get(setting_name, 'pass_filename').split('|'):
                 if file != '':
-                    cf_entry_keep_files.append_value(file)  # 设置跳过白名单
+                    cf_entry_keep_files.append_value(file)  # Reserved Files
             for format in cf_file.get(setting_name, 'pass_format').split('|'):
                 if format != '':
-                    cf_entry_keep_formats.append_value(format)  # 设置跳过格式
+                    cf_entry_keep_formats.append_value(format)  # Reserved Formats
             cf_entry_time.insert(0, cf_file.get(
-                setting_name, 'set_hour'))  # 设置过期时间(hour)
-            cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # 设置判断模式
-            cf_is_autorun.set(cf_file.getboolean(setting_name, 'autorun'))
+                setting_name, 'set_hour'))  # Retain item for...
+            cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # Judgment criteria
+            cf_is_autorun.set(cf_file.getboolean(setting_name, 'autorun'))  # Autorun
             cf_is_folder_move.set(cf_file.getboolean(
-                setting_name, 'move_folder'))
-            cf_is_lnk_move.set(cf_file.getboolean(setting_name, 'move_lnk'))
+                setting_name, 'move_folder'))  # Move Folder
+            cf_is_lnk_move.set(cf_file.getboolean(setting_name, 'move_lnk'))  # Move Shortcuts
             MF_Placer('cf')
             cf_or_sf.set('cf')
-            current_cf_save_name.set(setting_name)
+            current_cf_save_name.set(setting_name)  # Display the name of yhe setting
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + setting_name)
-            root_info_checker.get_cf_error_state()
+            root_info_checker.get_cf_error_state()  # Check if there's any error in the config
 
-        def open_sf_saving(setting_name):
-            sf_options = sf_read_config(setting_name)
-            if not sf_options:
-                return  # show notice
+        def open_sf_saving(setting_name, try_next=False):
+            sf_options = sf_read_config(setting_name)  # sf Config reader
+            if not sf_options and ask_path:  # Config error, or disk not inserted
+                tkinter.messagebox.showwarning(title='Movefile Warning', message=LT_Dic.r_label_text_dic['sf_disk_not_found'][lang_num])
+                return False  # show notice
+            elif not sf_options and not try_next:  # 1.if the last saving is illegal:
+                for sf_saving in sf_configs:
+                    if open_sf_saving(sf_saving, True):  # 2.Set try_next to True to prevent endless reading
+                        return True
+                else:
+                    return False  # 4.that means none of the configs are legal
+            elif not sf_options:  # 3.if the following config is still not legal, then try next
+                return False
 
             if sf_entry_path_1.get() != '':
                 sf_entry_path_1.delete(0, 'end')
@@ -1428,7 +1473,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_disk_show_data = sf_options['disk_show_data']
                 for index, value in enumerate(sf_entry_select_removable['values']):
                     if sf_disk_show_data == value:
-                        sf_entry_select_removable.current(index)
+                        sf_entry_select_removable.current(index)  # select the 
                         break
                 sf_is_direct_sync.set(sf_options['direct_sync'])
             sf_entry_path_2.insert(0, sf_options['path_2'])
@@ -1441,12 +1486,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             set_sf_autorun_state()
             sf_is_real_time.set(sf_options['real_time'])
             set_sf_real_time_state()
-            MF_Placer('sf', place_mode)
+            MF_Placer('sf', place_mode)  # place the widgets
             cf_or_sf.set('sf')
             current_sf_save_name.set(setting_name)
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + setting_name)
-            root_info_checker.get_sf_error_state(from_savings=True)
+            root_info_checker.get_sf_error_state(from_savings=True)  # check again if the config is legal
+            return True
 
         def refresh_saving():
             nonlocal new_values

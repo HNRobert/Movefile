@@ -48,10 +48,6 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         def add_only_data(index, data_list, src_base: str, tar_base: str):
             if any(tar_base.startswith(p_folder) for p_folder in lock_folders):
                 return
-            if src_base.endswith(':'):
-                src_base += '\\'
-            if tar_base.endswith(':'):
-                tar_base += '\\'
             for item in data_list:
                 idx = 0
                 src_path, tar_path = os.path.join(
@@ -69,6 +65,10 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
 
         # [diff_files, left_only_files, right_only_files, left_only_folders, right_only_folders]
         diff_data = [[], [], [], [], []]
+        if folderA.endswith(':'):
+            folderA += '\\'
+        if folderB.endswith(':'):
+            folderB += '\\'
         if not os.path.isdir(folderA) or not os.path.isdir(folderB):
             return diff_data
         cmp_data = dircmp(folderA, folderB, ignore=[])
