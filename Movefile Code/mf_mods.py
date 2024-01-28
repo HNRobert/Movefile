@@ -135,6 +135,8 @@ class Initialization:
             else:
                 self.mf_data.set('General', 'language', 'English')
 
+        if not self.mf_data.has_option('General', 'auto_update'):
+            self.mf_data.set('General', 'auto_update', 'False')
         if not self.mf_data.has_option('General', 'autorun'):
             self.mf_data.set('General', 'autorun', 'False')
         if not self.mf_data.has_option('General', 'quit_after_autorun'):
@@ -181,6 +183,13 @@ class Initialization:
 
 def mf_log(content):
     logging.info(content)
+
+
+def set_auto_update(state):
+    gen_cfg = configparser.ConfigParser()
+    gen_cfg.read(MF_CONFIG_PATH, encoding='utf-8')
+    gen_cfg.set('General', 'auto_update', str(state))
+    gen_cfg.write(open(MF_CONFIG_PATH, "w+", encoding='utf-8'))
 
 
 def set_startup(state=True, lang_n=0):

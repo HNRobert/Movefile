@@ -20,7 +20,8 @@ class GlobalsVar:
         self.gvar = {
             "program_finished": False,
             "sf_config_changed": True,
-            'sf_real_time_running': False
+            'sf_real_time_running': False,
+            'has_new_version': False,
         }
 
     def get(self, key):

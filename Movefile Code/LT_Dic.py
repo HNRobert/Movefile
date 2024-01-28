@@ -1,4 +1,4 @@
-vision = 'v3.0.0'
+version = 'v2.3.7'
 update_time = '2024/1/28'
 r_label_text_dic = {
 
@@ -6,8 +6,10 @@ r_label_text_dic = {
     'file_menu': ['文件', 'File'],
     'readfile_menu': ['读取/删除 配置文件', 'Read/Delete config'],
     'savefile_menu': ['保存', 'Save config'],
+    'update_menu': ['检查更新', 'Check for Update'],
     'exit_menu': ['退出', 'Exit'],
     'option_menu': ['选项', 'Option'],
+    'auto_update_menu': ['软件启动检查更新', 'Check for Update on Starting the app'],
     'autorun_menu': ['开机自启', 'Start Movefile with Windows'],
     'auto_quit_menu': ['自动化运行完毕后自动退出', 'Automatically quit after automation upon startup'],
     'desktop_shortcut': ['添加快捷方式到桌面', 'Add a shortcut to Desktop'],
@@ -119,6 +121,10 @@ r_label_text_dic = {
     'sure_delete': ['确认删除配置 "', 'Sure about deleting the config named "'],
     'sf_running_notice': ['提醒： 当前有实时同步进程正在运行\n如果希望其继续运行可以选"否"来隐藏本软件到后台\n(等于菜单栏上的"隐藏至后台")\n若要退出请选择"是"',
                           "Notice： There's a real-time syncing task running.\nIf you want it to keep running, \nclick 'NO' to hide this app to backend.\nElse if you want to quit, click 'Yes'"],
+    'update_notice': ['提示：发现新版本，是否要更新？', 'Notice：Found a new version, do you want to update?'],
+    'update_downloading': ['正在下载新版本...\n请稍后..', 'Downloading new version...\nPlease wait..'],
+    'update_download_failed': ['下载失败，请检查网络连接或关闭代理', 'Download failed, please check your network connection'],
+    'update_no_newer': ['当前已是最新版本', 'This is the latest version'],
 }
 
 
@@ -177,7 +183,7 @@ progress_root_label_dic = {
 
 help_main_text = ["""关于
 软件名称： Movefile
-软件版本： """ + vision + """               更新时间： """ + update_time + """
+软件版本： """ + version + """               更新时间： """ + update_time + """
 
 功能概述：
 本程序可将某个文件夹中满足一定设定要求的文件转移到另一个文件夹，或者与另外一个文件夹同步，使你可以方便地整理文件
@@ -194,7 +200,7 @@ help_main_text = ["""关于
 
 本窗口将不再自动弹出""", """About
 App name： Movefile
-Vision： """ + vision + """               Update time： """ + update_time + """
+Vision： """ + version + """               Update time： """ + update_time + """
 
 Function overview:
 This program can have files in a folder that meet the given requirements transferred to another folder or synchronize with another folder, Enabling you to organize documents easily

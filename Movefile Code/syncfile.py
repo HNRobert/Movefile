@@ -209,7 +209,7 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
     single_sync = sf_saving_details['single_sync']
     lock_folders: list = sf_saving_details['lock_folder']
     lock_folders += [path1+'\\System Volume Information',
-                    path2+'\\System Volume Information']
+                     path2+'\\System Volume Information']
     lock_files = sf_saving_details['lock_file']
     lock_folders = list(filter(None, lock_folders))
     lock_files = list(filter(None, lock_files))
@@ -370,6 +370,7 @@ def get_real_time_infos():
     conditions = {'real_time': 'True'}
     return get_sf_savings_with(*wants, **conditions)
 
+
 def get_removable_real_time_infos():
     wants = ['disk_number']
     conditions = {'real_time': 'True', 'place_mode': 'movable'}
@@ -487,7 +488,8 @@ def run_sf_real_time(master, lang_num):
             if _result[0] + _result[1]:  # contents moved
                 time.sleep(3)
                 continue
-            space_time = max(3, (time.time()-s_time)**0.5*20)  # that makes sense, for longer scanning time means more cpu usage
+            # that makes sense, for longer scanning time means more cpu usage
+            space_time = max(3, (time.time()-s_time)**0.5*20)
             print(f'{setting_name} costed {time.time()-s_time} to check')
             print(f'{setting_name} will check again after: {space_time}')
             time.sleep(space_time)
@@ -496,7 +498,7 @@ def run_sf_real_time(master, lang_num):
     def add_process(proc_info_list: list):
         """
         The function adds processes to a running process list and starts a thread for each process.
-        
+
         :param proc_info_list: The `proc_info_list` parameter is a list of process information. Each
         element in the list is a list itself, containing information about a specific process. The
         information includes the setting's name (setting_info[0]) and other details that are not specified
@@ -508,11 +510,14 @@ def run_sf_real_time(master, lang_num):
             Thread(target=sf_real_time_precess,
                    args=(setting_info[0],)).start()
 
-    keep_running = True  # a global flag for all the real-time syncing threads that determines shall they keep scanning or end
-    running_process = {}  # a dictionary for the real-time syncing threads that shows if they are running
+    # a global flag for all the real-time syncing threads that determines shall they keep scanning or end
+    keep_running = True
+    # a dictionary for the real-time syncing threads that shows if they are running
+    running_process = {}
 
     while not gvar.get('program_finished'):
-        if not gvar.get("sf_config_changed"):  # While the config isn't changed, there's no need to scan it again
+        # While the config isn't changed, there's no need to scan it again
+        if not gvar.get("sf_config_changed"):
             time.sleep(2)
             continue
         gvar.set("sf_config_changed", False)  # refresh

@@ -16,11 +16,12 @@ import LT_Dic
 from cleanfile import cf_autorun_operation, cf_move_dir
 from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
-                      MF_ICON_PATH, MF_LOG_PATH, SF_CONFIG_PATH)
+                      MF_ICON_PATH, MF_LOG_PATH, MF_TEMP_PATH, SF_CONFIG_PATH)
 from mf_mods import (detect_removable_disks_thread, get_removable_disks,
                      language_num, list_saving_data, mf_log, mf_toaster,
                      put_desktop_shortcut, remove_last_edit, set_auto_quit,
-                     set_startup)
+                     set_startup, set_auto_update)
+from mf_update_checker import has_new_mf_downloaded, mf_need_update
 from mttkinter import mtTkinter as tk
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
@@ -130,7 +131,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     cf_ori_src_path = ''
 
     def cf_refresh_whitelist_entry():
-        nonlocal cf_ori_src_path
+        """
+        The function `cf_refresh_whitelist_entry` scans a directory for files and folders, and updates the
+        list of file names and formats that exists in it.
+        """
+        nonlocal cf_ori_src_path  # the previous source path
         all_ends = []
         file_names = []
         folder_names = []
@@ -366,9 +371,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             LT_Dic.r_label_text_dic['readfile_menu'][lang_number])
         savefile_menu_text.set(
             LT_Dic.r_label_text_dic['savefile_menu'][lang_number])
+        update_menu_text.set(
+            LT_Dic.r_label_text_dic['update_menu'][lang_number])
         exit_menu_text.set(LT_Dic.r_label_text_dic['exit_menu'][lang_number])
         option_menu_text.set(
             LT_Dic.r_label_text_dic['option_menu'][lang_number])
+        auto_update_menu_text.set(
+            LT_Dic.r_label_text_dic['auto_update_menu'][lang_number])
         autorun_menu_text.set(
             LT_Dic.r_label_text_dic['autorun_menu'][lang_number])
         auto_quit_menu_text.set(
@@ -753,6 +762,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     file_menu_text = tk.StringVar()
     readfile_menu_text = tk.StringVar()
     savefile_menu_text = tk.StringVar()
+    update_menu_text = tk.StringVar()
+    auto_update_menu_text = tk.StringVar()
     exit_menu_text = tk.StringVar()
     option_menu_text = tk.StringVar()
     autorun_menu_text = tk.StringVar()
@@ -894,7 +905,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         root, values=get_removable_disks(), state='readonly')
     sf_entry_select_removable.bind(
         '<Button-1>', lambda event: sf_refresh_disk_list())
-    sf_entry_select_removable.bind('<<ComboboxSelected>>', lambda event: sf_check_empty_value())
+    sf_entry_select_removable.bind(
+        '<<ComboboxSelected>>', lambda event: sf_check_empty_value())
 
     sf_label_path_2 = ttk.Label(root, textvariable=sf_label_path_2_text)
     sf_entry_path_2 = ttk.Entry(root, textvariable=path_2)
@@ -1065,7 +1077,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 return False
 
         @staticmethod
-        def sf_has_blank():
+        def sf_has_blank():  # Check if there's a blank
             blank_entry_num = 0
             if sf_place_mode.get() == 'movable' and len(sf_entry_select_removable.get()) == 0:
                 blank_entry_num += 1
@@ -1087,7 +1099,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     0][-1] + ':'
             _path1 = sf_entry_path_1.get()
             _path2 = sf_entry_path_2.get()
-            if not _is_local and not from_savings:  # moveable check
+            if not _is_local and not from_savings:  # removable check
                 try:
                     os.listdir(_disk_path)
                 except:
@@ -1126,6 +1138,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     return 'in_disk_path_error'
             return False
 
+        # Check if there's anything wrong with Clean Desktop settings in the setting window
         def get_cf_error_state(self):
             cf_path_error_info = self.cf_path_error()
             if not self.cf_is_num():
@@ -1149,6 +1162,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 return False
 
+        # Check if there's anything wrong with Syncfile settings in the setting window
         def get_sf_error_state(self, from_savings=False):
             sf_path_error_info = self.sf_path_error(from_savings)
             if self.sf_has_blank():
@@ -1176,6 +1190,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 return False
 
+    # If there's no saving exists, fill in the blanks with default options
     def initial_entry(set_cf_dest=False):
         default_dest_path = os.path.join(
             DESKTOP_PATH, LT_Dic.r_label_text_dic['cf_previous_files_init'][lang_num])
@@ -1201,7 +1216,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         """
         The function `request_saving` checks if a boolean variable is true and if certain conditions are
         met, prompts the user to save their progress.
-        
+
         :param booleanvar: The `booleanvar` parameter is a `BooleanVar` object, which is a variable that
         can hold either `True` or `False` values. It is used to determine whether a saving action should
         be requested or not
@@ -1259,7 +1274,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         sf_option_autorun.config(state=state_auto)
         sf_option_direct_sync.config(state=tk.DISABLED)
 
-    def ask_save_name(booleanvar=None):  # A function which Prompts users to save a config
+    # A function which Prompts users to save a config
+    def ask_save_name(booleanvar=None):
         last_saving_data, cf_save_names, sf_save_names = list_saving_data()
         if booleanvar is None:
             booleanvar = tk.BooleanVar()
@@ -1309,7 +1325,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
                 }
                 sf_save_config(save_name, **config)
-                
+
             gvar.set('sf_config_changed', True)
             tkinter.messagebox.showinfo(title=LT_Dic.r_label_text_dic['succ_save'][lang_num][0],
                                         message=LT_Dic.r_label_text_dic['succ_save'][lang_num][1])
@@ -1327,7 +1343,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             exit_asn(True)
 
         def exit_asn(complete=False):  # Exit the prompt window
-            booleanvar.set(complete)  # Flag that indicates if the config was successfully saved
+            # Flag that indicates if the config was successfully saved
+            booleanvar.set(complete)
             ask_name_window.destroy()
 
         mode = cf_or_sf.get()
@@ -1377,7 +1394,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     def read_saving(ask_path=False):
         """
         The function `read_saving` reads a Movefile config and returns its contents.
-        
+
         :param ask_path: A boolean parameter that determines whether the user should be prompted to
         enter the file path for reading the saving data. If set to True, the function will ask the user
         for the file path. If set to False, the function will not ask for the file path and will use a
@@ -1390,7 +1407,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         last_data, cf_configs, sf_configs = list_saving_data()
         cf_save_name = last_data[1]
         sf_save_name = last_data[2]
-        tried_saving_num = -1
 
         def open_cf_saving(setting_name):  # Obviously
             from cleanfile import fixed_cf_config
@@ -1425,29 +1441,37 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     cf_entry_keep_files.append_value(file)  # Reserved Files
             for format in cf_file.get(setting_name, 'pass_format').split('|'):
                 if format != '':
-                    cf_entry_keep_formats.append_value(format)  # Reserved Formats
+                    cf_entry_keep_formats.append_value(
+                        format)  # Reserved Formats
             cf_entry_time.insert(0, cf_file.get(
                 setting_name, 'set_hour'))  # Retain item for...
-            cf_entry_mode.set(cf_file.getint(setting_name, 'mode'))  # Judgment criteria
-            cf_is_autorun.set(cf_file.getboolean(setting_name, 'autorun'))  # Autorun
+            cf_entry_mode.set(cf_file.getint(
+                setting_name, 'mode'))  # Judgment criteria
+            cf_is_autorun.set(cf_file.getboolean(
+                setting_name, 'autorun'))  # Autorun
             cf_is_folder_move.set(cf_file.getboolean(
                 setting_name, 'move_folder'))  # Move Folder
-            cf_is_lnk_move.set(cf_file.getboolean(setting_name, 'move_lnk'))  # Move Shortcuts
+            cf_is_lnk_move.set(cf_file.getboolean(
+                setting_name, 'move_lnk'))  # Move Shortcuts
             MF_Placer('cf')
             cf_or_sf.set('cf')
-            current_cf_save_name.set(setting_name)  # Display the name of yhe setting
+            # Display the name of yhe setting
+            current_cf_save_name.set(setting_name)
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + setting_name)
-            root_info_checker.get_cf_error_state()  # Check if there's any error in the config
+            # Check if there's any error in the config
+            root_info_checker.get_cf_error_state()
 
         def open_sf_saving(setting_name, try_next=False):
             sf_options = sf_read_config(setting_name)  # sf Config reader
             if not sf_options and ask_path:  # Config error, or disk not inserted
-                tkinter.messagebox.showwarning(title='Movefile Warning', message=LT_Dic.r_label_text_dic['sf_disk_not_found'][lang_num])
+                tkinter.messagebox.showwarning(
+                    title='Movefile Warning', message=LT_Dic.r_label_text_dic['sf_disk_not_found'][lang_num])
                 return False  # show notice
             elif not sf_options and not try_next:  # 1.if the last saving is illegal:
                 for sf_saving in sf_configs:
-                    if open_sf_saving(sf_saving, True):  # 2.Set try_next to True to prevent endless reading
+                    # 2.Set try_next to True to prevent endless reading
+                    if open_sf_saving(sf_saving, True):
                         return True
                 else:
                     return False  # 4.that means none of the configs are legal
@@ -1473,7 +1497,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_disk_show_data = sf_options['disk_show_data']
                 for index, value in enumerate(sf_entry_select_removable['values']):
                     if sf_disk_show_data == value:
-                        sf_entry_select_removable.current(index)  # select the 
+                        sf_entry_select_removable.current(index)  # select the
                         break
                 sf_is_direct_sync.set(sf_options['direct_sync'])
             sf_entry_path_2.insert(0, sf_options['path_2'])
@@ -1491,7 +1515,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             current_sf_save_name.set(setting_name)
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + setting_name)
-            root_info_checker.get_sf_error_state(from_savings=True)  # check again if the config is legal
+            # check again if the config is legal
+            root_info_checker.get_sf_error_state(from_savings=True)
             return True
 
         def refresh_saving():
@@ -1605,13 +1630,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         initial_entry(set_cf_dest=cf_save_name == '')
 
-    def cf_operate_from_root(preview=False):
-        src_path = cf_entry_src_path.get()  # 旧文件夹
-        dest_path = cf_entry_dest_path.get()  # 新文件夹
-        pass_file = cf_entry_keep_files.get().split('|')  # 设置跳过白名单
-        pass_format = cf_entry_keep_formats.get().split('|')  # 设置跳过格式
-        time_ = int(cf_entry_time.get()) * 3600  # 设置过期时间(hour)
-        mode = int(cf_entry_mode.get())  # 设置判断模式
+    def cf_operate_from_root(preview=False):  #
+        src_path = cf_entry_src_path.get()  # source folder
+        dest_path = cf_entry_dest_path.get()  # destination folder
+        pass_file = cf_entry_keep_files.get().split('|')  # Retain items
+        pass_format = cf_entry_keep_formats.get().split('|')  # Retain formats
+        time_ = int(cf_entry_time.get()) * 3600  # Retain item for...
+        mode = int(cf_entry_mode.get())  # Judgment criteria
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
         is_move_lnk = cf_is_lnk_move.get()
         return cf_move_dir(root, src__path=src_path, dest__path=dest_path, pass__file=pass_file, pass__format=pass_format,
@@ -1664,21 +1689,42 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             run_exec('sf', exe_preview, sf_operate_from_root)
 
+    def update_checker(ask_update=False):
+        has_newer = mf_need_update()
+        if has_newer and tkinter.messagebox.askyesno(
+                title='Movefile', message=LT_Dic.r_label_text_dic['update_notice'][lang_num]):
+            root.withdraw()
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=LT_Dic.r_label_text_dic['update_downloading'][lang_num])
+            new_exe_name = has_new_mf_downloaded()
+            if not new_exe_name:
+                tkinter.messagebox.showerror(
+                    title='Movefile', message=LT_Dic.r_label_text_dic['update_download_failed'][lang_num])
+                return
+            Thread(target=lambda: os.system(
+                f'"{os.path.join(MF_TEMP_PATH, new_exe_name)}"'), daemon=True).start()
+            exit_program()
+
+        elif not has_newer and ask_update:
+            tkinter.messagebox.showinfo(
+                title='Movefile', message=LT_Dic.r_label_text_dic['update_no_newer'][lang_num])
+
     def exit_program():
         if gvar.get('sf_real_time_running'):
             attitude = tkinter.messagebox.askyesnocancel(
                 title='Movefile', message=LT_Dic.r_label_text_dic['sf_running_notice'][lang_num])
             if attitude is None:
-                return
+                return False
             elif attitude is False:
                 root.withdraw()
-                return
-        gvar.set('program_finished', True)
+                return False
         root.withdraw()
+        gvar.set('program_finished', True)
         mf_toaster.stop_notification_thread()
 
         root.quit()
         task_menu.stop()
+        return True
 
     # 创建按键
     blank_c0 = ttk.Frame(root)  # Placeholder
@@ -1696,10 +1742,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     file_menu.add_command(label=savefile_menu_text.get(
     ), command=lambda: ask_save_name(), accelerator="Ctrl+S")
     file_menu.add_separator()
+    file_menu.add_command(label=update_menu_text.get(),
+                          command=lambda: Thread(target=lambda: update_checker(True), daemon=True).start())
+    file_menu.add_separator()
     file_menu.add_command(label=exit_menu_text.get(),
                           command=lambda: exit_program())
 
     option_menu = tk.Menu(main_menu, tearoff=False)
+    is_auto_update = tk.BooleanVar()
+    is_auto_update.set(general_data.getboolean('General', 'auto_update'))
     is_startup_run = tk.BooleanVar()
     is_startup_run.set(general_data.getboolean('General', 'autorun'))
     auto_quit = tk.BooleanVar()
@@ -1707,6 +1758,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     is_desktop_shortcut = tk.BooleanVar()
     is_desktop_shortcut.set(general_data.getboolean(
         'General', 'desktop_shortcut'))
+    option_menu.add_checkbutton(
+        label=auto_update_menu_text.get(), variable=is_auto_update, command=lambda: set_auto_update(is_auto_update.get()))
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
                                 command=lambda: set_startup(is_startup_run.get(), lang_num))
     option_menu.add_checkbutton(label=auto_quit_menu_text.get(), variable=auto_quit,
@@ -1797,7 +1850,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_real_time_runner_thread = Thread(
         target=lambda: run_sf_real_time(root, lang_num), daemon=True)
     sf_real_time_runner_thread.start()
-
+    if is_auto_update.get():
+        update_checking_thread = Thread(target=update_checker, daemon=True)
+        update_checking_thread.start()
     if visits_today == 1 and startup_visit:
         autorun_options = Thread(
             target=lambda: startup_autorun(), daemon=True)
