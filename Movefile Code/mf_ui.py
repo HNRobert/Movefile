@@ -8,6 +8,8 @@ import tkinter.font as tkFont
 import tkinter.messagebox
 import webbrowser
 from functools import partial
+from subprocess import (CREATE_NEW_PROCESS_GROUP, CREATE_NO_WINDOW,
+                        DETACHED_PROCESS, Popen)
 from threading import Thread
 from tkinter import BooleanVar, StringVar, ttk
 from typing import Callable
@@ -20,8 +22,8 @@ from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
 from mf_mods import (detect_removable_disks_thread, get_removable_disks,
                      language_num, list_saving_data, mf_log, mf_toaster,
                      put_desktop_shortcut, remove_last_edit, set_auto_quit,
-                     set_startup, set_auto_update)
-from mf_update_checker import has_new_mf_downloaded, mf_need_update
+                     set_auto_update, set_startup)
+from mf_update_checker import has_new_mf_downloaded, is_mf_need_update
 from mttkinter import mtTkinter as tk
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
@@ -29,7 +31,7 @@ from syncfile import (run_sf_real_time, sf_autorun_operation, sf_read_config,
                       sf_save_config, sf_sync_dir)
 from tkHyperlinkManager import HyperlinkManager
 
-from Movefile import gvar
+from mf_global_var import gvar
 
 
 class MFInfoShower:
@@ -1690,20 +1692,24 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             run_exec('sf', exe_preview, sf_operate_from_root)
 
     def update_checker(ask_update=False):
-        has_newer = mf_need_update()
+        has_newer = is_mf_need_update()
         if has_newer and tkinter.messagebox.askyesno(
                 title='Movefile', message=LT_Dic.r_label_text_dic['update_notice'][lang_num]):
+            wait_info_shower = MFInfoShower(root)
             root.withdraw()
-            tkinter.messagebox.showinfo(
-                title='Movefile', message=LT_Dic.r_label_text_dic['update_downloading'][lang_num])
+            Thread(target=lambda: wait_info_shower.show_info(
+                "Movefile",
+                LT_Dic.r_label_text_dic['update_downloading'][lang_num]), daemon=True).start()
             new_exe_name = has_new_mf_downloaded()
             if not new_exe_name:
+                root.deiconify()
                 tkinter.messagebox.showerror(
                     title='Movefile', message=LT_Dic.r_label_text_dic['update_download_failed'][lang_num])
                 return
-            Thread(target=lambda: os.system(
-                f'"{os.path.join(MF_TEMP_PATH, new_exe_name)}"'), daemon=True).start()
-            exit_program()
+            exit_program()  # destroy the tkinter root, and so on
+            os.chdir(MF_TEMP_PATH)
+            Popen([new_exe_name], shell=True,
+                  creationflags=CREATE_NO_WINDOW | DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
 
         elif not has_newer and ask_update:
             tkinter.messagebox.showinfo(
@@ -1718,7 +1724,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             elif attitude is False:
                 root.withdraw()
                 return False
-        root.withdraw()
+        try:
+            root.withdraw()
+        except:
+            pass
         gvar.set('program_finished', True)
         mf_toaster.stop_notification_thread()
 

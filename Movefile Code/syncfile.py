@@ -17,7 +17,7 @@ from mf_mods import (get_removable_disks, language_num, mf_log, mf_toaster,
                      remove_last_edit)
 from win32api import GetVolumeInformation
 
-from Movefile import gvar
+from mf_global_var import gvar
 
 
 def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_saving_details):

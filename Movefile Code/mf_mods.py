@@ -24,7 +24,7 @@ from win32com.client import Dispatch
 from win32gui import FindWindow, ShowWindow
 from winshell import CreateShortcut
 
-from Movefile import gvar
+from mf_global_var import gvar
 
 mf_toaster = ToastNotifier()
 
@@ -166,7 +166,7 @@ class Initialization:
         self.mf_ico.close()
 
     def set_log_writer(self):
-        logfile = open(MF_LOG_PATH, 'r', encoding='utf-8')
+        logfile = open(MF_LOG_PATH, ['w+','r'][os.path.exists(MF_LOG_PATH)], encoding='utf-8')
         data = logfile.readlines()
         if len(data) > 500:
             data = data[-500:]
