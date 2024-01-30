@@ -47,7 +47,8 @@ If you have any suggestions on improving the function or ui, you can contact the
 ### Clean Desktop
 
 This is a program used to organize folders (especially the desktop)
-![屏幕截图 2023-04-28 220535]
+
+![Screenshot 2024-01-30 154552](https://github.com/HNRobert/Movefile/assets/120773486/53bc3e0f-de18-40fa-83fa-b71ff3089a06)
 
 #### Function overview
 
@@ -91,7 +92,12 @@ If you don't want to use this function, just set the expiration time to "0"
 
 This is a program used to synchronize files in two paths,
 You can also synchronize USB flash disk data with the computer
-![屏幕截图 2023-04-28 221421]
+
+![Screenshot 2024-01-30 154925](https://github.com/HNRobert/Movefile/assets/120773486/5fa889cc-5e3a-41b6-9e5e-599c05305ae3)
+
+![Screenshot 2024-01-30 155143](https://github.com/HNRobert/Movefile/assets/120773486/c2ab27f4-f65b-4dcb-8ad0-b90761871311)
+
+![Screenshot 2024-01-30 160222](https://github.com/HNRobert/Movefile/assets/120773486/91b4340b-6f3f-4b61-826a-3a036d017afd)
 
 #### Syncfile Function overview
 
@@ -176,7 +182,8 @@ _________
 ### Clean Desktop 功能
 
 这是一个用来整理文件夹（尤其是桌面）的程序
-![屏幕截图 2023-04-28 222425]
+
+![Screenshot 2024-01-30 155606](https://github.com/HNRobert/Movefile/assets/120773486/3a44ce0b-7c74-4b70-8916-a0f53fe7c827)
 
 #### 功能概述
 
@@ -217,7 +224,12 @@ _________
 ### Syncfile功能
 
 这是一个用来同步文件两个路径下文件的程序，也可以方便地将U盘数据与电脑同步
-!!!
+
+![Screenshot 2024-01-30 155905](https://github.com/HNRobert/Movefile/assets/120773486/cd7760d6-213f-482c-9bd8-25d691af8bb8)
+
+![Screenshot 2024-01-30 160002](https://github.com/HNRobert/Movefile/assets/120773486/6ad5ecbc-367f-47c0-9b38-a0b73bc18034)
+
+![Screenshot 2024-01-30 160019](https://github.com/HNRobert/Movefile/assets/120773486/0c39aece-e1b1-4a91-b592-f214aac9f317)
 
 #### 功能概述（Syncfile）
 
