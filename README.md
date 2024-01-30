@@ -1,197 +1,162 @@
-# Movefile
+# Movefile Instruction
 
- （中文版说明位于下方）
+ [*English*](#english)  [*中文*](#movefile-中文说明)
+
+ [Update Log](#update-log---更新日志)
 
 _________
 
-This is a program for **organizing files**, including two main functions of **Cleanfile** and **Syncfile**.
+## English
 
-The .exe file only provides packaged files released by the distribution. If the semantics of the code are not changed or the function is unstable, the latest packaged file will not be provided;
+This is a program made for **organizing files**, including two main functions: [**Clean Desktop**](#clean-desktop) and [**Syncfile**](#syncfile).
 
-Beta programs will not be packaged. If you want to have a better use experience, please download the latest release version.
+If you have any confusion about the function of this software during use, you can ***check the "Help" option in the menu bar***, or ***visit this website page*** for further instructions.
 
-If you have any confusion about the function of this software during use, you can ***check the "Help" option in the menu bar***.
+All operations performed by this software will be recorded in Roaming/Movefile/Movefile.log, and you can also check it by clicking **"Movefile Log"** in the menu, then you can see what have this program done to your files at anytime.
 
-All operations performed by this software will be recorded in Roaming/Movefile/Movefile.log, so you'll be able to check what have this program done to your files when something wrong occurred.
+The online update check function has been added since version 3.0.0, and you can set the *"Check for Update on Starting the app"* option to True in menu to make sure the app is always the latest version.
 
-Due to its aplenty functions, the main program code is quite lengthy. If you have any suggestions on improving the code structure, you can contact the author, and changes will be made in the new version~
+If you have any suggestions on improving the function or ui, you can contact the author, and changes will be made in the new version~
 
-## Please read the following ***precautions*** before use
+### Please read the following ***precautions*** before use
 
-### About Compatibility
+#### About Compatibility
 
-The .exe files provided here only support 64-bit Windows operating system, and Win10 works best
+***This software only supports 64bit Windows operating system now***
 
-If your operating system is 32-bit Windows, you can download the code file, and then package it as the .exe file of the 32-bit operating system
+**Note: The notification module used in this program is a modified win10toast. The modified version adds thread pool and notification queue management functions to improve notification display logic*
 
-PS: Starting from version 2.3.4, software installation packages will be provided instead of packaged single file programs
-
-***This software only supports Windows operating system now***
-
-#### pyinstaller packaging method
-
-First install the python environment. After the installation of python, open cmd to install pyinstaller (pip install pyinstaller)
-
-If you want to package it as 32-bit exe, you should package it in 32-bit Python.
-
-After installation, open the **Movefile Code** folder, enter **cmd** in the path box of the folder, and then enter ```pyinstaller -i Movefile.ico -noupx Movefile.py --clean -w -n Movefile``` in the pop-up command prompt window ,then get the packed file in the output **dist** folder.
-
-***Note: The notification module used in this program is a modified win10toast. The modified version adds thread pool and notification queue management functions to improve notification display logic***
-
-### Precautions before use
+#### Precautions before use
 
 1. Please do not change the name of this exe file："Movefile.exe",
    or the startup function will be affected.
 
-2. Please open the option in the windows setting:
-   System/notification and operation/notification/
+2. Please check the option in Windows Setting:
+   System/Notification and operation/Notification/
    "Get notifications from apps and other senders",
    otherwise the notification function will be affected.
 
-3. Please put the software into the
-   'Antivirus scanning exclusion item' of Windows Security Center.
-   otherwise, it might be deleted directly at runtime.
-   That is because this software involves changing the Startup item.
-   If this software is accidentally deleted in use,
-   please retrieve this software in the "Protection History"
-   of virus threat and protection in Windows Security Center,
-   Or other security software
-
-4. If the software cannot run after the new version,
+3. If the software cannot run after the new version,
    you can try to delete the profile located in the Roaming folder.
 
-5. If the software fails to run normally due to other reasons, and
+4. If the software fails to run normally due to other reasons, and
    also can't be repaired as explained above,
    you can contact the author directly,
    I will try to repair it for you as soon as possible.
 
-## Cleanfile
+### Clean Desktop
 
-This is a program used to organize folders (especially the desktop), and the first program block launched by Movefile
-![屏幕截图 2023-04-28 220535](https://user-images.githubusercontent.com/120773486/235173543-08b5f004-f90f-48d7-bd1b-196539bd0aa1.png)
+This is a program used to organize folders (especially the desktop)
+![屏幕截图 2023-04-28 220535]
 
-### Function overview
+#### Function overview
 
-This program can transfer files in a folder that have not been modified or accessed for a certain period of time and meet other setting requirements to another folder, so that you can easily organize files
+This program can transfer files in a folder that have not been modified or accessed for a certain period of time and meet other setting requirements to another folder, so that you can easily organize files. Cleaning the cluttered desktop is its most useful function.
 
-#### Including functions
+##### Including functions
 
-- select the original folder (default desktop)
-- select the new folder to place files, or not do so in order to remove these files
-- set the expiration time
-- set the judgment basis for the expiration time (according to the latest ask/edit time)
-- select whether to move the folder (currently only the entire folder is supported)
-- Select the reserved file (list the files/folders in the original folder)
-- select the reserved file format (list after scanning the filenames' suffix in the original folder)  
-- start cleaning automatically after startup
+- Selecting the source folder (default desktop)
+- Selecting the destination to place files, or fill nothing in order to remove these files
+- Setting the expiration time
+- Retaining a item for certain time, and setting when to start counting the retaining time (according to the latest accessed/modified time)
+- Deciding whether to move the folders and shortcuts
+- Selecting the files to reserve
+- Selecting the reserved file format  
+- Start cleaning automatically after startup once a day
 
-### Function explanation
+#### Detailed explanation
 
-#### Preserve project/file format selection function
+##### Preserve project/file format selection function
 
-##### Keep item selection
+###### Reserve item selection
 
-The selected items will not be transferred
+The selected items will not be moved
 
-##### Keep file format selection
+###### Reserve format selection
 
-Files of a certain format type will not be transferred
-For example, selecting '. lnk' means that all shortcuts in the original folder will not be transferred
+Files of a certain format type will not be moved.
+For example, selecting '.exe' means that all executable files in the original folder will not be moved
 
-#### Expiration time setting
+##### Retain item for...(h) Setting
 
-The software can obtain the latest modification and access time of the file
+The app can obtain the latest modification and access time of the file, and you can retain files that have been modified/accessed before a certain period of time.
 
-Files that have been modified/accessed for a certain period of time can be retained
+For example, if the expiration time is set to "48", and
+the judgment method is set to "Last Modified Moment",
+the files modified within two days before the operation date will not be moved
 
-For example, if the expiration time is set to "48", the judgment method is set to "Use Items' latest edit time"
-The files modified within two days before the operation date will not be deleted
+If you don't want to use this function, just set the expiration time to "0"
 
-If you do not want to use this method, set the expiration time to "0"
-
-## Syncfile
+### Syncfile
 
 This is a program used to synchronize files in two paths,
 You can also synchronize USB flash disk data with the computer
-![屏幕截图 2023-04-28 221421](https://user-images.githubusercontent.com/120773486/235173678-a22838b1-0f2e-48cd-baab-fec081786e98.png)
+![屏幕截图 2023-04-28 221421]
 
-### Syncfile Function overview
+#### Syncfile Function overview
 
 You can compare the files in the two folders, find the same files, and keep the latest version,
-Then copy the files that the other party does not have to the other party to realize the synchronization function
+Then copy the files that the other folder does not have to the another folder to realize the synchronization function
 
-#### Including functions (Syncfile)
+##### Including functions (Syncfile)
 
 - two modes of synchronization between removable disk and local disk and local disk
 - Select one-way or two-way synchronization mode
 - Keep the latest changed files
 - Automatically run the archive after startup
-- Automatically detect the archived removable disk access and automatically synchronize
-- Lock folders and files to keep them from being synchronized
+- Automatically detect the access of archived removable disk and automatically synchronize
+- Real-time sync between folders
+- Lock folders and files to keep them from being modified during the synchronization
 
-### Syncfile Function explanation
+#### Syncfile Function explanation
 
-#### Mode selection between Removable Volume and Local path
+##### Mode selection between Removable Volume and Local path
 
-If you select the removable disk mode and save the configuration, you can select a connected removable disk to synchronize with a local location
+If you select the removable disk mode and save the configuration, you can select a currently inserted removable disk to synchronize with a local location
 
-In addition, if the software is open, every time the removable disk recorded in the configuration is accessed, a prompt box will pop up automatically. You can directly start synchronization according to the settings.
+In addition, if the app is running, every time the removable disk recorded in the configuration is inserted, a prompt box will pop up automatically. You can directly start synchronization according to the settings. Of course, you can decide whether to prompt you before auto-syncing or not.
 
 The way to determine whether the accessed disk is the disk saved in the configuration is to compare the volume serial number.
 
 If you select synchronization between local disks, you can select two local disks for synchronization
 
-#### Lock folder/file function
+##### Lock folder/file function
 
-##### Lock folder
+###### Lock folder
 
-When you add a folder, it will be displayed in the waiting list.
+When you add a folder, it will be displayed in the list.
 
-Check this folder in the list to be selected, and the contents of this folder will not be modified or deleted.
+Check this folder in the list to be selected, and the contents of this folder will not be modified.
 
-##### Lock file
+###### Lock file
 
 The principle of adding is the same as locking a folder.
 
 If a file is checked, it will not be modified.
 
+_________
+
 ## Movefile 中文说明
 
-这是一个用于整理文件的程序，包括了 Cleanfile 和 Syncfile 两个主要功能
+这是一个用于**整理文件**的程序，包括了 [**Clean Desktop**](#clean-desktop-功能) 和 [**Syncfile**](#syncfile功能) 两个主要功能
 
-exe文件只提供发行版发布的打包的文件，若代码的语义未改变，或者功能不稳定，则不会提供最新的打包文件；
+如果使用过程中对本软件功能有任何疑惑，可以**查看菜单栏中的 "帮助" 选项**， 或者**访问本网站**来获取更多信息
 
-Beta 版程序不会打包，如果想要有更加好的使用体验，请下载最新发布版本
+使用本软件进行的所有操作会在 Roaming/Movefile/Movefile.log 中记录，也可以在菜单栏的 **"使用日志"** 中查看。
 
-如果使用过程中对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
+自动联网更新功能在3.0.0版本发布， 可以在菜单栏中选择"程序启动时自动检查更新"来确保当前软件为最新版。
 
-使用本软件进行的所有操作会在 Roaming/Movefile/Movefile.log 中记录，以便产生任何未知原因的损失时查看本软件的操作记录
+如果对程序功能或者界面有什么改进意见，可以联系作者，新版本中会进行更改哦~
 
-由于功能比较多，主程序代码比较冗长，如果对代码结构有什么改进意见，可以联系作者，新版本中会进行更改哦~
+### 使用前请务必阅读下面的***使用注意事项***
 
-## 使用前请务必阅读下面的**使用注意事项**
+#### 兼容性说明
 
-### 兼容性说明
+***本软件目前仅支持 64位 Windows 操作系统下使用***
 
-代码中的exe文件仅支持windows64位操作系统，Win10或Win11效果最佳
+**注意：本程序使用的通知模组是魔改过的 win10toast，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑*
 
-如果操作系统是32位Windows，可以下载pyw文件，然后自行打包为32位操作系统的exe文件
-
-PS: 从2.3.4版本开始将提供软件安装包，而非打包好的单文件程序
-
-***本软件目前仅支持Windows操作系统下使用***
-
-#### pyinstaller打包法
-
-先要安装python环境，python安装完后打开cmd安装pyinstaller (pip install pyinstaller)
-
-如果想打包为32为的exe，那就要在32位的Python下打包
-
-安装完成后，打开 **Movefile Code** 文件夹，文件夹的索引框内输入 **cmd** ，然后在弹出的命令提示框内输入`pyinstaller -i Movefile.ico -noupx Movefile.py --clean -w -n Movefile`，就可以在产出的 **dist** 文件夹内得到打包好的文件。
-
-***注意：本程序使用的通知模组是被魔改过的 win10toast，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑***
-
-### 使用前特别注意事项
+#### 使用前特别注意事项
 
 1. 本exe文件的名称请不要改变："Movefile.exe"，否则会影响开机自启功能
    如果想更改名称，可以将exe文件移至别处后创建快捷方式
@@ -201,112 +166,101 @@ PS: 从2.3.4版本开始将提供软件安装包，而非打包好的单文件�
    “获取来自应用和其他发送者的通知” 选项，
    否则会影响操作结果通知功能
   
-3. 使用本软件前请先将本软件放入
-   Windows安全中心的防病毒扫描排除项中，
-   否则在运行时会被直接删除。
-   这是因为本软件涉及更改开机启动项。
-   如果本软件在使用中被意外删除，
-   可以在Windows安全中心中
-   病毒威胁和防护的 "保护历史记录"
-   或其他安全软件中找回本软件
-  
-4. 如果经过版本新后软件无法运行，
+3. 如果经过版本新后软件无法运行，
    可以尝试删除位于Roaming文件夹中的配置文件
   
-5. 若有其他原因导致软件功能无法正常运行，
+4. 若有其他原因导致软件功能无法正常运行，
    且无法按上面的解释修复，
    请联系作者,我会尽快尝试帮你修复
 
-## Cleanfile功能
+### Clean Desktop 功能
 
-这是一个用来整理文件夹（尤其是桌面）的程序，也是Movefile推出的第一个程序块
-![屏幕截图 2023-04-28 222425](https://user-images.githubusercontent.com/120773486/235174357-ff38e984-31d4-4fec-8fa9-a8639fca20eb.png)
+这是一个用来整理文件夹（尤其是桌面）的程序
+![屏幕截图 2023-04-28 222425]
 
-### 功能概述
+#### 功能概述
 
 本程序可将某个文件夹中一定时间未修改或者未访问，且满足其他一些设定要求的文件，转移到另一个文件夹，使你可以方便地整理文件
 
-#### 包含功能
+##### 包含功能
 
 - 选择原文件夹（默认桌面）
 - 选择放置文件的新文件夹，或者不填写新文件夹来直接删除这些文件
-- 设置过期时间
-- 设置过期时间判断依据（按最后修改/访问时间）
-- 选择是否移动文件夹（整个文件夹移动）
+- 设置项目保留时间
+- 设置保留时间判断依据（按最后修改/访问时间）
+- 选择是否移动文件夹（整个文件夹移动）和和快捷方式
 - 选择保留文件（列出原文件夹内文件/文件夹）
-- 选择保留文件格式（扫描原文件夹内文件后缀后列出）
+- 选择按文件格式保留（扫描原文件夹内文件后缀后列出）
 - 可选开机自动按配置存档运行任务
 
-### 功能详解
+#### 功能详解
 
-#### 保留项目/文件格式选择功能
+##### 保留项目/文件格式选择功能
 
-保留项目选择：
+###### 强制保留项目选择
+
 选中的项目不会被转移
 
-保留文件格式选择：
+###### 按文件格式保留选择
+
 某种格式类型的文件都不会被转移
-比如选中'.lnk'，即表示原文件夹中所有的快捷方式不会被转移
+比如选中'.exe'，即表示原文件夹中所有exe应用程序不会被转移
 
-#### 过期时间设定
+##### 过期时间设定
 
-本软件可以获取文件的最后修改、访问时间
-可以保留一定时间内修改/访问过的文件
-例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
-则运行日期前两天内修改过的文件不会被删除
+本软件可以获取文件的最后修改、访问时间, 可以保留一定时间内修改/访问过的文件
+
+例如若将保留时间设为"48"，判定方式设为"最后修改时间", 则运行日期前两天内修改过的文件不会被移动
+
 如果不想用此方法，则过期时间设为"0"即可
 
-#### 移动文件流程图
+### Syncfile功能
 
-![流程图](https://user-images.githubusercontent.com/120773486/212371363-01cd7daf-1114-4c2c-bd11-bbe22e9d2783.png)
+这是一个用来同步文件两个路径下文件的程序，也可以方便地将U盘数据与电脑同步
+!!!
 
-## Syncfile功能
-
-这是一个用来同步文件两个路径下文件的程序，
-也可以将U盘数据与电脑同步
-![屏幕截图 2023-04-28 222030](https://user-images.githubusercontent.com/120773486/235174498-18157927-8852-4ece-b0d2-d38b4b59f35e.png)
-![屏幕截图 2023-04-28 221850](https://user-images.githubusercontent.com/120773486/235174532-f1237b20-4cee-4eee-a286-65c374c99091.png)
-
-### 功能概述（Syncfile）
+#### 功能概述（Syncfile）
 
 可以将两个文件夹中的文件进行比较，找到相同的文件，保留最新版，
 然后将对方没有的文件复制给对方，来实现同步的功能
 
-#### 包括功能
+##### 包括功能
 
 - 可移动磁盘与本地磁盘 与 本地磁盘间同步 两种模式选择
 - 选择单向与双向同步模式
 - 保留最新更改文件
 - 开机自动运行存档
 - 自动检测选定的可移动磁盘接入并自动同步
+- 实时同步
 - 锁定文件/文件夹功能
 
-### Syncfile 功能详解
+#### Syncfile 功能详解
 
-#### 可移动磁盘模式与本地磁盘间模式选择
+##### 可移动磁盘模式与本地磁盘间模式选择
 
 如果选择可移动磁盘模式并保存配置，可以选择一个已经接入的可移动磁盘，与一个本地位置同步
 
-此外，如果软件处于打开状态，每次接入配置中记录的可移动磁盘时，会自动跳出提示框，可选直接开始按设置同步。
+此外，如果软件处于打开状态，每次接入配置中记录的可移动磁盘时，会自动跳出提示框，可选直接开始按设置同步。当然也可以选择开始同步前是否跳出提示框
+
 判断接入的磁盘是否为配置中保存的磁盘的方式为比较卷序列号。
 
-如果选择本地磁盘间同步，则可以选择两个本地磁盘进行同步
+如果选择本地文件夹间同步，则可以选择两个本地文件夹进行同步
 
-#### 锁定文件夹/文件功能
+##### 禁止修改文件夹/文件功能
 
-##### 锁定文件夹
+###### 禁止修改文件夹
 
 当你添加了一个文件夹，这个文件夹将会被显示在待选列表中。
 
-在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改或删除。
+在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改。
 
-##### 锁定文件
+###### 禁止覆盖文件
 
 添加原理与锁定文件夹相同，如果勾选一个文件，那么这个文件不会被修改。
 
 ## 特别鸣谢
 
-本程序中的多选下拉列表框组件代码改编自CSDN博主 **只为你开心** 的 **Python tkinter自定义多选下拉列表框(带滚动条、全选)** ，微调数据并添加了改变选择框高度的功能
+本程序中的多选下拉列表框组件代码改编自CSDN博主 **只为你开心** 的 **Python tkinter自定义多选下拉列表框(带滚动条、全选)**
 
 （ <https://blog.csdn.net/weixin_45774074/article/details/123293411> ）
 
@@ -454,4 +408,18 @@ Startup autorun function fixed
 Current config label upgraded
 Translation complement
 Saving & Reading improvement
+
+21:45 2024/1/29
+Movefile v3.0.0
+Update Content:
+Update UI & Label
+Add Real-time syncing function
+Action Preview function
+Hidden removable disk syncing function
+Online check update function
+Quit after autorun option
+Visible Logging function
+More efficient Syncfile scanning & copying
+General Reconfiguration
+More stable daily use, bugs fixed
 ```

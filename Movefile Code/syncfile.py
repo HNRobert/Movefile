@@ -13,11 +13,10 @@ from threading import Thread
 
 import LT_Dic
 from mf_const import MF_CONFIG_PATH, MF_ICON_PATH, SF_CONFIG_PATH
+from mf_global_var import gvar
 from mf_mods import (get_removable_disks, language_num, mf_log, mf_toaster,
                      remove_last_edit)
 from win32api import GetVolumeInformation
-
-from mf_global_var import gvar
 
 
 def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_saving_details):

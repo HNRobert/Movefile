@@ -3,7 +3,6 @@
 import configparser
 import os
 import time
-from pdb import run
 from shutil import move as shutil_move
 from threading import Thread
 
@@ -73,7 +72,7 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
             if ('.' + item_data.name.split('.')[-1] in pass__format and not item_data.is_dir()
                     or item_data.name in pass__file):
                 continue
-            if item_data.name == 'Movefile.exe' or os.path.commonpath([item_data.path, dest__path]) == dest__path:
+            if item_data.name == 'Movefile.exe' or dest__path and os.path.commonpath([item_data.path, dest__path]) == dest__path:
                 continue
             if check__mode == 1:
                 # 最后一次修改的时间 (Option 1)
@@ -232,4 +231,4 @@ def cf_autorun_operation(master):
                         save_name, 'move_folder'),
                     is__move__lnk=cf_file.getboolean(save_name, 'move_lnk'))
         mf_log(
-            f'\nAutomatically ran Cleanfile operation as config "{save_name}"')
+            f'\nAutomatically ran Clean Desktop operation as config "{save_name}"')

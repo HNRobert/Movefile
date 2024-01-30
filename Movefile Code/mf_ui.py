@@ -19,6 +19,7 @@ from cleanfile import cf_autorun_operation, cf_move_dir
 from ComBoPicker import Combopicker
 from mf_const import (CF_CONFIG_PATH, DESKTOP_PATH, MF_CONFIG_PATH,
                       MF_ICON_PATH, MF_LOG_PATH, MF_TEMP_PATH, SF_CONFIG_PATH)
+from mf_global_var import gvar
 from mf_mods import (detect_removable_disks_thread, get_removable_disks,
                      language_num, list_saving_data, mf_log, mf_toaster,
                      put_desktop_shortcut, remove_last_edit, set_auto_quit,
@@ -31,13 +32,12 @@ from syncfile import (run_sf_real_time, sf_autorun_operation, sf_read_config,
                       sf_save_config, sf_sync_dir)
 from tkHyperlinkManager import HyperlinkManager
 
-from mf_global_var import gvar
-
 
 class MFInfoShower:
     def __init__(self, master) -> None:
         self.ntf_wd = tk.Toplevel(master=master)
         self.ntf_wd.withdraw()
+        self.showing = False
         self.ntf_wd.title("Movefile Notification")
         self.title_var = tk.StringVar()
         self.ntf_wd.geometry("300x400")
@@ -61,13 +61,17 @@ class MFInfoShower:
         self.ntf_wd.columnconfigure(0, weight=1, minsize=300)
 
     def hide(self):
+        self.showing = False
         self.ntf_wd.withdraw()
         self.ntf_wd.geometry("300x400")
 
     def move_to_bottom(self):
         self.ntf_text.see(tk.END)
 
-    def show_info(self, title, message: str, **tags):
+    def show_info(self, title, message: str, hyperlinks: list=[], is_log=False, **tags):
+        Thread(target=lambda: self._show_info(title, message, hyperlinks, is_log, **tags), daemon=True).start()
+
+    def _show_info(self, title, message: str, hyperlinks: list, log, **tags):
         """
         The notify function is used to display a notification message.
 
@@ -76,6 +80,9 @@ class MFInfoShower:
         :param tags: A dict of tags that can be used to customize the notification
         tags format: text_color=[applied_lines_indexes(one_by_one)]
         """
+        while self.showing:
+            time.sleep(0.1)
+        self.showing = True
         self.ntf_text.config(state=tk.NORMAL)
         line_num = message.count("\n")
         self.ntf_text.delete("1.0", tk.END)
@@ -89,6 +96,19 @@ class MFInfoShower:
             for line_index in value:
                 self.ntf_text.tag_add(
                     key, f"{line_index}.0", f"{line_index}.end")
+        for hyperlink in hyperlinks:
+            self.add_hyperlink(hyperlink[0], hyperlink[1], hyperlink[2])
+        if log:
+            for index, line in enumerate(message.split('\n')):
+                if line.startswith('['):
+                    end_1 = line.find(']')
+                    start_2 = line.find('[', end_1+1)
+                    end_2 = line.find(']', start_2+1)
+                    self.add_tag(
+                        'gray', f'{index+1}.0', f'{index+1}.{end_1+1}')
+                    self.add_tag(
+                        line[start_2+1:end_2], f'{index+1}.{start_2}', f'{index+1}.{end_2+1}')
+            self.move_to_bottom()
         self.ntf_text.config(state=tk.DISABLED)
 
     def add_hyperlink(self, text, url, position_index=tk.END):
@@ -237,7 +257,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             preview_text.insert(
                 tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
             preview_text.insert(
-                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + result[0][2] + '\n')
+                tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + [LT_Dic.r_label_text_dic[
+                    'preview_removal'][lang_num], result[0][2]][bool(result[0][2])] + '\n')
             preview_text.tag_add(
                 'green', '2.' + str(len(LT_Dic.cfdic['preview_src'][lang_num])), '2.end')
             preview_text.tag_add(
@@ -957,23 +978,21 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         def __init__(self):
             self.info_shower = MFInfoShower(root)
 
-        def show_help(self, title, message, **tags):
+        def show_help(self, title, message, hyperlinks: list=[], log=False, **tags):
             self.info_shower.show_info(
-                title=title, message=message, **tags)
+                title=title, message=message, hyperlinks=hyperlinks, is_log=log, **tags)
 
         def help_main(self):
             title = LT_Dic.help_main_text[lang_num].split('\n')[0]
             message = LT_Dic.help_main_text[lang_num][len(title)+1:]
-            self.show_help(title=title, message=message, red=[6])
-            self.info_shower.add_hyperlink(
-                'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '15.end')
+            self.show_help(title=title, message=message, hyperlinks=[[
+                           'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '16.end']], red=[6])
 
         def help_before_use(self):
             title = LT_Dic.help_before_use_text[lang_num].split('\n')[0]
             message = LT_Dic.help_before_use_text[lang_num][len(title)+1:]
-            self.show_help(title=title, message=message)
-            self.info_shower.add_hyperlink(
-                'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '5.end')
+            self.show_help(title=title, message=message, hyperlinks=[[
+                           'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '11.end']])
 
         def cf_help(self):
             title = LT_Dic.cf_help_text[lang_num].split('\n')[0]
@@ -1006,23 +1025,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             self.show_help(title=title, message=message)
 
         def mf_show_log(self):
+            while self.info_shower.showing:
+                time.sleep(0.1)
             content = ''
             with open(MF_LOG_PATH, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
                 for line in lines:
                     content += line
             self.show_help(
-                LT_Dic.r_label_text_dic['log_menu'][lang_num], content)
-            for index, line in enumerate(lines):
-                if line.startswith('['):
-                    end_1 = line.find(']')
-                    start_2 = line.find('[', end_1+1)
-                    end_2 = line.find(']', start_2+1)
-                    self.info_shower.add_tag(
-                        'gray', f'{index+1}.0', f'{index+1}.{end_1+1}')
-                    self.info_shower.add_tag(
-                        line[start_2+1:end_2], f'{index+1}.{start_2}', f'{index+1}.{end_2+1}')
-            self.info_shower.move_to_bottom()
+                LT_Dic.r_label_text_dic['log_menu'][lang_num], content, log=True)
+
 
     class MF_Info_Checker:
         def __init__(self):
@@ -1039,17 +1051,16 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         @staticmethod
         def cf_has_blank():
-            blank_num = 0
-            if len(cf_entry_src_path.get()) == 0:
-                blank_num += 1
-            elif len(cf_entry_time.get()) == 0:
-                blank_num += 1
-            elif cf_entry_mode.get() == 0:
-                blank_num += 1
-            if blank_num == 0:
-                return False
-            else:
+            if not cf_entry_src_path.get():
                 return True
+            if not cf_entry_dest_path.get() and not tkinter.messagebox.askyesno(title="Movefile",
+                                                                                message=LT_Dic.r_label_text_dic["dest_path_blank_notice"][lang_num]):
+                return True
+            if not cf_entry_time.get():
+                return True
+            if not cf_entry_mode.get():
+                return True
+            return False
 
         @staticmethod
         def try_create_path(noexist_path):
@@ -1337,7 +1348,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             savefile(function=cf_or_sf.get(), save_name=name_entry.get())
             log_function = 'Syncfile'
             if cf_or_sf.get() == 'cf':
-                log_function = 'Cleanfile'
+                log_function = 'Clean Desktop'
             mf_log(
                 f"\nA config file of {log_function} named {name_entry.get()} is saved")
             current_save_name.set(
@@ -1789,7 +1800,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     help_menu.add_command(label=precautions_menu_text.get(),
                           command=help_shower.help_before_use)
     help_menu.add_separator()
-    help_menu.add_command(label='Cleanfile', command=help_shower.cf_help)
+    help_menu.add_command(label='Clean Desktop', command=help_shower.cf_help)
     help_menu.add_command(label=cf_keep_menu_text.get(),
                           command=help_shower.cf_help_keep)
     help_menu.add_command(label=cf_expire_menu_text.get(),
@@ -1806,7 +1817,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
     main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
     main_menu.add_command(label=log_menu_text.get(),
-                          command=help_shower.mf_show_log)
+                          command=lambda: Thread(target=help_shower.mf_show_log, daemon=True).start())
 
     # main_menu.add_command(
     #     label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')

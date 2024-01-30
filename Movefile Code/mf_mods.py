@@ -15,6 +15,7 @@ import mf_icon as icon
 from mf_const import (CF_CONFIG_PATH, CF_DATA_PATH, DESKTOP_PATH,
                       MF_CONFIG_PATH, MF_DATA_PATH, MF_ICON_PATH, MF_LOG_PATH,
                       ROAMING_PATH, SF_CONFIG_PATH, SF_DATA_PATH, STARTUP_PATH)
+from mf_global_var import gvar
 from mttkinter.mtTkinter import Tk
 from psutil import disk_partitions
 from pythoncom import CoInitialize
@@ -23,8 +24,6 @@ from win32api import GetVolumeInformation
 from win32com.client import Dispatch
 from win32gui import FindWindow, ShowWindow
 from winshell import CreateShortcut
-
-from mf_global_var import gvar
 
 mf_toaster = ToastNotifier()
 
@@ -136,7 +135,7 @@ class Initialization:
                 self.mf_data.set('General', 'language', 'English')
 
         if not self.mf_data.has_option('General', 'auto_update'):
-            self.mf_data.set('General', 'auto_update', 'False')
+            self.mf_data.set('General', 'auto_update', 'True')
         if not self.mf_data.has_option('General', 'autorun'):
             self.mf_data.set('General', 'autorun', 'False')
         if not self.mf_data.has_option('General', 'quit_after_autorun'):
@@ -260,6 +259,7 @@ def set_auto_quit(state=True):
     ca_cf = configparser.ConfigParser()
     ca_cf.read(MF_CONFIG_PATH, encoding='utf-8')
     ca_cf.set('General', 'quit_after_autorun', str(state))
+    ca_cf.write(open(MF_CONFIG_PATH, "w+", encoding='utf-8'))
     mf_log(f"Set quit-after-autorun to {state}")
 
 

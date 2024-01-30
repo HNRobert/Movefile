@@ -1,5 +1,5 @@
-version = 'v2.0.0'
-update_time = '2024/1/29'
+version = 'v3.0.0'
+update_time = '2024/1/30'
 r_label_text_dic = {
 
     # Menu options
@@ -9,7 +9,7 @@ r_label_text_dic = {
     'update_menu': ['检查更新', 'Check for Update'],
     'exit_menu': ['退出', 'Exit'],
     'option_menu': ['选项', 'Option'],
-    'auto_update_menu': ['软件启动检查更新', 'Check for Update on Starting the app'],
+    'auto_update_menu': ['软件启动时自动检查更新', 'Check for Update on Starting the app'],
     'autorun_menu': ['开机自启', 'Start Movefile with Windows'],
     'auto_quit_menu': ['自动化运行完毕后自动退出', 'Automatically quit after automation upon startup'],
     'desktop_shortcut': ['添加快捷方式到桌面', 'Add a shortcut to Desktop'],
@@ -17,10 +17,10 @@ r_label_text_dic = {
     'help_menu': ['帮助', 'Help'],
     'about_menu': ['关于本软件', 'About'],
     'precautions_menu': ['使用前注意事项', 'Precautions before use'],
-    'cf_keep_menu': ['保留文件/文件格式选择', 'Keep file/format setting'],
-    'cf_expire_menu': ['过期时间设定', 'Expire time setting'],
+    'cf_keep_menu': ['强制保留文件/文件格式选择', 'Reserved item/format Selection'],
+    'cf_expire_menu': ['过期时间设定', 'Retain Item for... Setting'],
     'sf_removable_menu': ['可移动磁盘同步', 'Removable Volume mode'],
-    'sf_lock_menu': ['锁定文件/文件夹选择', 'Lock folder/sile setting'],
+    'sf_lock_menu': ['禁止修改文件夹/覆盖文件夹选择', 'Lock folder/sile Setting'],
     'log_menu': ['使用日志', 'Movefile Log'],
     'menu_hide': ['隐藏至后台', 'Hide to Backend'],
 
@@ -35,7 +35,7 @@ r_label_text_dic = {
     'option_is_cleanfile': ['清理桌面', 'Clean Desktop'],
     'option_is_syncfile': ['同步文件', 'Syncfile'],
 
-    # Cleanfile labels
+    # Clean Desktop labels
     'cf_label_old_path': ['源文件夹：', 'Source path：'],
     'cf_browse_old_path_button': ['浏览', 'Browse'],
     'cf_browse_new_path_button': ['浏览', 'Browse'],
@@ -67,7 +67,7 @@ r_label_text_dic = {
     'sf_browse_path_2_button': ['浏览', 'Browse'],
     'sf_label_lock_folder': ['禁止修改文件夹：', 'Locked Folders：'],
     'sf_browse_lockfolder_button': ['添加文件夹', 'Add Folder'],
-    'sf_label_lock_file': ['禁止覆盖、删除文件：', 'Locked Files：'],
+    'sf_label_lock_file': ['禁止覆盖文件：', 'Locked Files：'],
     'sf_browse_lockfile_button': ['添加文件', 'Add Files'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
     'sf_option_autorun': [['磁盘接入自动同步', '开机自动同步'],
@@ -84,13 +84,14 @@ r_label_text_dic = {
     'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click the "Action Preview" button above\nto check the settings above and view which items will be moved'],
     'preview_cost': ['扫描耗时：', 'Scan Cost: '],
     'preview_num_found': ['找到需要移动的项目： ', "Need-to-Move Objects' number： "],
+    'preview_removal': ['直接移除', 'Remove Directly'],
     'save_button': ['保存当前配置', 'Save the config'],
     'continue_button': ['运行', 'Run'],
 
     # Readfile options
     'read_name_label': ['     选择存档：', '   Pick a config：'],
-    'read_mode_entry': [['清理桌面(Clean Desktop)', '同步文件(Syncfile)'], ['Cleanfile', 'Syncfile']],
-    'read_mode_entry_s': [['清理桌面(Clean Desktop)', 'Cleanfile'], ['同步文件(Syncfile)', 'Syncfile']],
+    'read_mode_entry': [['清理桌面(Clean Desktop)', '同步文件(Syncfile)'], ['Clean Desktop', 'Syncfile']],
+    'read_mode_entry_s': [['清理桌面(Clean Desktop)', 'Clean Desktop'], ['同步文件(Syncfile)', 'Syncfile']],
     'del_save_button': ['删除存档', 'Delete'],
     'sure_name_bottom': ['读取存档', 'Read'],
     'sf_disk_not_found': ['请插入该存档指定的可移动磁盘来将其读取', 'Please insert the specified removable disk for this archive to read it'],
@@ -115,6 +116,7 @@ r_label_text_dic = {
     'suggest_save': ['提示：使用此功能需要保存， \n且建议设定开机自启。\n\n选择"确定"来进行推荐设置(可选)', "Tip: You need to save the current config when using,\nand setting Movefile to start upon startup is suggested.\n\nClick 'OK' to follow the suggestions above (Optional)"],
     'succ_save': [['信息提示', '信息保存成功！'], ['Information prompt', 'Data saved Successfully']],
     'change_language': ['提示：需要重启本软件来让一些标签的语言改变', '''Tip：You need to restart the app\nto make the language of some labels changed'''],
+    'dest_path_blank_notice': ['提示：将 "移动到" 框留空， \n指被清理的项目将被直接删除(不可恢复)\n确定这样设置？', "Notice：Leaving the 'Move to' column unset \nmeans that the cleaned items would be deleted directly\n-- That is not restorable--\nAre you sure about this?"],
     'path_not_exist_notice': ['提示：下面的路径不存在：\n', 'Notice：The following path does not exist:\n'],
     'create_path_notice': ['\n选择 "是" 来创建该路径', '\nChoose "Yes" to create this path'],
     'blank': [138, 117],
@@ -191,11 +193,12 @@ help_main_text = ["""关于
 如果对本软件功能有任何疑惑，可以查看菜单栏中的 "帮助" 选项
 使用本软件进行的所有操作会在用户AppData/Roaming/Movefile文件夹下的Movefile.log记录
 
-作者：Robert He
-如果对本软件有任何改进意见，请联系作者
-如果意见被采纳，新版本中会进行更改
+自动联网更新功能在3.0.0版本发布， 可以在菜单栏中选择"软件启动时自动检查更新"来确保当前软件为最新版。
 
-如有功能异常请先访问 Github 查看有无新版本，或者阅读 Github 中的其他注意事项和运行机制说明
+作者：Robert He
+如果对本软件有任何改进意见，请联系作者，新版本中可以进行更改
+
+如有功能异常, 请访问我们的网站， 或尽快联系作者
 地址：
 
 本窗口将不再自动弹出""", """About
@@ -208,31 +211,47 @@ This program can have files in a folder that meet the given requirements transfe
 If you have any doubts about the function of this app, you can check the "Help" option in the menu bar
 All operations performed by this app will be recorded in Roaming/Movefile/Movefile.log
 
-Author: Robert He
-If you have any suggestions for improvement of this app, please contact the author.
-If the comments are adopted, changes will be made in the new version.
+The online update check function has been added since version 3.0.0, and you can set the "Check for Update on Starting the app" option to True in menu to make sure the app is always the latest version.
 
-If there is any function abnormality, please visit Github first to check whether there is a new version, or read other precautions and operating mechanism instructions in Github.
+Author: Robert He
+If you have any suggestions for improving this app, please contact the author. Changes will be made in the new version.
+
+If there's any abnormality, please visit our website, or contact the author as well.
 Address: 
 
 This notice won't be shown automatically anymore"""]
 
 help_before_use_text = ["""使用前特别注意事项
 1.本软件必须在64位Windows10及以上操作系统下运行
-2.本exe文件的名称请不要改变："Movefile.exe"，否则会影响开机自启功能
-3.使用本软件前请打开Windows设置中的 系统/通知和操作/通知/获取来自应用和其他发送者的通知 选项，否则会影响操作结果通知功能
-5.如果经过版本更新后软件无法运行，可以尝试删除位于Roaming文件夹中的配置文件
-6.若有其他原因导致软件功能无法正常运行，且无法按上面的解释修复，可以访问 Github 官方网站: 
-  或直接联系作者（QQ:2567466856），我会尽快尝试帮你修复""", """Precautions before use
+2.本exe文件的名称请不要改变："Movefile.exe"，
+  否则会影响开机自启功能
+3.使用本软件前请打开Windows设置中的 
+  系统/通知和操作/通知/获取来自应用和其他发送者的通知 选项，
+  否则会影响操作结果通知功能
+4.如果经过版本更新后软件无法运行，
+  可以尝试删除位于Roaming文件夹中的配置文件
+5.若有其他原因导致软件功能无法正常运行，
+  且无法按上面的解释修复，
+  可以访问 Github 官方网站: 
+  或直接联系作者（QQ:2567466856），
+  我会尽快尝试帮你修复""", """Precautions before use
 1.This app must be run under a 64-bit Windows 10 or above operating system.
-2.Please do not change the name of this exe file："Movefile.exe", otherwise the startup function will be affected.
-3.Please check the option in Windows Setting: System/Notifications/Notifications/Get notifications from apps and other senders, otherwise the operation result notifying function would be affected
-5.If the app can't run after updating the new version, you can try to delete the profile located in the Roaming folder
-6.If the app fails to run normally due to other reasons, and also can't be fixed as explained above, you can visit our Github website: 
-   Or contact the author directly (QQ: 2567466856), I'll try to repair it for you as soon as possible"""]
+2.Please do not change the name of this exe file："Movefile.exe", 
+  otherwise the startup function will be affected.
+3.Please check the option in Windows Setting: 
+  System/Notifications/Notifications/Get notifications from apps and other senders, 
+  otherwise the operation result notifying function would be affected
+4.If the app can't run after updating the new version, 
+  you can try to delete the profile located in the Roaming folder
+5.If the app fails to run normally due to other reasons, 
+  and also can't be fixed as explained above, 
+  you can visit our Github website: 
+  Or contact the author directly (QQ: 2567466856), 
+  I'll try to repair it for you as soon as possible"""]
 
 cf_help_text = ["""Clean Desktop：清理文件工具
 这是一个用来整理文件夹（尤其是桌面）的程序，
+虽然名为""
 
 包含设定是否移动文件夹与快捷方式，
 选取强制保留文件，按文件类型强制保留，
@@ -247,37 +266,37 @@ Set expiration time and judgment method
 Start up and automatically run archiving and other functions
 """]
 
-cf_help_keep_text = ["""保留项目/文件格式选择功能详解
-保留项目选择：
+cf_help_keep_text = ["""强制保留文件/文件格式选择
+强制保留项目选择：
 选中的项目不会被转移
 
-保留文件格式选择：
+按文件格式保留选择：
 某种格式类型的文件都不会被转移
-比如选中'.exe'，即表示原文件夹中所有exe应用程序不会被转移""", """Preserve item
-Keep item selection:
-The selected items will not be transferred
+比如选中'.exe'，即表示原文件夹中所有exe应用程序不会被转移""", """Reserve Selection:
+Reserved item selection:
+The selected items will not be moved
 
-Keep file format selection:
-Files of a certain format type will not be transferred 
+Reserved format selection:
+Files of a certain format type will not be moved 
 For example, selecting '.exe' means that
-all executable files in the original folder will not be transferred"""]
+all executable files in the original folder will not be moved"""]
 
 cf_help_timeset_text = ["""过期时间功能详解
 本软件可以获取文件的最后修改、访问时间
 可以保留一定时间内修改/访问过的文件
-例如若将过期时间设为"48"，判定方式设为"以最后修改时间为依据"
-则运行日期前两天内修改过的文件不会被删除
-如果不想用此方法，则过期时间设为"0"即可""", '''Expiration time setting
+例如若将保留时间设为"48"，判定方式设为"最后修改时间"
+则运行日期前两天内修改过的文件不会被移动
+如果不想用此方法，则过期时间设为"0"即可""", '''Retain item for... Setting
 The app can obtain the latest modification and access time of the file
 
 You can reserve files that have been modified/accessed for a certain period of time.
 
 For example, if the expiration time is set to "48", and
-the judgment method is set to "Use Items' latest edit time",
-the files modified within two days before the operation date will not be deleted
+the judgment method is set to "Last Modified Moment",
+the files modified within two days before the operation date will not be moved
 
 If you do not want to use this method, 
-set the expiration time to "0" ''']
+just set the expiration time to "0" ''']
 
 sf_help_text = ['''Syncfile：文件同步工具
 这是一个用来同步文件两个路径下文件的程序，
@@ -324,12 +343,12 @@ and the automatic run option is selected,
 a pop-up prompt will ask you whether to synchronize or not.
 ''']
 
-sf_lock_help_text = ['''锁定文件夹/文件功能
-锁定文件夹：
+sf_lock_help_text = ['''禁止修改文件夹/覆盖文件功能
+禁止修改文件夹：
 当你添加了一个文件夹，这个文件夹将会被显示在待选列表中。
 在待选列表内勾选这个文件夹，这个文件夹内的内容将不会被修改或删除。
 
-锁定文件：
+禁止覆盖文件：
 添加原理与锁定文件夹相同，
 如果勾选一个文件，那么这个文件不会被修改。
 ''', '''Lock folder/file function
