@@ -16,16 +16,31 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
     The function `cf_move_dir` is used to move files or folders from one directory to another, with
     options for specifying file formats, checking modes, and handling overdue files.
 
-    :param master_root: The master_root parameter is a string that represents the root window variable of the Movefile application. It is the mother root to create and display the progress bar.
-    :param src__path: The source path or location of the file or folder that needs to be moved
-    :param dest__path: The destination path where the file or folder will be moved to
-    :param pass__file: The parameter "pass__file" is used to specify whether to pass files or not. It is a list of the files which will be passed.
-    :param pass__format: The pass__format parameter is used to specify the format of the files that should be moved. It is a list of strings representing the file formats. For example, if you want to move only text files, you can set pass__format to "txt" or ["txt"]
-    :param overdue_time: The parameter "overdue_time" is used to specify the time in seconds after which a file or folder is considered overdue
-    :param check__mode: The check__mode parameter is used to specify the type of check to be performed. It can have one of the following values:
-    :param is__move__folder: A boolean value indicating whether the operation is to move a folder or not
+    :param master__root: The master_root parameter is a string that represents the root window variable of the
+    Movefile application. It is the mother root to create and display the progress bar.
+    :param src__path: The source
+    path or location of the file or folder that needs to be moved
+    :param dest__path: The destination path where the
+    file or folder will be moved to
+    :param pass__file: The parameter "pass__file" is used to specify whether to pass
+    files or not. It is a list of the files which will be passed.
+    :param pass__format: The pass__format parameter is
+    used to specify the format of the files that should be moved. It is a list of strings representing the file
+    formats. For example, if you want to move only text files, you can set pass__format to "txt" or ["txt"]
+    :param overdue__time: The parameter "overdue_time" is used to specify the time in seconds after which a file or folder
+    is considered overdue
+    :param check__mode: The check__mode parameter is used to specify the type of check to be
+    performed. It can have one of the following values: 1, 2
+    :param is__move__folder: A boolean value indicating whether
+    the operation is to move a folder or not
+    :param is__move__lnk: A boolean value indicating whether
+    the operation is to move a link or not
+    :param preview: A boolean value indicating whether
+    the operation is to preview the files or not
+    :return: A list of the files or folders that were moved
     """
-    from mfprogressbar import MFProgressBar
+
+    from mf_progressbar import MFProgressBar
     mf_file = configparser.ConfigParser()
     mf_file.read(MF_CONFIG_PATH)
     lang_num = language_num(mf_file.get('General', 'language'))
@@ -38,19 +53,23 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
             for dfile in del_data[1]:
                 try:
                     os.remove(os.path.join(path, dfile))
-                except:
+                except Exception as e:
+                    print(e)
                     error_files += dfile + ',  '  # 这样还可以返回文件夹里无法移动的单个文件
             for dfolder in del_data[0][::-1]:
                 try:
                     os.rmdir(dfolder)
-                except:
+                except Exception as e:
+                    print(e)
+                    error_files += dfolder + ',  '
                     pass
             if not os.path.exists(path):
                 moved_files += path.split('\\')[-1] + ',  '
         else:
             try:
                 os.remove(path)  # 若是文件直接处理
-            except:
+            except Exception as e:
+                print(e)
                 error_files += path.split('\\')[-1] + ',  '
             else:
                 moved_files += path.split('\\')[-1] + ',  '
@@ -110,7 +129,7 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
             if for_path != '':  # 如果 new path 有内容就移动到 new path, 否则删除
                 try:
                     shutil_move(item_path, for_path)
-                except:
+                except Exception:
                     cf_error_name += (item + ',  ')
                 else:
                     cf_move_name += (item + ',  ')
@@ -200,7 +219,7 @@ def fixed_cf_config(cf_config_file: configparser.ConfigParser, saving_name: str)
 
 def cf_autorun_operation(master):
     """
-    The function cf_autorun_operation is used to perform an cleanfile operation automatically.
+    The function cf_autorun_operation is used to perform a cleanfile operation automatically.
 
     :param master: The master parameter is the root window of the application. It is the mother root to create and display the progress bar.
     """

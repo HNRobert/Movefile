@@ -24,24 +24,23 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
     The `sf_sync_dir` function synchronizes files between two directories, displaying progress using a progress bar.
 
     :param master_root: The master_root parameter is a string that represents the root window variable of the Movefile application. It is the mother root to create and display the progress bar.
-    :param path1: The path to the first folder that you want to synchronize
-    :param path2: The `path2` parameter represents the destination directory where the files will be synchronized to
-    :param single_sync: A boolean value indicating whether to perform a single sync or not. If True, only files present in the first folder will be synced to the second folder. If False, files present in both folders will be synced
     :param language_number: The `language_number` parameter is an integer that represents the language code to be used for displaying messages and notifications. It is used to select the appropriate language from a dictionary of language translations
-    :param area_name: The `area_name` parameter is an optional parameter that represents the label of the partitions being synchronized. It is used in the notification message to indicate which area of files has been synchronized. If not provided, the default name will be the last part of the `path1`
-    :param lock_file: The `lock_file` parameter is a string that represents a comma-separated list of file paths that should be excluded from the synchronization process. These files will not be moved or replaced during the synchronization
-    :param lock_folder: The `lock_folder` parameter is a string that represents the paths of folders that should be excluded from the synchronization process. These folders will not be compared or synchronized with the other folders. Multiple folder paths can be separated by commas
+    :param preview: The `preview` parameter is a boolean that indicates whether the function should preview the changes before applying them. If `preview` is `True`, the function will display a preview of the changes that will be made.
+    :param hidden: The `hidden` parameter is a boolean that indicates whether the function should apply changes to hidden files. If `hidden` is `True`, the function will apply changes to hidden files.
+    :param sf_saving_details: The `sf_saving_details` parameter is a dictionary that contains the details of the saving to operate
     """
 
-    from mfprogressbar import MFProgressBar
+    from mf_progressbar import MFProgressBar
 
-    def diff_items_in(folderA, folderB, _bar_root):
+    def diff_items_in(folder_a, folder_b, _bar_root):
         """
         The function takes two folder paths as input and returns the files that are present in one
         folder but not in the other.
 
-        :param folderA_path: The path to the first folder that you want to compare
-        :param folderB_path: The path to the second folder that you want to compare
+        :param folder_a: The path to the first folder that you want to compare
+        :param folder_b: The path to the second folder that you want to compare
+        :param _bar_root: The root of the progress bar
+        :return: A list of the files that are present in folder_a but not in folder_b.
         """
 
         def add_only_data(index, data_list, src_base: str, tar_base: str):
@@ -64,22 +63,22 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
 
         # [diff_files, left_only_files, right_only_files, left_only_folders, right_only_folders]
         diff_data = [[], [], [], [], []]
-        if folderA.endswith(':'):
-            folderA += '\\'
-        if folderB.endswith(':'):
-            folderB += '\\'
-        if not os.path.isdir(folderA) or not os.path.isdir(folderB):
+        if folder_a.endswith(':'):
+            folder_a += '\\'
+        if folder_b.endswith(':'):
+            folder_b += '\\'
+        if not os.path.isdir(folder_a) or not os.path.isdir(folder_b):
             return diff_data
-        cmp_data = dircmp(folderA, folderB, ignore=[])
+        cmp_data = dircmp(folder_a, folder_b, ignore=[])
         for dfile in cmp_data.diff_files:
             diff_data[0].append(
-                [os.path.join(folderA, dfile), os.path.join(folderB, dfile)])
-        add_only_data(1, cmp_data.left_only, folderA, folderB)
-        add_only_data(2, cmp_data.right_only, folderB, folderA)
+                [os.path.join(folder_a, dfile), os.path.join(folder_b, dfile)])
+        add_only_data(1, cmp_data.left_only, folder_a, folder_b)
+        add_only_data(2, cmp_data.right_only, folder_b, folder_a)
 
         for com_dir in cmp_data.common_dirs:
             dir_data = diff_items_in(os.path.join(
-                folderA, com_dir), os.path.join(folderB, com_dir), _bar_root)
+                folder_a, com_dir), os.path.join(folder_b, com_dir), _bar_root)
             for i in range(5):
                 diff_data[i].extend(dir_data[i])
         return diff_data
@@ -97,22 +96,19 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
             The function `judged_task` compares the modification times of two items and returns the
             items in a list if certain conditions are met.
 
-            :param only_one: The `only_one` parameter is a boolean flag that determines if there is only one
-            of the item in items exists. If True, the compare between their mtime would be skipped
-            :type only_one: bool (optional)
-            :return: a list containing the values of itemA and itemB.
+            :return: a list containing the values of item_a and item_b.
             """
 
-            itemA, itemB = items
-            if int(os.stat(itemA).st_mtime) < int(os.stat(itemB).st_mtime):
+            item_a, item_b = items
+            if int(os.stat(item_a).st_mtime) < int(os.stat(item_b).st_mtime):
                 if single_sync:
                     return None
-                itemA, itemB = itemB, itemA
-            if any(itemB.startswith(p_folder) for p_folder in lock_folders) or itemB in lock_files:
+                item_a, item_b = item_b, item_a
+            if any(item_b.startswith(p_folder) for p_folder in lock_folders) or item_b in lock_files:
                 return None
             _bar_root.set_label1(
-                LT_Dic.sfdic['main_progress_label'][language_number] + itemA.split('\\')[-1])
-            return [itemA, itemB]
+                LT_Dic.sfdic['main_progress_label'][language_number] + item_a.split('\\')[-1])
+            return [item_a, item_b]
 
         # task items' format: [source_file_path, dest_file_path]
         sync_tasks = [[], []]
@@ -139,7 +135,10 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
 
         :param baroot: The `baroot` parameter is a string that represents the root directory of the source files. It is the directory from which the files will be synchronized
         :param task: The `task` parameter is a string that represents the specific task or operation that needs to be performed on the files
+        :param is_folder:  The `is_folder` parameter is a boolean that indicates whether the task is a folder task or a file task. If `is_folder` is `True`, the task is a folder task, and if `is_folder` is `False`, the task is a file task.
+        :return: A list of strings that represent the paths of the files that were successfully synchronized. If there are no files that were successfully synchronized, the function returns an empty list.
         """
+
         if baroot.stop_running_flag:
             return
         baroot.set_label2(
@@ -162,6 +161,7 @@ def sf_sync_dir(master_root, language_number, preview=False, hidden=False, **sf_
         The function "run_sync_tasks" performs synchronous tasks.
 
         :param baroot: The progress bar root object
+        :param tasks: The tasks to be performed on the files. This is a list of lists, where each sublist contains the source file path and destination file path for a specific task. For example, if the tasks are to copy files from one directory to another, the tasks would be a list of lists where each sublist contains the source file path and destination file path for copying a file.
         """
 
         def execute_sf_tasks(_baroot: MFProgressBar, _tasks, _is_folder):
@@ -281,14 +281,15 @@ def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movabl
 
 def sf_autorun_operation(master, place, mv_saving_name: str = ''):
     """
-    The function `sf_autorun_operation` performs an sync operation on a given place and optional saving data.
+    The function `sf_autorun_operation` performs a sync operation on a given place and optional saving data.
 
+    :param master: The master parameter is a Tkinter root object that is used to display the progress bar.
     :param place: The place parameter is a string that represents the location or context in which the
     operation is being performed. It could be a specific folder, directory, or any other relevant
     location
-    :param saving_datas: The `saving_datas` parameter is an optional parameter that allows you to pass
+    :param mv_saving_name: The `mv_saving_name` parameter is an optional parameter that allows you to pass
     in a dictionary of data that you want to save. If you don't provide a value for this parameter, it
-    will default to `None`
+    will default to ``
     """
     sf_file = configparser.ConfigParser()
     sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
@@ -407,8 +408,7 @@ def sf_read_config(saving_name):
     sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
     if not _fixed_sf_config(sf_file, saving_name):
         return False
-    sf_options = {}
-    sf_options['place_mode'] = sf_file.get(saving_name, 'place_mode')
+    sf_options = {'place_mode': sf_file.get(saving_name, 'place_mode')}
     if sf_options['place_mode'] == 'local':
         sf_options['path_1'] = sf_file.get(saving_name, 'path_1')
     else:

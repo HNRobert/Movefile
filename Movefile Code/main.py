@@ -15,10 +15,10 @@ import time
 
 
 def main():
-    from mf_mods import Initialization, MFProgressChecker
+    from mf_mods import Initialization, is_proc_running
     from mf_ui import make_ui
-    checkpgs_result = MFProgressChecker()
-    if not checkpgs_result.continue_this_progress:
+    check_result = is_proc_running()
+    if check_result:
         return
     init_data = Initialization()
     time.sleep(0.1)

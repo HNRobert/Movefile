@@ -1,4 +1,4 @@
-#Sourced from effbot.org
+# Sourced from effbot.org
 from tkinter import CURRENT
 
 
@@ -6,6 +6,7 @@ class HyperlinkManager:
 
     def __init__(self, text):
 
+        self.links = None
         self.text = text
 
         self.text.tag_config("hyper", foreground="blue", underline=1)
@@ -26,13 +27,13 @@ class HyperlinkManager:
         self.links[tag] = action
         return "hyper", tag
 
-    def _enter(self, event):
+    def _enter(self):
         self.text.config(cursor="hand2")
 
-    def _leave(self, event):
+    def _leave(self):
         self.text.config(cursor="")
 
-    def _click(self, event):
+    def _click(self):
         for tag in self.text.tag_names(CURRENT):
             if tag[:6] == "hyper-":
                 self.links[tag]()

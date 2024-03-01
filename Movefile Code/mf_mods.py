@@ -1,4 +1,3 @@
-
 import configparser
 import logging
 import os
@@ -28,39 +27,31 @@ from winshell import CreateShortcut
 mf_toaster = ToastNotifier()
 
 
-# The MFProgressChecker class is used to check if the program is already running.
-# If it's running, it will display a message box to inform the user, and put the window on the top.
-class MFProgressChecker:
+def is_proc_running():
+    mfs_hwnd = FindWindow(None, 'Movefile Setting')
+    if mfs_hwnd:
+        return display_root(mfs_hwnd)
+    return False
 
-    def __init__(self):
-        self.continue_this_progress = True
-        if self.proc_root_on():
-            self.continue_this_progress = False
 
-    def proc_root_on(self):
-        mfs_hwnd = FindWindow(None, 'Movefile Setting')
-        if mfs_hwnd:
-            return self.display_root(mfs_hwnd)
+def display_root(mf_hwnd):
+    temp_root = Tk()
+    temp_root.withdraw()
+    try:
+        ShowWindow(mf_hwnd, 5)
+        tkinter.messagebox.showinfo(
+            title="Movefile", message="The app's running!")
+        temp_root.quit()
+        temp_root.destroy()
+        return True
+    except Exception as e:
+        print(e)
+        temp_root.quit()
+        temp_root.destroy()
         return False
 
-    def display_root(self, mf_hwnd):
-        temp_root = Tk()
-        temp_root.withdraw()
-        try:
-            ShowWindow(mf_hwnd, 5)
-            tkinter.messagebox.showinfo(
-                title="Movefile", message="The app's running!")
-            temp_root.quit()
-            temp_root.destroy()
-            return True
-        except:
-            temp_root.quit()
-            temp_root.destroy()
-            return False
 
 # The Initialization class is used for initializing the Movefile programme.
-
-
 class Initialization:
     def __init__(self):
         self.startup_visit = self.get_startup_state()
@@ -71,8 +62,7 @@ class Initialization:
         self.mf_data = configparser.ConfigParser()
         self.mf_data.read(MF_CONFIG_PATH, encoding='utf-8')
 
-        # self.log_file_path = os.path.join(MF_DATA_PATH, r'Movefile.log')
-        self.set_log_writer()
+        set_log_writer()
 
         self.mf_ico = None
         if not os.path.exists(MF_ICON_PATH):
@@ -84,7 +74,8 @@ class Initialization:
         if self.first_visit:  # 判断是否为首次访问
             logging.info("\nThis is the first visit of this program.")
 
-    def get_startup_state(self):
+    @staticmethod
+    def get_startup_state():
         if "--startup_visit" in sys.argv:
             return True
         return False
@@ -164,24 +155,25 @@ class Initialization:
         self.mf_ico.write(b64decode(icon.Movefile_ico))
         self.mf_ico.close()
 
-    def set_log_writer(self):
-        logfile = open(MF_LOG_PATH, ['w+','r'][os.path.exists(MF_LOG_PATH)], encoding='utf-8')
-        data = logfile.readlines()
-        if len(data) > 500:
-            data = data[-500:]
-            logfile.close()
-            logfile = open(MF_LOG_PATH, 'w', encoding='utf-8')
-            logfile.writelines(data)
-        logfile.close()
-        formatter = "[%(asctime)s] - [%(levelname)s]: %(message)s"
-        logging.basicConfig(level=logging.INFO,
-                            handlers=[logging.FileHandler(
-                                MF_LOG_PATH, 'a+', 'utf-8')],
-                            format=formatter)
-
 
 def mf_log(content):
     logging.info(content)
+
+
+def set_log_writer():
+    logfile = open(MF_LOG_PATH, ['w+', 'r'][os.path.exists(MF_LOG_PATH)], encoding='utf-8')
+    data = logfile.readlines()
+    if len(data) > 500:
+        data = data[-500:]
+        logfile.close()
+        logfile = open(MF_LOG_PATH, 'w', encoding='utf-8')
+        logfile.writelines(data)
+    logfile.close()
+    formatter = "[%(asctime)s] - [%(levelname)s]: %(message)s"
+    logging.basicConfig(level=logging.INFO,
+                        handlers=[logging.FileHandler(
+                            MF_LOG_PATH, 'a+', 'utf-8')],
+                        format=formatter)
 
 
 def set_auto_update(state):
@@ -198,6 +190,7 @@ def set_startup(state=True, lang_n=0):
     :param state: The `state` parameter is a boolean value that determines whether the startup process
     should be enabled or disabled. If `state` is `True`, the startup process will be enabled. If `state`
     is `False`, the startup process will be disabled, defaults to True (optional)
+    :param lang_n: The label of the language to show
     """
     # 将快捷方式添加到自启动目录
     bin_path = r"Movefile.exe"
@@ -225,8 +218,11 @@ def put_desktop_shortcut(state=True, lang_n=0):
     """
     The function `put_desktop_shortcut` allows you to put the shortcut of this program on Desktop.
 
-    :param state: The state parameter is a boolean value that determines whether the start menu should be displayed or not. If state is set to True, the start menu will be displayed. If state is set to False, the start menu will not be displayed, defaults to True (optional)
-    :param lang_n: The `lang_n` parameter is used to specify the language for the start menu. It is an integer value that represents the language code, defaults to 1 (optional)
+    :param state: The state parameter is a boolean value that determines whether the start menu should be displayed
+    or not. If state is set to True, the start menu will be displayed. If state is set to False, the start menu will
+    not be displayed, defaults to True (optional) :param lang_n: The `lang_n` parameter is used to specify the
+    language for the start menu. It is an integer value that represents the language code, defaults to 1 (optional)
+    :param lang_n: The language to set in the desc
     """
 
     bin_path = r"Movefile.exe"
@@ -251,9 +247,12 @@ def put_desktop_shortcut(state=True, lang_n=0):
 
 def set_auto_quit(state=True):
     """
-    The function `set_close_after_autorun` sets the value of the `quit_after_autorun` variable in the `gvar` module to the specified value.
+    The function `set_close_after_autorun` sets the value of the `quit_after_autorun` variable in the `gvar` module
+    to the specified value.
 
-    :param state: The `state` parameter is a boolean value that determines whether the program should quit after the autorun process is completed. If `state` is `True`, the program will quit after the autorun process is completed. If `state` is `False`, the program will not quit after the autorun process is completed, defaults to True (optional)
+    :param state: The `state` parameter is a boolean value that determines whether the program should quit after the
+    autorun process is completed. If `state` is `True`, the program will quit after the autorun process is completed.
+    If `state` is `False`, the program will not quit after the autorun process is completed, defaults to True (optional)
     """
 
     ca_cf = configparser.ConfigParser()
@@ -287,7 +286,7 @@ def remove_last_edit(config_file_path):
     for save_name in mode_data.sections():
         try:
             mode_data.set(save_name, '_last_edit_', 'False')
-        except:
+        except Exception:
             mf_log(f'remove_last_edit error: {save_name}')
         finally:
             mode_data.write(
@@ -295,7 +294,6 @@ def remove_last_edit(config_file_path):
 
 
 def list_saving_data():
-
     def get_last_edit_in(configer, savings):
         if not savings:
             return ''
@@ -345,9 +343,7 @@ def get_removable_disks(s_uuid=None):
             fso = Dispatch("Scripting.FileSystemObject", CoInitialize())
             drv = fso.GetDrive(pf)
             total_space = drv.TotalSize / 2 ** 30
-            show_name = volume_name + \
-                ' (' + pf[:-1] + ')' + '   ' + \
-                str(total_space // 0.01 / 100) + ' GB'
+            show_name = volume_name + ' (' + pf[:-1] + ')' + '   ' + str(total_space // 0.01 / 100) + ' GB'
             show_list.append(show_name)
             uuid_disk_pairs.append([str(volume_id), show_name, pf[:-1]])
         if s_uuid is None:
@@ -386,7 +382,7 @@ def detect_removable_disks_thread(master_root, lang_num):
                     area_data_list.append(area_uuid)
                     number_book[pf] = area_uuid
                     ask_sync_disk(master_root, lang_num, [
-                                  pf, area_name, area_uuid])
+                        pf, area_name, area_uuid])
         time.sleep(0.5)
 
 
@@ -400,10 +396,11 @@ def ask_sync_disk(master_root, lang_num, new_area_data):
     for autorun_info in get_movable_autorun_infos():
         msg_ps = LT_Dic.sfdic['new_disk_detected'][lang_num]
         msg_content = f'{msg_ps[0]}{new_area_data[1]} ({new_area_data[0][:-1]}){msg_ps[1]}{msg_ps[2]}{autorun_info[0]}{msg_ps[3]}'
-        if str(new_area_data[2]) == autorun_info[1] and (autorun_info[2] == 'True' or tkinter.messagebox.askokcancel(title='Movefile',
-                                                                                                                     message=msg_content)):
+        if str(new_area_data[2]) == autorun_info[1] and (
+                autorun_info[2] == 'True' or tkinter.messagebox.askokcancel(title='Movefile',
+                                                                            message=msg_content)):
             Thread(target=sf_autorun_operation(master_root,
-                   'movable', autorun_info[0]), daemon=True).start()
+                                               'movable', autorun_info[0]), daemon=True).start()
     for real_time_info in get_removable_real_time_infos():  # [saving_name, uuid]
         if str(new_area_data[2]) == real_time_info[1]:
             gvar.set('sf_config_changed', True)

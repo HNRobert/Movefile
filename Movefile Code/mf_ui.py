@@ -1,10 +1,8 @@
-
-
 import configparser
 import os
 import time
 import tkinter.filedialog
-import tkinter.font as tkFont
+import tkinter.font as tk_font
 import tkinter.messagebox
 import webbrowser
 from functools import partial
@@ -45,7 +43,7 @@ class MFInfoShower:
         self.ntf_wd.protocol("WM_DELETE_WINDOW",
                              lambda: self.hide())
         self.ntf_title = tk.Label(master=self.ntf_wd, textvariable=self.title_var,
-                                  font=tkFont.Font(family='Microsoft YaHei UI', size=20, weight="bold"))
+                                  font=tk_font.Font(family='Microsoft YaHei UI', size=20, weight="bold"))
         self.ntf_title.grid(row=0, column=0, pady=10, sticky='NSEW')
         self.ntf_text = tk.Text(master=self.ntf_wd, width=30, height=10,
                                 wrap='word', state=tk.DISABLED, relief='groove')
@@ -68,7 +66,9 @@ class MFInfoShower:
     def move_to_bottom(self):
         self.ntf_text.see(tk.END)
 
-    def show_info(self, title, message: str, hyperlinks: list=[], is_log=False, **tags):
+    def show_info(self, title, message: str, hyperlinks=None, is_log=False, **tags):
+        if hyperlinks is None:
+            hyperlinks = []
         Thread(target=lambda: self._show_info(title, message, hyperlinks, is_log, **tags), daemon=True).start()
 
     def _show_info(self, title, message: str, hyperlinks: list, log, **tags):
@@ -87,7 +87,7 @@ class MFInfoShower:
         line_num = message.count("\n")
         self.ntf_text.delete("1.0", tk.END)
         self.ntf_wd.deiconify()
-        self.ntf_wd.geometry(f"400x{min(70+line_num*30, 600)}")
+        self.ntf_wd.geometry(f"400x{min(70 + line_num * 30, 600)}")
         self.ntf_wd.bell()
         self.title_var.set(title)
         self.ntf_text.insert(tk.END, message)
@@ -99,16 +99,16 @@ class MFInfoShower:
         for hyperlink in hyperlinks:
             self.add_hyperlink(hyperlink[0], hyperlink[1], hyperlink[2])
         if log:
+            self.move_to_bottom()
             for index, line in enumerate(message.split('\n')):
                 if line.startswith('['):
                     end_1 = line.find(']')
-                    start_2 = line.find('[', end_1+1)
-                    end_2 = line.find(']', start_2+1)
+                    start_2 = line.find('[', end_1 + 1)
+                    end_2 = line.find(']', start_2 + 1)
                     self.add_tag(
-                        'gray', f'{index+1}.0', f'{index+1}.{end_1+1}')
+                        'gray', f'{index + 1}.0', f'{index + 1}.{end_1 + 1}')
                     self.add_tag(
-                        line[start_2+1:end_2], f'{index+1}.{start_2}', f'{index+1}.{end_2+1}')
-            self.move_to_bottom()
+                        line[start_2 + 1:end_2], f'{index + 1}.{start_2}', f'{index + 1}.{end_2 + 1}')
         self.ntf_text.config(state=tk.DISABLED)
 
     def add_hyperlink(self, text, url, position_index=tk.END):
@@ -117,7 +117,7 @@ class MFInfoShower:
 
         :param text: The text to be displayed in the hyperlink
         :param url: The URL to be navigated to when the hyperlink is clicked
-        :param line_index: The index of the line in the notification where the hyperlink should be added
+        :param position_index: The index of the line in the notification where the hyperlink should be added
         """
         self.ntf_text.config(state=tk.NORMAL)
         hyperlink = HyperlinkManager(self.ntf_text)
@@ -130,7 +130,8 @@ class MFInfoShower:
         The add_tag function is used to add a tag to the notification.
 
         :param tag: The tag to be added to the notification
-        :param index: The place  where the tag should be added
+        :param index_1: The place  where the tag should be added
+        :param index_2: The place where the tag should end
         """
         self.ntf_text.config(state=tk.NORMAL)
         self.ntf_text.tag_add(tag, index_1, index_2)
@@ -141,10 +142,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     """
     The function "make_ui" creates a user interface.
 
-    :param multi_visit: A boolean parameter that indicates whether the user is making more than one visits to the UI today. If set to True, it means the user has already visited the UI before and is returning for
-    another visit. If set to False, it means this is the user's first visit to the UI today, defaults to False (optional)
-    :param first_visit: A boolean parameter that indicates whether it is the user's first time using this software. If set to True, it means that the user is visiting the UI for the first time, defaults to False (optional)
-    :param startup_visit: A boolean parameter that indicates whether it is the first time the user is visiting the application after booting the computer, defaults to False (optional)
+    :param first_visit: A boolean parameter that indicates whether it is the user's first time using this software.
+    If set to True, it means that the user is visiting the UI for the first time, defaults to False (optional)
+    :param startup_visit: A boolean parameter that indicates whether it is the first time the user is visiting the
+    application after booting the computer, defaults to False (optional)
+    :param visits_today: An integer parameter that indicates the number of times the user has visited the
+    application today, defaults to 0 (optional)
+    :param quit_after_autorun: A boolean parameter that indicates whether the application should quit after
+    running the autorun function, defaults to False (optional)
+    :return: The function returns a tuple containing the root window and the main frame.
     """
 
     cf_data = configparser.ConfigParser()
@@ -162,18 +168,17 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         file_names = []
         folder_names = []
         item_names = os.scandir(cf_entry_src_path.get())
-        dest_path = cf_entry_dest_path.get()
         if cf_ori_src_path != cf_entry_src_path.get():
             cf_entry_keep_files.delete(0, 'end')
             cf_entry_keep_formats.delete(0, 'end')
             cf_ori_src_path = cf_entry_src_path.get()
         for item in item_names:
             suffix = item.name.split('.')[-1]
-            if item.is_file() and (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk') and item.name != 'desktop.ini':
+            if item.is_file() and \
+                    (suffix == 'lnk' and cf_is_lnk_move.get() or suffix != 'lnk') and item.name != 'desktop.ini':
                 file_names.append(item.name)
                 all_ends.append('.' + suffix)
-            elif item.is_dir() and cf_is_folder_move.get() and os.path.isdir(dest_path) and (
-                    os.path.splitdrive(item.path)[0] != os.path.splitdrive(dest_path)[0] or os.path.commonpath([item.path, dest_path]) != dest_path):
+            elif item.is_dir() and cf_is_folder_move.get() and item.path != dest_path.get():
                 folder_names.append(item.name)
 
         exist_ends = sorted(set(filter(lambda suff: suff != '.lnk', all_ends)))
@@ -229,79 +234,93 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             for file in file_path_:
                 sf_entry_lock_file.append_value(file.replace('/', '\\'))
 
-    def set_preview(result=[], mode='cf', content='', time_cost=0.0):
+    def set_preview(text_widget, result=None, mode='cf', content='', time_cost=0.0):
         """
         The function `set_preview` is used to update the preview text widget based on the given parameters.
 
-        :param result: The `result` parameter is a list that contains information about the items to be previewed. Each item in the list is a tuple with three elements: the item's name, the item's path, and destination path
-        :param mode: The `mode` parameter is used to determine the type of preview to be displayed. It can have two possible values: 'cf' or 'sf', defaults to cf (optional)
-        :param content: The `content` parameter is a string that represents the content to be displayed in the preview_text widget. If this parameter is not empty, the content will be inserted directly into the widget
+        :param text_widget: The `text_widget` parameter is a widget that is used to display the preview text.
+        :param result: The `result` parameter is a list that contains information about the items to be previewed.
+        Each item in the list is a tuple with three elements: the item's name, the item's path, and destination path
+        :param mode: The `mode` parameter is used to determine the type of preview to be displayed. It can have two
+        possible values: 'cf' or 'sf', defaults to cf (optional)
+        :param content: The `content` parameter is a string
+        that represents the content to be displayed in the preview_text widget. If this parameter is not empty,
+        the content will be inserted directly into the widget
+        :param time_cost: The `time_cost` parameter is a float that represents the time it took to generate the
+        preview. It is used to display the time it took to generate the preview in the preview_text widget.
+        :return: The function returns nothing. It updates the preview_text widget based on the given parameters.
+        It also sets the text color to green if the preview is successful, and red if there is an error. It also
+        displays the source and destination paths of the item. It also displays the time it took to generate the
+        preview. It also displays the number of items found in the preview if the mode is 'sf'.
         """
-        preview_text.config(state='normal')
-        preview_text.delete('1.0', tk.END)
+        if result is None:
+            result = []
+        text_widget.config(state='normal')
+        text_widget.delete('1.0', tk.END)
         if mode == 'sf' and result:
             result = result[0] + result[1]
         if content:
-            preview_text.insert(tk.END, content)
+            text_widget.insert(tk.END, content)
         elif len(result) == 0:  # no item in result
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's' + '\n')
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.cfdic['preview_no_item'][lang_num] + '\n')
-            preview_text.tag_add('green_bold', '2.0', '2.end')
+            text_widget.tag_add('green_bold', '2.0', '2.end')
         elif mode == 'cf':
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's       ')
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_num_found'][lang_num] + str(len(result)) + '\n')
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.cfdic['preview_src'][lang_num] + os.path.dirname(result[0][1]) + '\n')
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.cfdic['preview_dest'][lang_num] + [LT_Dic.r_label_text_dic[
-                    'preview_removal'][lang_num], result[0][2]][bool(result[0][2])] + '\n')
-            preview_text.tag_add(
+                                                                      'preview_removal'][lang_num], result[0][2]][
+                    bool(result[0][2])] + '\n')
+            text_widget.tag_add(
                 'green', '2.' + str(len(LT_Dic.cfdic['preview_src'][lang_num])), '2.end')
-            preview_text.tag_add(
+            text_widget.tag_add(
                 'green', '3.' + str(len(LT_Dic.cfdic['preview_dest'][lang_num])), '3.end')
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 100 + '\n')
-            preview_text.tag_add('green_bold_underline', '4.0', '4.end')
+            text_widget.tag_add('green_bold_underline', '4.0', '4.end')
             for line in result:
                 s_path = os.path.basename(line[1])
-                preview_text.insert(tk.END, s_path + '\n')
+                text_widget.insert(tk.END, s_path + '\n')
         elif mode == 'sf':
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_cost'][lang_num] + str(time_cost) + 's       ')
-            preview_text.insert(
+            text_widget.insert(
                 tk.END, LT_Dic.r_label_text_dic['preview_num_found'][lang_num] + str(len(result)) + '\n')
             s_path = ' '
             if sf_entry_select_removable.get():
                 s_path = sf_entry_select_removable.get().split(':')[
-                    0][-1] + ':'
+                             0][-1] + ':'
             if sf_place_mode.get() == 'local':
                 s_path = sf_entry_path_1.get()
             d_path = sf_entry_path_2.get()
-            preview_text.insert(tk.END, 'A:  ' + s_path + '\n')
-            preview_text.tag_add('A', '2.0', '2.end')
-            preview_text.insert(tk.END, 'B:  ' + d_path + '\n')
-            preview_text.tag_add('B', '3.0', '3.end')
-            preview_text.insert(
+            text_widget.insert(tk.END, 'A:  ' + s_path + '\n')
+            text_widget.tag_add('A', '2.0', '2.end')
+            text_widget.insert(tk.END, 'B:  ' + d_path + '\n')
+            text_widget.tag_add('B', '3.0', '3.end')
+            text_widget.insert(
                 tk.END, LT_Dic.cfdic['preview_item'][lang_num] + ' ' * 120 + '\n')
-            preview_text.tag_add('green_bold_underline', '4.0', '4.end')
+            text_widget.tag_add('green_bold_underline', '4.0', '4.end')
 
             for index, line in enumerate(result):
                 _preview_line: str = (
-                    line[0] + '  →  ' + line[1]).replace(s_path, 'A').replace(d_path, 'B')
-                preview_text.insert(tk.END, _preview_line + '\n')
-                preview_text.tag_add(
-                    _preview_line[0], f'{index+5}.0', f'{index+5}.1')
+                        line[0] + '  →  ' + line[1]).replace(s_path, 'A').replace(d_path, 'B')
+                text_widget.insert(tk.END, _preview_line + '\n')
+                text_widget.tag_add(
+                    _preview_line[0], f'{index + 5}.0', f'{index + 5}.1')
                 dst_pth0 = _preview_line.find('  →  ') + 5
-                preview_text.tag_add(
-                    _preview_line[dst_pth0], f'{index+5}.{dst_pth0}', f'{index+5}.{dst_pth0+1}')
+                text_widget.tag_add(
+                    _preview_line[dst_pth0], f'{index + 5}.{dst_pth0}', f'{index + 5}.{dst_pth0 + 1}')
         else:
             assert False, "No Such Mode"
-        preview_text.insert(tk.END, '\n')
-        preview_text.config(state='disabled')
+        text_widget.insert(tk.END, '\n')
+        text_widget.config(state='disabled')
 
     def set_language(lang_number):
         label_choose_state_text.set(
@@ -431,12 +450,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         taskbar_exit_text.set(
             LT_Dic.r_label_text_dic['taskbar_exit'][lang_number])
 
-    class MF_Placer:
+    class MFPlacer:
         def __init__(self, mode, sf_place=None):
             self.mode = mode
-            self.keep_preview = False
-            if pre_cs.get() == self.mode:
-                self.keep_preview = True
             pre_cs.set(self.mode)
             blank_c0.grid(row=13, column=0, ipadx=67, pady=4,
                           padx=0, sticky='E')  # This is a Placeholder
@@ -459,10 +475,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                              pady=4, padx=10, sticky='W')
             continue_button.grid(row=13, column=1, ipadx=100,
                                  pady=4, padx=10, sticky='E')
-            preview_text.grid(row=11, column=1, padx=10,
-                              pady=5, ipadx=129, sticky='NSEW')
+            cf_preview_text.grid(row=11, column=1, padx=10,
+                                 pady=5, ipadx=129, sticky='NSEW')
             preview_xscrollbar.grid(
-                row=11, column=1, padx=10, pady=5, ipadx=279, sticky='WS')
+                row=11, column=1, padx=10, pady=5, ipadx=280, sticky='WS')
             preview_yscrollbar.grid(
                 row=11, column=1, padx=10, pady=5, sticky='ESN')
             # continue_button.config(state=tk.DISABLED)
@@ -475,7 +491,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         def put_preview():
             preview_placed.set(True)
             root.update()
-            root.geometry(f'800x{min(root.winfo_height()+180, 600)}')
+            root.geometry(f'800x{min(root.winfo_height() + 180, 600)}')
 
         @staticmethod
         def unfold_adv(booleanvar: BooleanVar, unfold_method: Callable, stay=False):
@@ -485,10 +501,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 booleanvar.set(state)
             if state:
                 button_expand_adv_text.set(
-                    button_expand_adv_text.get()[:-1]+'↑')
+                    button_expand_adv_text.get()[:-1] + '↑')
             else:
                 button_expand_adv_text.set(
-                    button_expand_adv_text.get()[:-1]+'↓')
+                    button_expand_adv_text.get()[:-1] + '↓')
             preview_height = int(preview_placed.get()) * 180
             unfold_method(state, preview_height)
 
@@ -517,8 +533,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 temp_adjust_value = [150, 200]
                 cf_option_mode_2.grid(
                     row=9, column=1, padx=temp_adjust_value[lang_num], ipadx=0, sticky='W')
-                root.geometry(f'800x{340+preview_height}')
-                root.minsize(800, 340+preview_height)
+                # root.geometry(f'800x{340+preview_height}')
+                root.minsize(800, 340 + preview_height)
             else:
                 cf_label_src_path.grid_forget()
                 cf_entry_src_path.grid_forget()
@@ -532,8 +548,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 cf_option_mode_1.grid_forget()
                 cf_option_mode_2.grid_forget()
                 cf_entry_time.grid_forget()
-                root.geometry(f'800x{180+preview_height}')
-                root.minsize(800, 180+preview_height)
+                # root.geometry(f'800x{180+preview_height}')
+                root.minsize(800, 180 + preview_height)
 
         @staticmethod
         def sf_unfold_adv(state, preview_height):
@@ -548,8 +564,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     row=7, column=1, padx=10, pady=5, ipadx=190, sticky='W')
                 sf_browse_lockfile_button.grid(
                     row=7, column=1, padx=10, sticky='E', ipadx=3)
-                root.geometry(f'800x{315+preview_height}')
-                root.minsize(800, 315+preview_height)
+                # root.geometry(f'800x{315+preview_height}')
+                root.minsize(800, 315 + preview_height)
             else:
                 sf_label_lock_folder.grid_forget()
                 sf_entry_lock_folder.grid_forget()
@@ -557,8 +573,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 sf_label_lock_file.grid_forget()
                 sf_entry_lock_file.grid_forget()
                 sf_browse_lockfile_button.grid_forget()
-                root.geometry(f'800x{250+preview_height}')
-                root.minsize(800, 250+preview_height)
+                # root.geometry(f'800x{250+preview_height}')
+                root.minsize(800, 250 + preview_height)
 
         @staticmethod
         def sf_change_place_mode(mode):
@@ -579,7 +595,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             temp_adjust_direction = [['W', 'E'], ['W', 'W']]
             temp_adjust_value = [[280, 172], [130, 235]]
             sf_option_real_time.grid(
-                row=12, column=1, padx=temp_adjust_value[mode_index][lang_num], sticky=temp_adjust_direction[mode_index][lang_num])
+                row=12, column=1, padx=temp_adjust_value[mode_index][lang_num],
+                sticky=temp_adjust_direction[mode_index][lang_num])
             sf_label_path_1_text.set(
                 LT_Dic.r_label_text_dic['sf_label_path_1'][lang_num][mode_index])
             sf_label_path_2_text.set(
@@ -587,26 +604,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_option_autorun_text.set(
                 LT_Dic.r_label_text_dic['sf_option_autorun'][lang_num][mode_index])
 
-        def exchange_preview_text(self):
-            if self.keep_preview:
-                return
-            pre_preview_text = opp_preview_text.get()[:-1]
-            opp_preview_text.set(preview_text.get('1.0', tk.END))
-            set_preview(content=pre_preview_text)
-
-        """
         @staticmethod
-        def judge_button_pix():
-            def adjust_widget(mount: list):
-                
-                cf_option_lnk_move.grid(
-                    row=3, column=1, padx=mount[2], ipadx=0, sticky='W')
-
-            if lang_num == 0:
-                adjust_widget([100, 100, 150])
-            elif lang_num == 1:
-                adjust_widget([100, 100, 150])
-        """
+        def config_preview_text(this_widget, opp_widget):
+            this_widget.grid(row=11, column=1, padx=10,
+                             pady=5, ipadx=129, sticky='NSEW')
+            opp_widget.grid_forget()
+            this_widget.config(
+                xscrollcommand=preview_xscrollbar.set, yscrollcommand=preview_yscrollbar.set)
+            preview_xscrollbar.config(command=this_widget.xview)
+            preview_yscrollbar.config(command=this_widget.yview)
 
         def cf_state(self):
             sf_label_place_mode.grid_forget()
@@ -645,7 +651,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             cf_option_lnk_move.grid(row=3, column=1, padx=150, sticky='W')
             cf_option_is_auto.grid(row=12, column=1, padx=10, sticky='NW')
             self.unfold_adv(cf_is_unfold_adv, self.cf_unfold_adv, stay=True)
-            self.exchange_preview_text()
+            self.config_preview_text(cf_preview_text, sf_preview_text)
             button_expand_adv.config(command=lambda: self.unfold_adv(
                 cf_is_unfold_adv, self.cf_unfold_adv))
             current_save_name.set(
@@ -706,7 +712,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             sf_option_autorun.grid(row=12, column=1, padx=10, sticky='W')
 
             self.unfold_adv(sf_is_unfold_adv, self.sf_unfold_adv, stay=True)
-            self.exchange_preview_text()
+            self.config_preview_text(sf_preview_text, cf_preview_text)
             button_expand_adv.config(command=lambda: self.unfold_adv(
                 sf_is_unfold_adv, self.sf_unfold_adv))
             current_save_name.set(
@@ -724,7 +730,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root.attributes('-topmost', False)
     root.update_idletasks()
     root.protocol("WM_DELETE_WINDOW", lambda: exit_program())
-    tkfont = tkFont.nametofont("TkDefaultFont")
+    tkfont = tk_font.nametofont("TkDefaultFont")
     tkfont.config(family='Microsoft YaHei UI')
     root.option_add("*Font", tkfont)
 
@@ -777,7 +783,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_option_real_time_text = tk.StringVar()
 
     preview_button_text = tk.StringVar()
-    opp_preview_text = tk.StringVar()
     select_all_text = tk.StringVar()
 
     save_button_text = tk.StringVar()
@@ -810,7 +815,6 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root_language.set(general_data.get('General', 'language'))
     lang_num = language_num(root_language.get())
     set_language(lang_num)
-    opp_preview_text.set(LT_Dic.r_label_text_dic['default_preview'][lang_num])
     cf_is_unfold_adv = tk.BooleanVar()
     sf_is_unfold_adv = tk.BooleanVar()
 
@@ -820,10 +824,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     pre_cs = tk.StringVar()
     option_is_cleanfile = ttk.Radiobutton(root, textvariable=option_is_cleanfile_text, variable=cf_or_sf,
                                           value='cf',
-                                          command=lambda: MF_Placer(cf_or_sf.get()))
+                                          command=lambda: MFPlacer(cf_or_sf.get()))
     option_is_syncfile = ttk.Radiobutton(root, textvariable=option_is_syncfile_text, variable=cf_or_sf,
                                          value='sf',
-                                         command=lambda: MF_Placer(cf_or_sf.get()))
+                                         command=lambda: MFPlacer(cf_or_sf.get()))
 
     label_current_save_name = ttk.Label(
         root, textvariable=current_save_name)
@@ -875,36 +879,37 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     button_expand_adv = ttk.Button(root, textvariable=button_expand_adv_text)
 
-    preview_text = tk.Text(root, height=5, width=50,
-                           state='disabled', wrap='none', relief='groove')
-
     preview_yscrollbar = tk.Scrollbar()
-    preview_text.config(yscrollcommand=preview_yscrollbar.set)
-    preview_yscrollbar.config(command=preview_text.yview)
-
     preview_xscrollbar = tk.Scrollbar(orient='horizontal')
-    preview_text.config(xscrollcommand=preview_xscrollbar.set)
-    preview_xscrollbar.config(command=preview_text.xview)
 
-    preview_text.tag_config('orange', foreground='orange', font=tkFont.BOLD)
-    preview_text.tag_config('green', foreground='green')
-    preview_text.tag_config('green_bold', foreground='green', font=tkFont.BOLD)
-    preview_text.tag_config('A', foreground='red')
-    preview_text.tag_config('B', foreground='blue')
-    preview_text.tag_config('underline', underline=True)
-    preview_text.tag_config(
-        'green_bold_underline', underline=True, foreground='green', font=tkFont.BOLD)
+    cf_preview_text = tk.Text(root, height=5, width=50,
+                              state='disabled', wrap='none', relief='groove')
+
+    sf_preview_text = tk.Text(root, height=5, width=50,
+                              state='disabled', wrap='none', relief='groove')
+
+    for p_t in [cf_preview_text, sf_preview_text]:
+        p_t.tag_config('orange', foreground='orange', font=tk_font.BOLD)
+        p_t.tag_config('green', foreground='green')
+        p_t.tag_config('green_bold', foreground='green', font=tk_font.BOLD)
+        p_t.tag_config('A', foreground='red')
+        p_t.tag_config('B', foreground='blue')
+        p_t.tag_config('underline', underline=True)
+        p_t.tag_config(
+            'green_bold_underline', underline=True, foreground='green', font=tk_font.BOLD)
 
     preview_placed = tk.BooleanVar()
 
     preview_button = ttk.Button(
-        root, textvariable=preview_button_text, command=lambda: Thread(target=lambda: execute_as_root(exe_preview=True)).start())
+        root, textvariable=preview_button_text,
+        command=lambda: Thread(target=lambda: execute_as_root(exe_preview=True)).start())
 
     cf_label_start_options = ttk.Label(
         root, textvariable=cf_label_start_options_text)
     cf_is_autorun = tk.BooleanVar()
     cf_option_is_auto = ttk.Checkbutton(
-        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun, command=lambda: request_saving(cf_is_autorun))
+        root, textvariable=cf_option_is_auto_text, variable=cf_is_autorun,
+        command=lambda: request_saving(cf_is_autorun))
 
     sf_label_place_mode = ttk.Label(
         root, textvariable=sf_label_place_mode_text)
@@ -912,11 +917,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_option_mode_usb = ttk.Radiobutton(root, textvariable=sf_option_mode_usb_text,
                                          variable=sf_place_mode,
                                          value='movable',
-                                         command=lambda: MF_Placer('sf', sf_place=sf_place_mode.get()))
+                                         command=lambda: MFPlacer('sf', sf_place=sf_place_mode.get()))
     sf_option_mode_local = ttk.Radiobutton(root, textvariable=sf_option_mode_local_text,
                                            variable=sf_place_mode,
                                            value='local',
-                                           command=lambda: MF_Placer('sf', sf_place=sf_place_mode.get()))
+                                           command=lambda: MFPlacer('sf', sf_place=sf_place_mode.get()))
     sf_place_mode.set('movable')
 
     sf_label_path_1 = ttk.Label(root, textvariable=sf_label_path_1_text)
@@ -972,56 +977,59 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_option_real_time = ttk.Checkbutton(root,
                                           textvariable=sf_option_real_time_text,
                                           variable=sf_is_real_time,
-                                          command=lambda: request_saving(sf_is_real_time, set_sf_real_time_state, must=False))
+                                          command=lambda: request_saving(sf_is_real_time, set_sf_real_time_state,
+                                                                         must=False))
 
-    class MF_Helper:
+    class MfHelper:
         def __init__(self):
             self.info_shower = MFInfoShower(root)
 
-        def show_help(self, title, message, hyperlinks: list=[], log=False, **tags):
+        def show_help(self, title, message, hyperlinks=None, log=False, **tags):
+            if hyperlinks is None:
+                hyperlinks = []
             self.info_shower.show_info(
                 title=title, message=message, hyperlinks=hyperlinks, is_log=log, **tags)
 
         def help_main(self):
             title = LT_Dic.help_main_text[lang_num].split('\n')[0]
-            message = LT_Dic.help_main_text[lang_num][len(title)+1:]
+            message = LT_Dic.help_main_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message, hyperlinks=[[
-                           'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '16.end']], red=[6])
+                'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '16.end']], red=[6])
 
         def help_before_use(self):
             title = LT_Dic.help_before_use_text[lang_num].split('\n')[0]
-            message = LT_Dic.help_before_use_text[lang_num][len(title)+1:]
+            message = LT_Dic.help_before_use_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message, hyperlinks=[[
-                           'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '11.end']])
+                'https://github.com/HNRobert/Movefile', 'https://github.com/HNRobert/Movefile', '11.end']])
 
         def cf_help(self):
             title = LT_Dic.cf_help_text[lang_num].split('\n')[0]
-            message = LT_Dic.cf_help_text[lang_num][len(title)+1:]
+            message = LT_Dic.cf_help_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message)
 
         def cf_help_keep(self):
             title = LT_Dic.cf_help_keep_text[lang_num].split('\n')[0]
-            message = LT_Dic.cf_help_keep_text[lang_num][len(title)+1:]
+            message = LT_Dic.cf_help_keep_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message)
 
         def cf_help_timeset(self):
             title = LT_Dic.cf_help_timeset_text[lang_num].split('\n')[0]
-            message = LT_Dic.cf_help_timeset_text[lang_num][len(title)+1:]
+            message = LT_Dic.cf_help_timeset_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message)
 
         def sf_help(self):
             title = LT_Dic.sf_help_text[lang_num].split('\n')[0]
-            message = LT_Dic.sf_help_text[lang_num][len(title)+1:]
+            message = LT_Dic.sf_help_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message)
 
         def sf_removable_help(self):
             title = LT_Dic.sf_removable_help_text[lang_num].split('\n')[0]
-            message = LT_Dic.sf_removable_help_text[lang_num][len(title)+1:]
+            message = LT_Dic.sf_removable_help_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message)
 
         def sf_lock_help(self):
             title = LT_Dic.sf_lock_help_text[lang_num].split('\n')[0]
-            message = LT_Dic.sf_lock_help_text[lang_num][len(title)+1:]
+            message = LT_Dic.sf_lock_help_text[lang_num][len(title) + 1:]
             self.show_help(title=title, message=message)
 
         def mf_show_log(self):
@@ -1035,8 +1043,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             self.show_help(
                 LT_Dic.r_label_text_dic['log_menu'][lang_num], content, log=True)
 
-
-    class MF_Info_Checker:
+    class MFErrorChecker:
         def __init__(self):
             pass
 
@@ -1044,17 +1051,19 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         def cf_is_num():
             try:
                 float(cf_entry_time.get())
-            except:
+            except Exception:
                 return False
             else:
                 return True
 
         @staticmethod
-        def cf_has_blank():
+        def cf_has_blank(read):
             if not cf_entry_src_path.get():
                 return True
-            if not cf_entry_dest_path.get() and not tkinter.messagebox.askyesno(title="Movefile",
-                                                                                message=LT_Dic.r_label_text_dic["dest_path_blank_notice"][lang_num]):
+            if not cf_entry_dest_path.get() and (read or not tkinter.messagebox.askyesno(title="Movefile",
+                                                                                         message=LT_Dic.r_label_text_dic[
+                                                                                             "dest_path_blank_notice"][
+                                                                                             lang_num])):
                 return True
             if not cf_entry_time.get():
                 return True
@@ -1068,7 +1077,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                                               message=LT_Dic.r_label_text_dic["path_not_exist_notice"][lang_num] + noexist_path + LT_Dic.r_label_text_dic["create_path_notice"][lang_num]):
                 try:
                     os.makedirs(noexist_path)
-                except:
+                except Exception:
                     return True
                 else:
                     return False
@@ -1084,7 +1093,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 if not os.path.isdir(cf_entry_dest_path.get()):
                     return self.try_create_path(cf_entry_dest_path.get())
                 os.listdir(cf_entry_dest_path.get())
-            except:
+            except Exception:
                 return True
             else:
                 return False
@@ -1109,13 +1118,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             _disk_path = ''
             if sf_entry_select_removable.get():
                 _disk_path = sf_entry_select_removable.get().split(':')[
-                    0][-1] + ':'
+                                 0][-1] + ':'
             _path1 = sf_entry_path_1.get()
             _path2 = sf_entry_path_2.get()
             if not _is_local and not from_savings:  # removable check
                 try:
                     os.listdir(_disk_path)
-                except:
+                except Exception:
                     return True
             # local route A check
             elif _is_local and not os.path.isdir(_path1):
@@ -1126,7 +1135,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             elif _is_local:
                 try:
                     os.listdir(_path1)
-                except:
+                except Exception as e:
+                    print(e)
                     return True
 
             if not os.path.isdir(_path2):  # local route B Check
@@ -1137,14 +1147,15 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             else:
                 try:
                     os.listdir(_path2)
-                except:
+                except Exception:
                     return True
 
             if _path1 == _path2 and _is_local:
                 return 'same_path_error'
             # _path1 in _path2 or _path2 in _path1  # previous way
             # not included in each other
-            elif _is_local and os.path.splitdrive(_path1)[0] == os.path.splitdrive(_path2)[0] and os.path.commonpath([_path1, _path2]) in [_path1, _path2]:
+            elif _is_local and os.path.splitdrive(_path1)[0] == os.path.splitdrive(_path2)[0] and os.path.commonpath(
+                    [_path1, _path2]) in [_path1, _path2]:
                 return 'in_path_error'
             elif not _is_local:
                 if _disk_path == os.path.splitdrive(_path2)[0]:
@@ -1152,13 +1163,13 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             return False
 
         # Check if there's anything wrong with Clean Desktop settings in the setting window
-        def get_cf_error_state(self):
+        def get_cf_error_state(self, read=False):
             cf_path_error_info = self.cf_path_error()
             if not self.cf_is_num():
                 tkinter.messagebox.showwarning(
                     'Movefile', LT_Dic.r_label_text_dic['num_warning'][lang_num])
                 return True
-            elif self.cf_has_blank():
+            elif self.cf_has_blank(read):
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=LT_Dic.r_label_text_dic['blank_warning'][lang_num])
                 return True
@@ -1257,7 +1268,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 title='Movefile', message=LT_Dic.r_label_text_dic['request_save'][lang_num]):
             set_startup_and_save(booleanvar, have_saved)
         elif not must and booleanvar.get() and not is_startup_run.get() and \
-                tkinter.messagebox.askokcancel(title='Movefile', message=LT_Dic.r_label_text_dic['suggest_save'][lang_num]):
+                tkinter.messagebox.askokcancel(title='Movefile',
+                                               message=LT_Dic.r_label_text_dic['suggest_save'][lang_num]):
             set_startup_and_save(booleanvar, have_saved)
         elif must:
             booleanvar.set(False)
@@ -1452,10 +1464,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             for file in cf_file.get(setting_name, 'pass_filename').split('|'):
                 if file != '':
                     cf_entry_keep_files.append_value(file)  # Reserved Files
-            for format in cf_file.get(setting_name, 'pass_format').split('|'):
-                if format != '':
+            for _format in cf_file.get(setting_name, 'pass_format').split('|'):
+                if _format != '':
                     cf_entry_keep_formats.append_value(
-                        format)  # Reserved Formats
+                        _format)  # Reserved Formats
             cf_entry_time.insert(0, cf_file.get(
                 setting_name, 'set_hour'))  # Retain item for...
             cf_entry_mode.set(cf_file.getint(
@@ -1466,14 +1478,14 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 setting_name, 'move_folder'))  # Move Folder
             cf_is_lnk_move.set(cf_file.getboolean(
                 setting_name, 'move_lnk'))  # Move Shortcuts
-            MF_Placer('cf')
+            MFPlacer('cf')
             cf_or_sf.set('cf')
             # Display the name of yhe setting
             current_cf_save_name.set(setting_name)
             current_save_name.set(
                 LT_Dic.r_label_text_dic['current_save_name'][lang_num] + setting_name)
             # Check if there's any error in the config
-            root_info_checker.get_cf_error_state()
+            root_info_checker.get_cf_error_state(read=True)
 
         def open_sf_saving(setting_name, try_next=False):
             sf_options = sf_read_config(setting_name)  # sf Config reader
@@ -1523,7 +1535,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             set_sf_autorun_state()
             sf_is_real_time.set(sf_options['real_time'])
             set_sf_real_time_state()
-            MF_Placer('sf', place_mode)  # place the widgets
+            MFPlacer('sf', place_mode)  # place the widgets
             cf_or_sf.set('sf')
             current_sf_save_name.set(setting_name)
             current_save_name.set(
@@ -1535,7 +1547,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         def refresh_saving():
             nonlocal new_values
             try:
-                last_saving_data, cf_save_names, sf_save_names = list_saving_data()
+                last_save_data, cf_save_names, sf_save_names = list_saving_data()
                 if read_mode_entry.get() in LT_Dic.r_label_text_dic['read_mode_entry_s'][0]:
                     new_values = cf_save_names
                     read_name_entry['value'] = new_values
@@ -1546,10 +1558,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     new_values = []
                 if read_name_entry.get() not in new_values:
                     read_name_entry.current(0)
-            except:
+            except Exception:
                 pass
 
-        def execute_del(cfg_path: str, cur_label_var: StringVar, del_mode, del_mode_full, del_name, read_saving_method: Callable):
+        def execute_del(cfg_path: str, cur_label_var: StringVar, del_mode, del_mode_full, del_name,
+                        read_saving_method: Callable):
             cfg = configparser.ConfigParser()
             cfg.read(cfg_path, encoding='utf-8')
             cfg.remove_section(del_name)
@@ -1645,16 +1658,18 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
     def cf_operate_from_root(preview=False):  #
         src_path = cf_entry_src_path.get()  # source folder
-        dest_path = cf_entry_dest_path.get()  # destination folder
+        dst_path = cf_entry_dest_path.get()  # destination folder
         pass_file = cf_entry_keep_files.get().split('|')  # Retain items
         pass_format = cf_entry_keep_formats.get().split('|')  # Retain formats
         time_ = int(cf_entry_time.get()) * 3600  # Retain item for...
         mode = int(cf_entry_mode.get())  # Judgment criteria
         is_move_folder = cf_is_folder_move.get()  # 设置是否移动文件夹
         is_move_lnk = cf_is_lnk_move.get()
-        return cf_move_dir(root, src__path=src_path, dest__path=dest_path, pass__file=pass_file, pass__format=pass_format,
+        return cf_move_dir(root, src__path=src_path, dest__path=dst_path, pass__file=pass_file,
+                           pass__format=pass_format,
                            overdue__time=time_,
-                           check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk, preview=preview)
+                           check__mode=mode, is__move__folder=is_move_folder, is__move__lnk=is_move_lnk,
+                           preview=preview)
 
     def sf_operate_from_root(preview=False):
         if sf_place_mode.get() == 'movable':
@@ -1666,7 +1681,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         lockfolder = sf_entry_lock_folder.get().split('|')
         lockfile = sf_entry_lock_file.get().split('|')
 
-        return sf_sync_dir(master_root=root, language_number=lang_num, preview=preview, hidden=False, path_1=path1, path_2=path2, single_sync=mode == 'single', lock_file=lockfile, lock_folder=lockfolder, place_mode=sf_place_mode.get())
+        return sf_sync_dir(master_root=root, language_number=lang_num, preview=preview, hidden=False, path_1=path1,
+                           path_2=path2, single_sync=mode == 'single', lock_file=lockfile, lock_folder=lockfolder,
+                           place_mode=sf_place_mode.get())
 
     def startup_autorun():
         time.sleep(1)
@@ -1682,19 +1699,25 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             open(MF_CONFIG_PATH, "w+", encoding='utf-8'))
         lang_num = language_num(language)
         set_language(lang_num)
-        MF_Placer(cf_or_sf.get(), sf_place_mode.get())
+        MFPlacer(cf_or_sf.get(), sf_place_mode.get())
         tkinter.messagebox.showinfo(
             title='Movefile', message=LT_Dic.r_label_text_dic['change_language'][lang_num])
 
     def run_exec(mode_, preview_, operator_: Callable):
         if preview_ and not preview_placed.get():
-            MF_Placer.put_preview()
+            MFPlacer.put_preview()
         time_start = time.time()
         _result = operator_(preview=preview_)  # run
         time_end = time.time()
         time_c = time_end - time_start
+        if mode_ == 'cf':
+            text_wdg = cf_preview_text
+        elif mode_ == 'sf':
+            text_wdg = sf_preview_text
+        else:
+            assert False, "Wrong Mode"
         if preview_:
-            set_preview(result=_result, mode=mode_, time_cost=time_c)
+            set_preview(text_widget=text_wdg, result=_result, mode=mode_, time_cost=time_c)
 
     def execute_as_root(exe_preview=False):
         if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
@@ -1737,7 +1760,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 return False
         try:
             root.withdraw()
-        except:
+        except Exception:
             pass
         gvar.set('program_finished', True)
         mf_toaster.stop_notification_thread()
@@ -1779,7 +1802,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     is_desktop_shortcut.set(general_data.getboolean(
         'General', 'desktop_shortcut'))
     option_menu.add_checkbutton(
-        label=auto_update_menu_text.get(), variable=is_auto_update, command=lambda: set_auto_update(is_auto_update.get()))
+        label=auto_update_menu_text.get(), variable=is_auto_update,
+        command=lambda: set_auto_update(is_auto_update.get()))
     option_menu.add_checkbutton(label=autorun_menu_text.get(), variable=is_startup_run,
                                 command=lambda: set_startup(is_startup_run.get(), lang_num))
     option_menu.add_checkbutton(label=auto_quit_menu_text.get(), variable=auto_quit,
@@ -1793,7 +1817,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     language_menu.add_radiobutton(label='English', variable=root_language, value='English',
                                   command=lambda: change_language('English'))
 
-    help_shower = MF_Helper()
+    help_shower = MfHelper()
     help_menu = tk.Menu(main_menu, tearoff=False)
     help_menu.add_command(label=about_menu_text.get(),
                           command=help_shower.help_main)
@@ -1844,12 +1868,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     root.grid_rowconfigure(11, weight=1, minsize=0)
     # root.bind('<Button-1>'), lambda: sf_refresh_disk_list(none_disk=True)
 
-    root_info_checker = MF_Info_Checker()
+    root_info_checker = MFErrorChecker()
 
     if first_visit:
         initial_entry(set_cf_dest=True)
         cf_or_sf.set('cf')
-        MF_Placer('cf')
+        MFPlacer('cf')
         pre_cs.set('cf')
         help_shower.help_main()
         help_shower.help_before_use()
@@ -1858,10 +1882,11 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         cf_refresh_whitelist_entry()
         if cf_or_sf.get() == '':
             cf_or_sf.set('cf')
-            MF_Placer('cf')
+            MFPlacer('cf')
             pre_cs.set('cf')
 
-    set_preview(content=LT_Dic.r_label_text_dic['default_preview'][lang_num])
+    set_preview(cf_preview_text, content=LT_Dic.r_label_text_dic['default_preview'][lang_num])
+    set_preview(sf_preview_text, content=LT_Dic.r_label_text_dic['default_preview'][lang_num])
     butt_icon = Thread(target=lambda: task_menu.run(), daemon=True)
     butt_icon.start()
     background_detect = Thread(

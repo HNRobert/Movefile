@@ -5,9 +5,11 @@ from tkinter import ttk
 class Picker(ttk.Frame):
 
     def __init__(self, master=None, activebackground='#b1dcfb', values=None, entry_wid=None, activeforeground='black',
-                 selectbackground='#003eff', selectforeground='white', command=None, borderwidth=1, relief=['flat'],
+                 selectbackground='#003eff', selectforeground='white', command=None, borderwidth=1, relief=None,
                  frameheight=120):
 
+        if relief is None:
+            relief = ['flat']
         if values is None:
             values = []
         self._selected_item = None
@@ -22,16 +24,16 @@ class Picker(ttk.Frame):
         self._act_bg = activebackground
         self._act_fg = activeforeground
 
-        if not command is None:
+        if command is not None:
             self._command = command
         else:
             raise ValueError
-        
-        if not entry_wid is None:
+
+        if entry_wid is not None:
             self._entry_wid = entry_wid
         else:
             raise ValueError
-        
+
         self.index = 0
         ttk.Frame.__init__(
             self, master, borderwidth=borderwidth, height=10, relief=relief)
@@ -57,15 +59,15 @@ class Picker(ttk.Frame):
         self.canvas.config(yscrollcommand=vbar.set)
         self.dict_checkbutton = {}
         self.dict_intvar_item = {}
-        for index, item in enumerate(self._values):
-            self.dict_intvar_item[item] = tk.IntVar()
-            self.dict_checkbutton[item] = ttk.Checkbutton(frame, text=item, variable=self.dict_intvar_item[item],
-                                                          command=lambda ITEM=item: self._command(ITEM))
-            self.dict_checkbutton[item].grid(
-                row=index, column=0, sticky=tk.NSEW, padx=5)
-            self.dict_intvar_item[item].set(0)
-            if item in self._entry_wid.get().split('|'):
-                self.dict_intvar_item[item].set(1)
+        for _index, _item in enumerate(self._values):
+            self.dict_intvar_item[_item] = tk.IntVar()
+            self.dict_checkbutton[_item] = ttk.Checkbutton(frame, text=_item, variable=self.dict_intvar_item[_item],
+                                                           command=lambda item=_item: self._command(item))
+            self.dict_checkbutton[_item].grid(
+                row=_index, column=0, sticky=tk.NSEW, padx=5)
+            self.dict_intvar_item[_item].set(0)
+            if _item in self._entry_wid.get().split('|'):
+                self.dict_intvar_item[_item].set(1)
         self.canvas.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         self.canvas.bind("<MouseWheel>", self.processwheel)
         frame.bind("<MouseWheel>", self.processwheel)
@@ -92,7 +94,7 @@ class Combopicker(ttk.Entry, Picker):
         if values is None:
             values = []
         self.values = values
-        if not allname_textvariable is None:
+        if allname_textvariable is not None:
             self.allname_var = allname_textvariable
         else:
             raise ValueError
@@ -141,8 +143,8 @@ class Combopicker(ttk.Entry, Picker):
             return None
 
     @current_value.setter
-    def current_value(self, INDEX):
-        self.entry_var.set(str(self.values.index(INDEX)))
+    def current_value(self, index):
+        self.entry_var.set(str(self.values.index(index)))
 
     def change_language(self, label_name):
         self.allname_var.set(label_name)
@@ -150,10 +152,10 @@ class Combopicker(ttk.Entry, Picker):
 
     def all_selected(self, _values):
         for item in self.values[1:]:
-            if not item in _values:
+            if not (item in _values):
                 return False
         return True
-    
+
     def update_values(self, values_in):
         self.values = [self.allname_var.get()] + values_in
         previous_values = self.get().split('|')
@@ -167,13 +169,13 @@ class Combopicker(ttk.Entry, Picker):
         self.insert(0, result)
 
     def append_value(self, new_value):
-        if not new_value in self.values:
+        if not (new_value in self.values):
             self.values.append(new_value)
             self.update_values(self.values[1:])
         self.on_selected_check(new_value)
         self.hide_picker()
-    
-    def on_selected_check(self, SELECTED):
+
+    def on_selected_check(self, _selected):
         value = []
         all_name = self.allname_var.get()
         need_refresh = False
@@ -181,22 +183,22 @@ class Combopicker(ttk.Entry, Picker):
         if self.entry_var.get() != "" and self.entry_var.get() is not None:
             temp_value = self.entry_var.get()
             value = temp_value.split('|')
-        if str(SELECTED) in value:
-            if all_name == str(SELECTED):
+        if str(_selected) in value:
+            if all_name == str(_selected):
                 value.clear()  # 清空选项
                 need_refresh = True
             else:
                 if all_name in value:
                     value.remove(all_name)
                     need_refresh = True
-                value.remove(str(SELECTED))
+                value.remove(str(_selected))
                 value.sort()
         else:
-            if all_name == str(SELECTED):
+            if all_name == str(_selected):
                 value = self.values
                 need_refresh = True
             else:
-                value.append(str(SELECTED))
+                value.append(str(_selected))
                 value.sort()
                 if self.all_selected(value):
                     value = self.values
@@ -208,7 +210,7 @@ class Combopicker(ttk.Entry, Picker):
             temp_value += str(item)
         self.entry_var.set(temp_value)
         if all_name in self.entry_var.get().split('|'):
-            self.show_var.set(self.entry_var.get()[len(all_name)+1:])
+            self.show_var.set(self.entry_var.get()[len(all_name) + 1:])
         else:
             self.show_var.set(self.entry_var.get())
         # 全选刷新

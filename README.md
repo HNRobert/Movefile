@@ -1,8 +1,8 @@
-# Movefile Instruction
+# Movefile Instructions
 
- [*English*](#english)  [*中文*](#movefile-中文说明)
+[*English*](#english)  [*中文*](#movefile-中文说明)
 
- [Update Log](#update-log---更新日志)
+[Update Log](#update-log---更新日志)
 
 _________
 
@@ -22,9 +22,9 @@ If you have any suggestions on improving the function or ui, you can contact the
 
 #### About Compatibility
 
-***This software only supports 64bit Windows operating system now***
+> ***This software only supports 64bit Windows operating system now***
 
-**Note: The notification module used in this program is a modified win10toast. The modified version adds thread pool and notification queue management functions to improve notification display logic*
+*The notification module used in this program is a modified win10toast. The modified version adds thread pool and notification queue management functions to improve notification display logic*
 
 #### Precautions before use
 
@@ -59,10 +59,10 @@ This program can transfer files in a folder that have not been modified or acces
 - Selecting the source folder (default desktop)
 - Selecting the destination to place files, or fill nothing in order to remove these files
 - Setting the expiration time
-- Retaining a item for certain time, and setting when to start counting the retaining time (according to the latest accessed/modified time)
+- Retaining an item for certain time, and setting when to start counting the retaining time (according to the latest accessed/modified time)
 - Deciding whether to move the folders and shortcuts
 - Selecting the files to reserve
-- Selecting the reserved file format  
+- Selecting the reserved file format
 - Start cleaning automatically after startup once a day
 
 #### Detailed explanation
@@ -158,9 +158,9 @@ _________
 
 #### 兼容性说明
 
-***本软件目前仅支持 64位 Windows 操作系统下使用***
+> ***本软件目前仅支持 64位 Windows 操作系统下使用***
 
-**注意：本程序使用的通知模组是魔改过的 win10toast，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑*
+*注意：本程序使用的通知模组是魔改过的 win10toast，更改后的版本添加线程池与通知队列管理功能，改进通知显示逻辑*
 
 #### 使用前特别注意事项
 
@@ -171,10 +171,10 @@ _________
    系统/通知和操作/通知/
    “获取来自应用和其他发送者的通知” 选项，
    否则会影响操作结果通知功能
-  
+
 3. 如果经过版本新后软件无法运行，
    可以尝试删除位于Roaming文件夹中的配置文件
-  
+
 4. 若有其他原因导致软件功能无法正常运行，
    且无法按上面的解释修复，
    请联系作者,我会尽快尝试帮你修复
@@ -405,33 +405,41 @@ Movefile v2.3.5
 
 21:40 2023/12/6
 Movefile v2.3.6
-Update Content:
+Updated Content:
 Enhanced error capture capability
-Add exit button on menu
+Exit button on menu added
 Optimized structure and logic
 Bugs Fixed, More stable
 
 17:20 2023/12/12
 Movefile v2.3.7
-Update Content:
+Updated Content:
 More stable ComBoPicker
 Syncfile Lockfolder function fixed
 Startup autorun function fixed
 Current config label upgraded
-Translation complement
+Label translating complement
 Saving & Reading improvement
 
 15:40 2024/1/30
 Movefile v3.0.0
-Update Content:
-Update UI & Label
-Add Real-time syncing function
-Action Preview function
-Hidden removable disk syncing function
-Online check update function
-Quit after autorun option
-Visible Logging function
+Updated Content:
+Updated UI & Label
+Real-time syncing function added
+Action Preview function added
+Hidden removable disk syncing function added
+Online check update function added
+Quit after autorun option added
+Visible Logging function added
 More efficient Syncfile scanning & copying
-General Reconfiguration
+General Refactoring
 More stable daily use, bugs fixed
+
+20:45 2024/3/1
+Movefile V3.0.1
+Updated content:
+The disappearance of color on preview text when switching modes is fixed
+When the dest is blank in a Clean Desktop saving, error prompt won't show up when reading it 
+Some refactorings applied
+
 ```
