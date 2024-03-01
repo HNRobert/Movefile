@@ -246,8 +246,7 @@ def sf_show_config_error(config_name, language_number):
     mf_toaster.show_toast(sf_notice_title,
                           sf_notice_content,
                           icon_path=MF_ICON_PATH,
-                          duration=10,
-                          threaded=False)
+                          duration=10)
     mf_log("\n" + sf_notice_title + "\n" + sf_notice_content)
 
 
@@ -264,8 +263,7 @@ def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movabl
     mf_toaster.show_toast(sf_notice_title,
                           sf_notice_content,
                           icon_path=MF_ICON_PATH,
-                          duration=10,
-                          threaded=False)
+                          duration=10)
 
     if len(sf_error_name):
         sf_error_title = LT_Dic.sfdic["errtitle"][language_number]
@@ -275,8 +273,7 @@ def sf_show_notice(path_1, path_2, sf_error_name, language_number, direct_movabl
         mf_toaster.show_toast(sf_error_title,
                               sf_error_content,
                               icon_path=MF_ICON_PATH,
-                              duration=10,
-                              threaded=False)
+                              duration=10)
 
 
 def sf_autorun_operation(master, place, mv_saving_name: str = ''):

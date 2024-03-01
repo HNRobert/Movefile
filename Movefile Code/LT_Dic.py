@@ -104,8 +104,8 @@ r_label_text_dic = {
     # Warnings & Tips
     'num_warning': ['警告：请在时间设定栏内输入数字',
                     'Warning: Please enter a number in the time setting field'],
-    'blank_warning': ['警告：请填写所有非选填项目',
-                      'Warning: Please fill all the blanks not optional'],
+    'blank_warning': ['警告：请填写所有必填项目',
+                      'Warning: Please fill all the required blanks'],
     'path_warning': ['警告：请填输入有效路径！（建议使用浏览）',
                      'Warning: Please input a path that exists (Browse suggested)'],
     'same_path_warning': ['警告：请输入两个不一样的路径！', 'Warning：Please input two different paths！'],
@@ -151,7 +151,7 @@ cfdic = {
     'preview_src': ['源路径: ', 'Source: '],
     'preview_dest': ['移动到: ', 'Destination: '],
     'preview_item': ['下面的项目将被移动: ⬇', 'The following items would be moved: ⬇'],
-    'preview_no_item': ['该设置下将没有项目被移动。', 'No item would be moved according to the settings above.']
+    'preview_no_item': ['该设置下没有项目将被移动。', 'No item would be moved according to the settings above.']
 }
 
 sfdic = {

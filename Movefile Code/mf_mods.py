@@ -425,6 +425,4 @@ def scan_items(folder_path):  # 扫描路径下所有文件夹
         files = [dI.path for dI in os.scandir(folder) if dI.is_file()]
         # 如上只生成本文件夹内 文件的路径
         file_store.extend(files)  # 存储上面文件路径
-    for i in range(len(file_store)):
-        file_store[i] = file_store[i][len(folder_path):]  # 返回相对位置
     return folder_store, file_store

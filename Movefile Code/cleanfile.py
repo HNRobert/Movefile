@@ -52,7 +52,7 @@ def cf_move_dir(master__root, src__path, dest__path, pass__file: list, pass__for
             del_data = scan_items(path)  # 扫描文件夹里所有子文件夹和文件
             for dfile in del_data[1]:
                 try:
-                    os.remove(os.path.join(path, dfile))
+                    os.remove(dfile)
                 except Exception as e:
                     print(e)
                     error_files += dfile + ',  '  # 这样还可以返回文件夹里无法移动的单个文件
@@ -180,16 +180,14 @@ def cf_show_notice(src_path, dest_path, move_name, error_name, lang_num):
         mf_log("\n" + notice_title + "\n" + move_name[:-3])
         mf_toaster.show_toast(notice_title, move_name[:-3],
                               icon_path=mf_icon_path,
-                              duration=10,
-                              threaded=False)
+                              duration=10)
     else:
         notice_title = src_folder + LT_Dic.cfdic['cltitle'][lang_num]
         notice_content = LT_Dic.cfdic['clcontent'][lang_num]
         mf_log("\n" + notice_title + "\n" + notice_content)
         mf_toaster.show_toast(notice_title, notice_content,
                               icon_path=mf_icon_path,
-                              duration=10,
-                              threaded=False)
+                              duration=10)
     if len(error_name) > 0:
         notice_title = LT_Dic.cfdic['errtitle'][lang_num]
         notice_content = error_name[:-3] + \
@@ -197,8 +195,7 @@ def cf_show_notice(src_path, dest_path, move_name, error_name, lang_num):
         mf_log("\n" + notice_title + "\n" + notice_content)
         mf_toaster.show_toast(notice_title, notice_content,
                               icon_path=mf_icon_path,
-                              duration=10,
-                              threaded=False)
+                              duration=10)
 
 
 def fixed_cf_config(cf_config_file: configparser.ConfigParser, saving_name: str):

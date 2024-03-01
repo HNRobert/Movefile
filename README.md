@@ -272,9 +272,7 @@ _________
 
 ## 特别鸣谢
 
-本程序中的多选下拉列表框组件代码改编自CSDN博主 **只为你开心** 的 **Python tkinter自定义多选下拉列表框(带滚动条、全选)**
-
-（ <https://blog.csdn.net/weixin_45774074/article/details/123293411> ）
+本程序中的多选下拉列表框组件代码改编自CSDN博主 **只为你开心** 的 [**Python tkinter自定义多选下拉列表框(带滚动条、全选)**](https://blog.csdn.net/weixin_45774074/article/details/123293411)
 
 Syncfile的文件夹比对函数由Stack Exchange的答主们提示，效率以得到提升；一些逻辑和代码结构的改进也要感谢他们
 
@@ -282,12 +280,13 @@ _________
 
 ## Update log - 更新日志
 
-```log
-0:19 2022/12/30
+<details>
+  <summary>Previous</summary>
+  <pre><code>0:19 2022/12/30
 Movefile v1.2.2
 更新内容：
 修复了一些bug
-
+<br>
 1:04 2023/1/2
 Movefile v1.3.0
 更新内容：
@@ -296,14 +295,14 @@ Movefile v1.3.0
 更改格式白名单的设置，使其与文件白名单内文件格式同步
 更强悍的性能
 修复了一些bug
-
+<br>
 22:35 2023/1/3
 Movefile v1.3.1
 更新内容：
 更改配置文件的保存地址至用户文件夹\AppData\Roaming\Movefile
 修复了用户文件夹名称与用户名称不同时无法运行的bug
 更改设定为无法将目录内文件夹移动，后续将完善目录内文件夹的移动的功能
-
+<br>
 4:05 2023/1/12
 Movefile v1.4.0
 更新内容：
@@ -312,30 +311,30 @@ Movefile v1.4.0
 更改了一些繁琐的名称，
 修复了多选下拉列表框中“全选”进入输入框的bug
 修复了其他一些逻辑bug
-
+<br>
 9:20 2023/1/12
 Movefile v1.4.1
 更新内容：改善代码语法，改进一些逻辑
-
+<br>
 14:30 2023/1/12
 Movefile v1.4.2
 更新内容：修复了文件夹移动的bug
-
+<br>
 1:00 2023/1/14
 Movefile v1.4.3
 更新内容：修复了一些漏洞，开启 Syncfile 项目
-
+<br>
 3:14 2023/1/27
 Movefile v2.0.0
 更新内容：
 新增加Syncfile功能，可以同步文件
 自动识别可移动磁盘，同步文件
 修复了很多bug
-
+<br>
 3:00 2023/1/28
 Movefile v2.0.1
 更新内容：修复了一些初始化的Bug
-
+<br>
 20:46 2023/2/9
 Movefile v2.1.0
 更新内容：
@@ -343,26 +342,26 @@ Movefile v2.1.0
 优化代码结构和多线程
 优化文件同步进度条
 修复了一些Bug
-
+<br>
 23:58 2023/4/27
 Movefile v2.2.0
 更新内容：
 修复了闪退的bug
 优化逻辑，添加锁定文件夹/文件功能
-
+<br>
 20:50 2023/4/28
 Movefile v2.2.1
 更新内容：
 修复了删除存档后的闪退问题
 添加新文件夹选择限制，包括不能有包含关系等
-
+<br>
 23:30 2023/5/7
 Movefile v2.3.0
 更新内容：
 改进Cleanfile逻辑，遇到重名文件将覆盖
 Cleanfile的新目录框若不填写可将文件删除
 添加一些标签的双语版本
-
+<br>
 2:39 2023/8/19
 Movefile v2.3.1
 更新内容：
@@ -374,20 +373,20 @@ Movefile v2.3.1
 修复win10toast模块的内置bug，采用队列推送消息；
 优化代码结构；
 修复开机自启无法自动运行的Bug；
-
+<br>
 18:48 2023/8/21
 Movefile v2.3.2
 更新内容：
 改进开机自启的逻辑，优化了一些翻译
 修复了其他一些bug
-
+<br>
 21:06 2023/11/24
 Movefile v2.3.3
 更新内容：
 彻底修复开机自启无法自动运行的Bug，
 添加logging功能，
 使所有执行的操作被记录在Roaming/Movefile/Movefile.log中
-
+<br>
 21:18 2023/11/30
 Movefile v2.3.4
 更新内容：
@@ -395,14 +394,14 @@ Movefile v2.3.4
 修复Syncfile功能磁盘同步的路径问题
 将开始菜单快捷方式添加功能改为添加桌面快捷方式
 修复其他一些小bug，完善logging与import
-
+<br>
 16:30 2023/12/3
 Movefile v2.3.5
 更新内容：
 开机自启时提前隐藏窗口使其彻底不会被显示（而不是闪一下）
 修复Syncfile同步时会忽略一些缓存文件的问题
 修复其他一些小Bug，完善安装包
-
+<br>
 21:40 2023/12/6
 Movefile v2.3.6
 Updated Content:
@@ -410,7 +409,7 @@ Enhanced error capture capability
 Exit button on menu added
 Optimized structure and logic
 Bugs Fixed, More stable
-
+<br>
 17:20 2023/12/12
 Movefile v2.3.7
 Updated Content:
@@ -420,7 +419,7 @@ Startup autorun function fixed
 Current config label upgraded
 Label translating complement
 Saving & Reading improvement
-
+<br>
 15:40 2024/1/30
 Movefile v3.0.0
 Updated Content:
@@ -433,13 +432,17 @@ Quit after autorun option added
 Visible Logging function added
 More efficient Syncfile scanning & copying
 General Refactoring
-More stable daily use, bugs fixed
+More stable daily use, bugs fixed</code></pre>
+</details>
 
+### Latest
+
+```log
 20:45 2024/3/1
 Movefile V3.0.1
 Updated content:
 The disappearance of color on preview text when switching modes is fixed
 When the dest is blank in a Clean Desktop saving, error prompt won't show up when reading it 
+The problem that the folder with same name can't be replaced in the target when cleaning desktop is fixed 
 Some refactorings applied
-
 ```

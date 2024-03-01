@@ -972,7 +972,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     sf_is_direct_sync = tk.BooleanVar()
     sf_option_direct_sync = ttk.Checkbutton(root,
                                             textvariable=sf_option_direct_sync_text,
-                                            variable=sf_is_direct_sync)
+                                            variable=sf_is_direct_sync,
+                                            state=tk.DISABLED)
     sf_is_real_time = tk.BooleanVar()
     sf_option_real_time = ttk.Checkbutton(root,
                                           textvariable=sf_option_real_time_text,
@@ -1052,29 +1053,47 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             try:
                 float(cf_entry_time.get())
             except Exception:
+                cf_label_time.config(foreground="red")
                 return False
             else:
+                cf_label_time.config(foreground="black")
                 return True
 
         @staticmethod
         def cf_has_blank(read):
+            has_blk = False
             if not cf_entry_src_path.get():
-                return True
-            if not cf_entry_dest_path.get() and (read or not tkinter.messagebox.askyesno(title="Movefile",
-                                                                                         message=LT_Dic.r_label_text_dic[
-                                                                                             "dest_path_blank_notice"][
-                                                                                             lang_num])):
-                return True
+                cf_label_src_path.config(foreground="red")
+                has_blk = True
+            else:
+                cf_label_src_path.config(foreground="black")
+            if not (cf_entry_dest_path.get() or read or tkinter.messagebox.askyesno(title="Movefile",
+                                                                                    message=
+                                                                                    LT_Dic.r_label_text_dic[
+                                                                                        "dest_path_blank_notice"][
+                                                                                        lang_num])):
+                cf_label_dest_path.config(foreground="red")
+                has_blk = True
+            else:
+                cf_label_dest_path.config(foreground="black")
             if not cf_entry_time.get():
-                return True
+                cf_label_time.config(foreground="red")
+                has_blk = True
+            else:
+                cf_label_time.config(foreground="black")
             if not cf_entry_mode.get():
-                return True
-            return False
+                cf_label_expire_options.config(foreground="red")
+                has_blk = True
+            else:
+                cf_label_expire_options.config(foreground="black")
+            return has_blk
 
         @staticmethod
         def try_create_path(noexist_path):
             if tkinter.messagebox.askokcancel(title="Movefile",
-                                              message=LT_Dic.r_label_text_dic["path_not_exist_notice"][lang_num] + noexist_path + LT_Dic.r_label_text_dic["create_path_notice"][lang_num]):
+                                              message=LT_Dic.r_label_text_dic["path_not_exist_notice"][
+                                                          lang_num] + noexist_path +
+                                                    LT_Dic.r_label_text_dic["create_path_notice"][lang_num]):
                 try:
                     os.makedirs(noexist_path)
                 except Exception:
@@ -1089,28 +1108,38 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 if cf_entry_dest_path.get() == '':
                     return False
                 if cf_entry_src_path.get() == cf_entry_dest_path.get():
+                    cf_label_src_path.config(foreground="red")
+                    cf_label_dest_path.config(foreground="red")
                     return 'same_path_error'
                 if not os.path.isdir(cf_entry_dest_path.get()):
                     return self.try_create_path(cf_entry_dest_path.get())
                 os.listdir(cf_entry_dest_path.get())
             except Exception:
+                cf_label_src_path.config(foreground="red")
+                cf_label_dest_path.config(foreground="red")
                 return True
             else:
+                cf_label_src_path.config(foreground="black")
+                cf_label_dest_path.config(foreground="black")
                 return False
 
         @staticmethod
         def sf_has_blank():  # Check if there's a blank
-            blank_entry_num = 0
+            has_blk = False
             if sf_place_mode.get() == 'movable' and len(sf_entry_select_removable.get()) == 0:
-                blank_entry_num += 1
+                sf_label_path_1.config(foreground="red")
+                has_blk = True
             elif sf_place_mode.get() == 'local' and len(sf_entry_path_1.get()) == 0:
-                blank_entry_num += 1
-            elif len(sf_entry_path_2.get()) == 0:
-                blank_entry_num += 1
-            if blank_entry_num == 0:
-                return False
+                sf_label_path_1.config(foreground="red")
+                has_blk = True
             else:
-                return True
+                sf_label_path_1.config(foreground="black")
+            if len(sf_entry_path_2.get()) == 0:
+                sf_label_path_2.config(foreground="red")
+                has_blk = True
+            else:
+                sf_label_path_2.config(foreground="black")
+            return has_blk
 
         def sf_path_error(self, from_savings=False):
             has_cancelled = False
@@ -1125,7 +1154,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 try:
                     os.listdir(_disk_path)
                 except Exception:
+                    sf_label_path_1.config(foreground="red")
                     return True
+                else:
+                    sf_label_path_1.config(foreground="black")
             # local route A check
             elif _is_local and not os.path.isdir(_path1):
                 result = self.try_create_path(_path1)
@@ -1137,7 +1169,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     os.listdir(_path1)
                 except Exception as e:
                     print(e)
+                    sf_label_path_1.config(foreground="red")
                     return True
+                else:
+                    sf_label_path_1.config(foreground="black")
 
             if not os.path.isdir(_path2):  # local route B Check
                 result = self.try_create_path(_path2)
@@ -1148,23 +1183,38 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 try:
                     os.listdir(_path2)
                 except Exception:
+                    sf_label_path_2.config(foreground="red")
                     return True
+                else:
+                    sf_label_path_2.config(foreground="black")
+            if has_cancelled:
+                return None
 
             if _path1 == _path2 and _is_local:
+                sf_label_path_1.config(foreground="red")
+                sf_label_path_2.config(foreground="red")
                 return 'same_path_error'
             # _path1 in _path2 or _path2 in _path1  # previous way
             # not included in each other
             elif _is_local and os.path.splitdrive(_path1)[0] == os.path.splitdrive(_path2)[0] and os.path.commonpath(
                     [_path1, _path2]) in [_path1, _path2]:
+                sf_label_path_1.config(foreground="red")
+                sf_label_path_2.config(foreground="red")
+                print("1")
                 return 'in_path_error'
             elif not _is_local:
                 if _disk_path == os.path.splitdrive(_path2)[0]:
+                    sf_label_path_1.config(foreground="red")
+                    sf_label_path_2.config(foreground="red")
                     return 'in_disk_path_error'
+            sf_label_path_1.config(foreground="black")
+            sf_label_path_2.config(foreground="black")
             return False
 
         # Check if there's anything wrong with Clean Desktop settings in the setting window
         def get_cf_error_state(self, read=False):
-            cf_path_error_info = self.cf_path_error()
+            source_path.set(source_path.get().rstrip("\\"))
+            dest_path.set(dest_path.get().rstrip("\\"))
             if not self.cf_is_num():
                 tkinter.messagebox.showwarning(
                     'Movefile', LT_Dic.r_label_text_dic['num_warning'][lang_num])
@@ -1173,7 +1223,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=LT_Dic.r_label_text_dic['blank_warning'][lang_num])
                 return True
-            elif cf_path_error_info == 'same_path_error':
+            cf_path_error_info = self.cf_path_error()
+            if cf_path_error_info == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=LT_Dic.r_label_text_dic['same_path_warning'][lang_num])
                 return True
@@ -1188,12 +1239,20 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         # Check if there's anything wrong with Syncfile settings in the setting window
         def get_sf_error_state(self, from_savings=False):
-            sf_path_error_info = self.sf_path_error(from_savings)
+            sf_path_1 = sf_entry_path_1.get().rstrip("\\")
+            sf_entry_path_1.delete(0, "end")
+            sf_entry_path_1.insert(0, sf_path_1)
+            sf_path_2 = sf_entry_path_2.get().rstrip("\\")
+            sf_entry_path_2.delete(0, "end")
+            sf_entry_path_2.insert(0, sf_path_2)
+
             if self.sf_has_blank():
                 tkinter.messagebox.showwarning(
                     title='Movefile', message=LT_Dic.r_label_text_dic['blank_warning'][lang_num])
                 return True
-            elif sf_path_error_info == 'same_path_error':
+
+            sf_path_error_info = self.sf_path_error(from_savings)
+            if sf_path_error_info == 'same_path_error':
                 tkinter.messagebox.showwarning(title='Movefile',
                                                message=LT_Dic.r_label_text_dic['same_path_warning'][lang_num])
                 return True
@@ -1720,7 +1779,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             set_preview(text_widget=text_wdg, result=_result, mode=mode_, time_cost=time_c)
 
     def execute_as_root(exe_preview=False):
-        if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state():
+        if cf_or_sf.get() == 'cf' and not root_info_checker.get_cf_error_state(read=exe_preview):
             run_exec('cf', exe_preview, cf_operate_from_root)
         elif cf_or_sf.get() == 'sf' and not root_info_checker.get_sf_error_state():
             run_exec('sf', exe_preview, sf_operate_from_root)

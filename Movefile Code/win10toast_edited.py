@@ -46,6 +46,7 @@ from win32gui import Shell_NotifyIcon
 from win32gui import UpdateWindow
 from win32gui import WNDCLASS
 
+
 # ############################################################################
 # ########### Classes ##############
 # ##################################
@@ -99,7 +100,7 @@ class ToastNotifier(object):
         try:
             self.classAtom = RegisterClass(self.wc)
         except:
-            pass #not sure of this
+            pass  # not sure of this
         style = WS_OVERLAPPED | WS_SYSMENU
         self.hwnd = CreateWindow(self.classAtom, "Taskbar", style,
                                  0, 0, CW_USEDEFAULT,
@@ -111,7 +112,7 @@ class ToastNotifier(object):
         if icon_path is not None:
             icon_path = path.realpath(icon_path)
         else:
-            icon_path =  resource_filename(Requirement.parse("win10toast"), "win10toast/data/python.ico")
+            icon_path = resource_filename(Requirement.parse("win10toast"), "win10toast/data/python.ico")
         icon_flags = LR_LOADFROMFILE | LR_DEFAULTSIZE
         try:
             hicon = LoadImage(self.hinst, icon_path,
@@ -138,7 +139,7 @@ class ToastNotifier(object):
         return 0
 
     def show_toast(self, title="Notification", msg="Here comes the message",
-                    icon_path=None, duration=5, threaded=False):
+                   icon_path=None, duration=5):
         """Notification settings.
 
         :title: notification title
@@ -150,8 +151,8 @@ class ToastNotifier(object):
 
     def notification_active(self):
         """See if we have an active notification showing"""
-        if self._thread != None and self._thread.is_alive():
-            # We have an active notification, let is finish we don't spam them
+        if self._thread is not None and self._thread.is_alive():
+            # We have an active notification, let it finish, we don't spam them
             return True
         return False
 
@@ -168,4 +169,3 @@ class ToastNotifier(object):
         PostQuitMessage(0)
 
         return 0
-
