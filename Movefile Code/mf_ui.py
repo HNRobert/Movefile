@@ -310,7 +310,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
             for index, line in enumerate(result):
                 _preview_line: str = (
-                        line[0] + '  →  ' + line[1]).replace(s_path, 'A').replace(d_path, 'B')
+                        line[0] + '  →  ' + line[1]).replace(s_path+"\\", 'A\\').replace(d_path+"\\", 'B\\')
                 text_widget.insert(tk.END, _preview_line + '\n')
                 text_widget.tag_add(
                     _preview_line[0], f'{index + 5}.0', f'{index + 5}.1')
@@ -1485,7 +1485,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         default file path instead, defaults to False (optional)
         """
         sf_file = configparser.ConfigParser()
-        sf_file.read(SF_CONFIG_PATH)
+        sf_file.read(SF_CONFIG_PATH, encoding='utf-8')
         new_values = []
 
         last_data, cf_configs, sf_configs = list_saving_data()

@@ -441,8 +441,11 @@ More stable daily use, bugs fixed</code></pre>
 20:45 2024/3/1
 Movefile V3.0.1
 Updated content:
-The disappearance of color on preview text when switching modes is fixed
-When the dest is blank in a Clean Desktop saving, error prompt won't show up when reading it 
-The problem that the folder with same name can't be replaced in the target when cleaning desktop is fixed 
-Some refactorings applied
+   Fixed Problems:
+      The disappearance of color on preview text when switching modes.
+      When the dest is blank in a Clean Desktop saving, error prompt won't show up when reading it.
+      The folder with same name can't be replaced in the target when cleaning desktop.
+      The path replacing error in Syncfile preview textbox that happens when the two paths are similar
+      Some configs wasn't read in utf-8 and caused problems when reading them again after saving.
+   Some refactorings applied
 ```

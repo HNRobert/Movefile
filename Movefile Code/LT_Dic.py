@@ -83,7 +83,7 @@ r_label_text_dic = {
     'preview_button': ['移动项目预览', 'Action Preview'],
     'default_preview': ['点击上方 “预览” 来检查设置，并查看该设置下哪些项目将被移动', 'Click the "Action Preview" button above\nto check the settings above and view which items will be moved'],
     'preview_cost': ['扫描耗时：', 'Scan Cost: '],
-    'preview_num_found': ['找到需要移动的项目： ', "Need-to-move Items' number： "],
+    'preview_num_found': ['扫描到需要移动的项目数： ', "Need-to-move Items' number： "],
     'preview_removal': ['直接移除', 'Remove Directly'],
     'save_button': ['保存当前配置', 'Save the config'],
     'continue_button': ['运行', 'Run'],
