@@ -1,5 +1,5 @@
-version = 'v3.0.0'
-update_time = '2024/1/30'
+version = 'v3.0.1'
+update_time = '2024/3/3'
 r_label_text_dic = {
 
     # Menu options

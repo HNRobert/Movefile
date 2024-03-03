@@ -142,7 +142,7 @@ If a file is checked, it will not be modified.
 
 _________
 
-## Movefile 中文说明
+## 中文
 
 这是一个用于**整理文件**的程序，包括了 [**Clean Desktop**](#clean-desktop-功能) 和 [**Syncfile**](#syncfile功能) 两个主要功能
 
@@ -438,7 +438,7 @@ More stable daily use, bugs fixed</code></pre>
 ### Latest
 
 ```log
-20:45 2024/3/1
+15:45 2024/3/3
 Movefile V3.0.1
 Updated content:
    Fixed Problems:
