@@ -221,7 +221,7 @@ def cf_autorun_operation(master):
     :param master: The master parameter is the root window of the application. It is the mother root to create and display the progress bar.
     """
     cf_file = configparser.ConfigParser()
-    cf_file.read(CF_CONFIG_PATH)
+    cf_file.read(CF_CONFIG_PATH, encoding='utf-8')
 
     autorun_savings = []
     for cf_name in cf_file.sections():
