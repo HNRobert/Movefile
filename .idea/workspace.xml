@@ -9,9 +9,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8b054f51-573b-4f55-8742-068886d552e0" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Movefile Code/cleanfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/cleanfile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile Code/LT_Dic.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/LT_Dic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile Code/mf_mods.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/mf_mods.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Movefile Code/mf_ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/Movefile Code/mf_ui.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -435,7 +436,8 @@
       <workItem from="1709446414746" duration="1033000" />
       <workItem from="1709447533067" duration="2000" />
       <workItem from="1710834257047" duration="867000" />
-      <workItem from="1710835186441" duration="333000" />
+      <workItem from="1710835186441" duration="5332000" />
+      <workItem from="1710854888107" duration="928000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1673579004127</created>
@@ -520,7 +522,7 @@
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Movefile_v1_4_3_pyw.coverage" NAME="Movefile v1.4.3.pyw 覆盖结果" MODIFIED="1673703576059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/File_Syncer_v1_0_0_pyw$Syncfile_Beta_pyw.coverage" NAME="Syncfile_Beta.pyw 覆盖结果" MODIFIED="1673703530914" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v2_0_0_pyw.coverage" NAME="Movefile v2.0.0.pyw 覆盖结果" MODIFIED="1674843562433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile" />
-    <SUITE FILE_PATH="coverage/Movefile$Movefile.coverage" NAME="Movefile Coverage Results" MODIFIED="1710835072174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
+    <SUITE FILE_PATH="coverage/Movefile$Movefile.coverage" NAME="Movefile Coverage Results" MODIFIED="1710855604576" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile Code" />
     <SUITE FILE_PATH="coverage/Movefile$scratch_3.coverage" NAME="scratch_3 覆盖结果" MODIFIED="1674843236809" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />
     <SUITE FILE_PATH="coverage/Movefile$Movefile_v1_4_0_pyw.coverage" NAME="Movefile v1.4.0.pyw 覆盖结果" MODIFIED="1673484111173" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Movefile v1.4.0" />
     <SUITE FILE_PATH="coverage/Movefile_v2_0_0_Beta_pyw$scratch_2.coverage" NAME="scratch_2 覆盖结果" MODIFIED="1674654839282" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$APPLICATION_CONFIG_DIR$/scratches" />

@@ -1,3 +1,5 @@
+import chardet
+import codecs
 import configparser
 import logging
 import os
@@ -57,6 +59,7 @@ class Initialization:
         self.startup_visit = self.get_startup_state()
         self.first_visit = False
         self.quit_after_autorun = False
+        check_encodings()
         self.check_data_path()
 
         self.mf_data = configparser.ConfigParser()
@@ -174,6 +177,28 @@ def set_log_writer():
                         handlers=[logging.FileHandler(
                             MF_LOG_PATH, 'a+', 'utf-8')],
                         format=formatter)
+
+
+def rewrite_config_to_utf(cfg_path, _encoding):
+    with codecs.open(cfg_path, 'r', encoding=_encoding) as file:
+        lines = file.read()
+    with codecs.open(cfg_path, 'w', encoding='utf8') as file:
+        file.write(lines)
+
+
+def correct_ecd(cfg_path):
+    if not os.path.exists(cfg_path):
+        return
+    with open(cfg_path, 'rb') as f:
+        result = chardet.detect(f.read())
+    if result['encoding'] != "utf-8":
+        rewrite_config_to_utf(cfg_path, result['encoding'])
+
+
+def check_encodings():
+    correct_ecd(MF_CONFIG_PATH)
+    correct_ecd(CF_CONFIG_PATH)
+    correct_ecd(SF_CONFIG_PATH)
 
 
 def set_auto_update(state):

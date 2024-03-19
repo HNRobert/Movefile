@@ -157,6 +157,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     general_data = configparser.ConfigParser()
     general_data.read(MF_CONFIG_PATH, encoding='utf-8')
     cf_ori_src_path = ''
+    update_checking_state = None
 
     def cf_refresh_whitelist_entry():
         """
@@ -1715,7 +1716,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
 
         initial_entry(set_cf_dest=cf_save_name == '')
 
-    def cf_operate_from_root(preview=False):  #
+    def cf_operate_from_root(preview=False):
         src_path = cf_entry_src_path.get()  # source folder
         dst_path = cf_entry_dest_path.get()  # destination folder
         pass_file = cf_entry_keep_files.get().split('|')  # Retain items
@@ -1748,7 +1749,9 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
         time.sleep(1)
         cf_autorun_operation(root)
         sf_autorun_operation(root, 'local')
-        if quit_after_autorun:
+        while update_checking_state is None:
+            time.sleep(1)
+        if quit_after_autorun and not update_checking_state:
             exit_program()
 
     def change_language(language):
@@ -1785,16 +1788,18 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             run_exec('sf', exe_preview, sf_operate_from_root)
 
     def update_checker(ask_update=False):
+        nonlocal update_checking_state
         has_newer = is_mf_need_update()
         if has_newer and tkinter.messagebox.askyesno(
-                title='Movefile', message=LT_Dic.r_label_text_dic['update_notice'][lang_num]):
+                title='Movefile', message=LT_Dic.r_label_text_dic['update_notice'][lang_num]):  # Has a newer version, and approved
+            update_checking_state = True  # if quit_after_autorun's True, then stop it from quitting
             wait_info_shower = MFInfoShower(root)
             root.withdraw()
             Thread(target=lambda: wait_info_shower.show_info(
                 "Movefile",
                 LT_Dic.r_label_text_dic['update_downloading'][lang_num]), daemon=True).start()
             new_exe_name = has_new_mf_downloaded()
-            if not new_exe_name:
+            if not new_exe_name:  # Fail to download
                 root.deiconify()
                 tkinter.messagebox.showerror(
                     title='Movefile', message=LT_Dic.r_label_text_dic['update_download_failed'][lang_num])
@@ -1803,10 +1808,12 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
             os.chdir(MF_TEMP_PATH)
             Popen([new_exe_name], shell=True,
                   creationflags=CREATE_NO_WINDOW | DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
-
-        elif not has_newer and ask_update:
+        elif not ask_update:  # Has a newer version but not approved, or no newer version, and is from auto-check
+            update_checking_state = False  # if quit_after_autorun, then the programme would quit
+        elif not has_newer and ask_update:  # No newer version, and isn't from auto-check
             tkinter.messagebox.showinfo(
                 title='Movefile', message=LT_Dic.r_label_text_dic['update_no_newer'][lang_num])
+        # else do nothing
 
     def exit_program():
         if gvar.get('sf_real_time_running'):
@@ -1898,12 +1905,10 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
     main_menu.add_cascade(label=file_menu_text.get(), menu=file_menu)
     main_menu.add_cascade(label=option_menu_text.get(), menu=option_menu)
     main_menu.add_cascade(label=language_menu_text.get(), menu=language_menu)
-    main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
     main_menu.add_command(label=log_menu_text.get(),
                           command=lambda: Thread(target=help_shower.mf_show_log, daemon=True).start())
+    main_menu.add_cascade(label=help_menu_text.get(), menu=help_menu)
 
-    # main_menu.add_command(
-    #     label=' ' * LT_Dic.r_label_text_dic['blank'][lang_num], state='disabled')
     main_menu.add_separator()
     main_menu.add_command(label=menu_hide_text.get(),
                           command=lambda: root.withdraw(), accelerator="Ctrl+H")

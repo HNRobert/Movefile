@@ -1,4 +1,4 @@
-version = 'v3.0.1'
+version = 'v3.0.2'
 update_time = '2024/3/3'
 r_label_text_dic = {
 
