@@ -1,5 +1,5 @@
 version = 'v3.0.2'
-update_time = '2024/3/3'
+update_time = '2024/3/20'
 r_label_text_dic = {
 
     # Menu options
@@ -51,7 +51,7 @@ r_label_text_dic = {
     'cf_option_mode_1': ['项目最后修改时刻', "Last Modified Moment"],
     'cf_option_mode_2': ['项目最后访问时刻', "Last Accessed Moment"],
     'cf_label_start_options': ['系统选项：', 'Boot option：'],
-    'cf_option_is_auto': ['开机自动按上方设置清理', 'Automatically clean as settings above upon Startup'],
+    'cf_option_is_auto': ['开机自动按上方设置清理 (每日一次)', 'Automatically clean as settings above upon Startup (Once a day)'],
     'cf_previous_files_init': [r'旧文件', r'Previous Files'],
 
     # Syncfile labels
@@ -70,9 +70,9 @@ r_label_text_dic = {
     'sf_label_lock_file': ['禁止覆盖文件：', 'Locked Files：'],
     'sf_browse_lockfile_button': ['添加文件', 'Add Files'],
     'sf_label_autorun': ['系统选项：', 'Boot option：'],
-    'sf_option_autorun': [['磁盘接入自动同步', '开机自动同步'],
+    'sf_option_autorun': [['磁盘接入自动同步', '开机自动同步 (每日一次)'],
                           ['Start syncing once inserted',
-                           'Automatically sync upon startup']],
+                           'Automatically sync upon startup (Once a day)']],
     'sf_option_direct_sync': ['← 不显示提示弹窗', '← Skip reminder'],
     'sf_option_real_time': ['实时同步', 'Real-time syncing'],
 

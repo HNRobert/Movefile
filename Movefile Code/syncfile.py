@@ -352,7 +352,7 @@ def get_sf_savings_with(*wants, **conditions):
 
 def get_sf_startup_savings():
     conditions = {'place_mode': 'local', 'autorun': 'True'}
-    return get_sf_savings_with(**conditions)
+    return [rt_v[0] for rt_v in get_sf_savings_with(**conditions)]
 
 
 def get_movable_autorun_infos():

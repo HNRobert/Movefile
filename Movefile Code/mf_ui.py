@@ -593,8 +593,8 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                     row=4, column=1, ipadx=3, sticky='E', padx=10)
                 sf_entry_select_removable.grid_forget()
                 sf_option_direct_sync.grid_forget()
-            temp_adjust_direction = [['W', 'E'], ['W', 'W']]
-            temp_adjust_value = [[280, 172], [130, 235]]
+            temp_adjust_direction = [['W', 'E'], ['W', 'E']]
+            temp_adjust_value = [[280, 172], [175, 190]]
             sf_option_real_time.grid(
                 row=12, column=1, padx=temp_adjust_value[mode_index][lang_num],
                 sticky=temp_adjust_direction[mode_index][lang_num])
@@ -1746,7 +1746,7 @@ def make_ui(first_visit=False, startup_visit=False, visits_today=0, quit_after_a
                            place_mode=sf_place_mode.get())
 
     def startup_autorun():
-        time.sleep(1)
+        # time.sleep(1)
         cf_autorun_operation(root)
         sf_autorun_operation(root, 'local')
         while update_checking_state is None:

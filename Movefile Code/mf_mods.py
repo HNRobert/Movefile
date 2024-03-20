@@ -218,7 +218,7 @@ def set_startup(state=True, lang_n=0):
     :param lang_n: The label of the language to show
     """
     # 将快捷方式添加到自启动目录
-    bin_path = r"Movefile.exe"
+    bin_path = sys.argv[0]
     shortcut_path = os.path.join(STARTUP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
     gen_cf = configparser.ConfigParser()
@@ -250,7 +250,7 @@ def put_desktop_shortcut(state=True, lang_n=0):
     :param lang_n: The language to set in the desc
     """
 
-    bin_path = r"Movefile.exe"
+    bin_path = sys.argv[0]
     shortcut_path = os.path.join(DESKTOP_PATH, r"Movefile.lnk")
     desc = LT_Dic.lnk_desc[lang_n]
     gen_cf = configparser.ConfigParser()

@@ -69,7 +69,7 @@ class ToastNotifier(object):
         self._notification_thread.start()
 
     def _process_notifications(self):
-        while not self._stop_notification_thread.is_set():
+        while not self._stop_notification_thread.is_set() or self._notification_queue.qsize() > 0:
             try:
                 title, msg, icon_path, duration = self._notification_queue.get(timeout=1)
                 self._show_toast(title, msg, icon_path, duration)
@@ -99,7 +99,7 @@ class ToastNotifier(object):
         self.wc.lpfnWndProc = message_map  # could also specify a wndproc.
         try:
             self.classAtom = RegisterClass(self.wc)
-        except:
+        except Exception:
             pass  # not sure of this
         style = WS_OVERLAPPED | WS_SYSMENU
         self.hwnd = CreateWindow(self.classAtom, "Taskbar", style,
